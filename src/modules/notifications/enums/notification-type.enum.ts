@@ -1,0 +1,41 @@
+// src/modules/notifications/enums/notification-type.enum.ts
+export enum NotificationType {
+    // Channel related types
+    EMAIL = 'EMAIL',
+    SMS = 'SMS',
+    PUSH = 'PUSH',
+    IN_APP = 'IN_APP',
+    WHATSAPP = 'WHATSAPP',
+    SLACK = 'SLACK',
+    WEBHOOK = 'WEBHOOK',
+
+    // Entity types
+    USER = 'USER',
+    SYSTEM = 'SYSTEM',
+    ORGANIZATION = 'ORGANIZATION',
+
+    // Department related notifications
+    DEPARTMENT_ASSIGNMENT = 'DEPARTMENT_ASSIGNMENT',
+    DEPARTMENT_UNASSIGNMENT = 'DEPARTMENT_UNASSIGNMENT',
+    DEPARTMENT_TRANSFER = 'DEPARTMENT_TRANSFER',
+    DEPARTMENT_MANAGER_ASSIGNMENT = 'DEPARTMENT_MANAGER_ASSIGNMENT',
+    DEPARTMENT_MANAGER_UNASSIGNMENT = 'DEPARTMENT_MANAGER_UNASSIGNMENT',
+
+    // Ticket related notifications
+    TICKET_ASSIGNED = 'TICKET_ASSIGNED',
+    TICKET_UNASSIGNED = 'TICKET_UNASSIGNED',
+    TICKET_UPDATED = 'TICKET_UPDATED',
+    TICKET_COMMENT = 'TICKET_COMMENT',
+    TICKET_STATUS_CHANGED = 'TICKET_STATUS_CHANGED',
+
+    // General system notifications
+    SYSTEM_ANNOUNCEMENT = 'SYSTEM_ANNOUNCEMENT',
+    TASK_REMINDER = 'TASK_REMINDER',
+
+    // User related notifications
+    USER_MENTION = 'USER_MENTION',
+    USER_INVITATION = 'USER_INVITATION',
+
+    // Custom notification
+    CUSTOM = 'CUSTOM'
+}

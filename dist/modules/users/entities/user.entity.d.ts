@@ -1,0 +1,75 @@
+import { Role } from '../enums/role.enum';
+import { Ticket } from '../../tickets/entities/ticket.entity';
+import { Message } from '../../messages/entities/message.entity';
+import { Appointment } from '../../appointments/entities/appointment.entity';
+import { Notification } from '../../notifications/entities/notification.entity';
+import { UserActivity } from './user-activity.entity';
+export declare class User {
+    id: string;
+    mobilePhone?: string;
+    organizationId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    phoneNumber?: string;
+    role: Role;
+    title?: string;
+    department?: string;
+    employeeId?: string;
+    address?: {
+        street: string;
+        city: string;
+        state: string;
+        postalCode: string;
+        country: string;
+    };
+    emergencyContact?: {
+        name: string;
+        relationship: string;
+        phone: string;
+        address?: string;
+    };
+    licenseNumber?: string;
+    specialization?: string;
+    qualifications?: string[];
+    certifications?: string[];
+    isOnCall: boolean;
+    languages?: string[];
+    requirePasswordChange: boolean;
+    preferences?: {
+        theme?: string;
+        notifications?: {
+            email?: boolean;
+            sms?: boolean;
+            inApp?: boolean;
+        };
+        timezone?: string;
+        language?: string;
+    };
+    metadata?: Record<string, any>;
+    isActive: boolean;
+    isLocked: boolean;
+    isEmailVerified: boolean;
+    isPhoneVerified: boolean;
+    lastLoginAt?: Date;
+    lastActiveAt?: Date;
+    deviceTokens?: string[];
+    avatar?: string;
+    signature?: string;
+    createdById: string;
+    updatedById?: string;
+    createdAt: Date;
+    updatedAt: Date;
+    deletedAt?: Date;
+    organization: any;
+    createdBy: Promise<User>;
+    updatedBy?: Promise<User>;
+    assignedTickets: Promise<Ticket[]>;
+    messages: Promise<Message[]>;
+    appointments: Promise<Appointment[]>;
+    notifications: Promise<Notification[]>;
+    activities: Promise<UserActivity[]>;
+    get fullName(): string;
+    get isAvailable(): boolean;
+}
