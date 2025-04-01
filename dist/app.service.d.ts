@@ -1,21 +1,12 @@
 import { ConfigService } from '@nestjs/config';
 export declare class AppService {
     private readonly configService;
-    private redis;
+    private readonly logger;
     constructor(configService: ConfigService);
     checkHealth(): Promise<{
         isHealthy: boolean;
         services: {
             database: {
-                status: string;
-                latency: number;
-                error?: undefined;
-            } | {
-                status: string;
-                error: any;
-                latency?: undefined;
-            };
-            redis: {
                 status: string;
                 latency: number;
                 error?: undefined;
@@ -62,7 +53,6 @@ export declare class AppService {
     }>;
     private checkDatabase;
     private checkDatabaseQuery;
-    private checkRedis;
     private checkQueuesMock;
     private checkMemory;
     private formatBytes;

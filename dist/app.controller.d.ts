@@ -21,15 +21,6 @@ export declare class AppController {
                 error: any;
                 latency?: undefined;
             };
-            redis: {
-                status: string;
-                latency: number;
-                error?: undefined;
-            } | {
-                status: string;
-                error: any;
-                latency?: undefined;
-            };
             queues: {
                 status: string;
                 queues: {

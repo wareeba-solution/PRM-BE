@@ -20,9 +20,7 @@ export interface AppConfig {
         level: string;
         console: boolean;
         file: boolean;
-        logDirectory: string;
     };
-    redisEnabled: boolean;
 }
 export declare const appConfigValidationSchema: Joi.ObjectSchema<any>;
 declare const _default: (() => AppConfig) & import("@nestjs/config").ConfigFactoryKeyHost<AppConfig>;

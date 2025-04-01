@@ -5,15 +5,12 @@ const PORT = process.env.PORT || 3000;
 
 console.log(`Starting application on port ${PORT}...`);
 
-// Start the application with environment variables to prevent Redis issues
+// Start the application with environment variables
 const nodeProcess = spawn('node', ['dist/main.js'], {
     env: {
         ...process.env,
         PORT: PORT,
-        REDIS_HOST: 'localhost',
-        REDIS_PORT: '6379',
-        REDIS_DISABLED: 'true',
-        NODE_OPTIONS: '--no-warnings' // Suppress Redis connection warnings
+        NODE_OPTIONS: '--no-warnings' // Keep this
     }
 });
 

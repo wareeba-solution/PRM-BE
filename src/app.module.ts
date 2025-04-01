@@ -25,7 +25,7 @@ import { DomainModule } from './modules/domain/domain.module';
 // Configuration
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
-import redisConfig from './config/redis.config';
+
 import mailConfig from './config/mail.config';
 import jwtConfig from './config/jwt.config';
 
@@ -40,7 +40,7 @@ import { ThrottlerConfigService } from './config/throttler.config';
     // Configuration
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, redisConfig, mailConfig, jwtConfig],
+      load: [appConfig, databaseConfig, mailConfig, jwtConfig],
     }),
 
     // Database - simplified configuration
