@@ -8,8 +8,11 @@
     "node_modules",
     "test",
     "dist",
-    "**/*spec.ts",
+    "**/*.spec.ts",
     "**/*.test.ts",
     "**/*.e2e-spec.ts"
+  ],
+  "include": [
+    "src/**/*" // Ensure all files in 'src' are included for compilation
   ]
 }
