@@ -1,0 +1,29 @@
+export var NotificationType;
+(function (NotificationType) {
+    NotificationType["EMAIL"] = "EMAIL";
+    NotificationType["SMS"] = "SMS";
+    NotificationType["PUSH"] = "PUSH";
+    NotificationType["IN_APP"] = "IN_APP";
+    NotificationType["WHATSAPP"] = "WHATSAPP";
+    NotificationType["SLACK"] = "SLACK";
+    NotificationType["WEBHOOK"] = "WEBHOOK";
+    NotificationType["USER"] = "USER";
+    NotificationType["SYSTEM"] = "SYSTEM";
+    NotificationType["ORGANIZATION"] = "ORGANIZATION";
+    NotificationType["DEPARTMENT_ASSIGNMENT"] = "DEPARTMENT_ASSIGNMENT";
+    NotificationType["DEPARTMENT_UNASSIGNMENT"] = "DEPARTMENT_UNASSIGNMENT";
+    NotificationType["DEPARTMENT_TRANSFER"] = "DEPARTMENT_TRANSFER";
+    NotificationType["DEPARTMENT_MANAGER_ASSIGNMENT"] = "DEPARTMENT_MANAGER_ASSIGNMENT";
+    NotificationType["DEPARTMENT_MANAGER_UNASSIGNMENT"] = "DEPARTMENT_MANAGER_UNASSIGNMENT";
+    NotificationType["TICKET_ASSIGNED"] = "TICKET_ASSIGNED";
+    NotificationType["TICKET_UNASSIGNED"] = "TICKET_UNASSIGNED";
+    NotificationType["TICKET_UPDATED"] = "TICKET_UPDATED";
+    NotificationType["TICKET_COMMENT"] = "TICKET_COMMENT";
+    NotificationType["TICKET_STATUS_CHANGED"] = "TICKET_STATUS_CHANGED";
+    NotificationType["SYSTEM_ANNOUNCEMENT"] = "SYSTEM_ANNOUNCEMENT";
+    NotificationType["TASK_REMINDER"] = "TASK_REMINDER";
+    NotificationType["USER_MENTION"] = "USER_MENTION";
+    NotificationType["USER_INVITATION"] = "USER_INVITATION";
+    NotificationType["CUSTOM"] = "CUSTOM";
+})(NotificationType || (NotificationType = {}));
+//# sourceMappingURL=notification-type.enum.js.map
