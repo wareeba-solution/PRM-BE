@@ -53,6 +53,26 @@ const fixImportPaths = (dir) => {
                     );
                 }
 
+                // Fix mail config adapter imports
+                if (file === 'mail.config.js' && filePath.includes('/config/')) {
+                    console.log(`Fixing mail config imports in ${filePath}`);
+                    content = content.replace(
+                        /from ['"]@nestjs-modules\/mailer\/dist\/adapters\/handlebars.adapter['"]/g,
+                        `from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter.js'`
+                    );
+                }
+
+                // Fix other nestjs-modules imports
+                content = content.replace(
+                    /from ['"](@nestjs-modules\/[^'"]+)['"]/g,
+                    (match, importPath) => {
+                        if (!importPath.endsWith('.js')) {
+                            return `from '${importPath}.js'`;
+                        }
+                        return match;
+                    }
+                );
+
                 // Fix all relative imports that don't have .js extension, but avoid double extensions
                 content = content.replace(
                     /from ['"]([\.\/][^'"]*?)(?!\.js['"])['"]/g,
@@ -159,6 +179,7 @@ const startApplication = () => {
     const nodeProcess = spawn('node', [
         '--experimental-modules',
         '--es-module-specifier-resolution=node',
+        '--experimental-json-modules',
         mainPath
     ], {
         env: {
@@ -167,11 +188,14 @@ const startApplication = () => {
             REDIS_DISABLED: 'true',
             REDIS_HOST: 'localhost',
             NODE_ENV: 'production',
+            // Database connection variables
             DB_HOST: process.env.DB_HOST || 'localhost',
             DB_PORT: process.env.DB_PORT || '5432',
             DB_USERNAME: process.env.DB_USERNAME || 'postgres',
             DB_PASSWORD: process.env.DB_PASSWORD || 'postgres',
-            DB_NAME: process.env.DB_NAME || 'prm_db'
+            DB_NAME: process.env.DB_NAME || 'prm_db',
+            // Disable mail for initial testing
+            MAIL_ENABLED: 'false'
         }
     });
 
