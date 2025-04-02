@@ -1,35 +1,72 @@
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 // Define port
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 console.log(`Starting application on port ${PORT}...`);
 
-// Check if we're trying to run an ES module
-let mainPath = 'dist/main.js';
+// Check for module issues
 try {
-    const mainContent = fs.readFileSync(path.join(process.cwd(), mainPath), 'utf8');
-    const isEsm = mainContent.includes('import ') || mainContent.includes('export ');
+    // Create a package.json with "type": "module" inside the dist directory
+    fs.writeFileSync(
+        path.join(process.cwd(), 'dist', 'package.json'),
+        JSON.stringify({ type: 'module' })
+    );
 
-    if (isEsm) {
-        console.log('Detected ESM syntax, setting appropriate Node options');
-        process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS || ''} --experimental-specifier-resolution=node`;
-    }
+    // Check for missing .js extensions in imports
+    console.log('Fixing import paths for ES modules...');
+    const fixImportPaths = (dir) => {
+        const files = fs.readdirSync(dir);
+        files.forEach(file => {
+            const filePath = path.join(dir, file);
+            if (fs.statSync(filePath).isDirectory()) {
+                fixImportPaths(filePath);
+                return;
+            }
+
+            if (file.endsWith('.js')) {
+                let content = fs.readFileSync(filePath, 'utf8');
+
+                // Fix imports without file extensions
+                content = content.replace(
+                    /from ['"]([^'"]+)['"]/g,
+                    (match, importPath) => {
+                        if (
+                            !importPath.endsWith('.js') &&
+                            !importPath.startsWith('./node_modules') &&
+                            !importPath.startsWith('/') &&
+                            !importPath.startsWith('http') &&
+                            importPath.indexOf('/') > -1 &&
+                            !importPath.startsWith('@')
+                        ) {
+                            return `from '${importPath}.js'`;
+                        }
+                        return match;
+                    }
+                );
+
+                fs.writeFileSync(filePath, content);
+            }
+        });
+    };
+
+    fixImportPaths(path.join(process.cwd(), 'dist'));
+    console.log('Import paths fixed.');
 } catch (err) {
-    console.warn('Could not read main.js file to check module type:', err.message);
+    console.warn('Error preparing ES modules:', err);
 }
 
 // Start the application with environment variables
-const nodeProcess = spawn('node', [mainPath], {
+const nodeProcess = spawn('node', ['--experimental-modules', 'dist/main.js'], {
     env: {
         ...process.env,
         PORT: PORT,
         REDIS_DISABLED: 'true',
         REDIS_HOST: 'localhost',
-        NODE_ENV: 'production',
-        // Add any other environment variables your app needs
+        NODE_ENV: 'production'
     }
 });
 
