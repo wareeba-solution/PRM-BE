@@ -3,6 +3,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
+import { spawn } from 'child_process';
 
 const PORT = process.env.PORT || 10000;
 
