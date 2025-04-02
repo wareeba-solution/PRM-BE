@@ -1,4 +1,4 @@
-import './build-workarounds';
+// import './build-workarounds';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
