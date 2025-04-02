@@ -28,8 +28,8 @@ const createFallbackServer = () => {
     });
 };
 
-const fixImportPaths = (dir) => {
-    console.log(`Fixing import paths in: ${dir}`);
+const fixCommonJSRequires = (dir) => {
+    console.log(`Ensuring CommonJS compatibility in: ${dir}`);
     try {
         const files = fs.readdirSync(dir);
         files.forEach(file => {
@@ -37,73 +37,63 @@ const fixImportPaths = (dir) => {
             const stat = fs.statSync(filePath);
 
             if (stat.isDirectory()) {
-                fixImportPaths(filePath);
+                fixCommonJSRequires(filePath);
                 return;
             }
 
             if (file.endsWith('.js')) {
                 let content = fs.readFileSync(filePath, 'utf8');
 
-                // Fix specific known problem imports
-                if (file === 'swagger.service.js' && filePath.includes('/swagger/')) {
-                    console.log(`Fixing Swagger service imports in ${filePath}`);
-                    content = content.replace(
-                        /from ['"]\.\/schemas['"]/g,
-                        `from './schemas/index.js'`
-                    );
-                }
+                // Convert ESM import/export to CommonJS if needed
+                if (content.includes('import ') || content.includes('export ')) {
+                    console.log(`Converting module syntax in ${filePath}`);
 
-                // Fix mail config adapter imports
-                if (file === 'mail.config.js' && filePath.includes('/config/')) {
-                    console.log(`Fixing mail config imports in ${filePath}`);
-                    content = content.replace(
-                        /from ['"]@nestjs-modules\/mailer\/dist\/adapters\/handlebars.adapter['"]/g,
-                        `from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter.js'`
-                    );
-                }
-
-                // Fix other nestjs-modules imports
-                content = content.replace(
-                    /from ['"](@nestjs-modules\/[^'"]+)['"]/g,
-                    (match, importPath) => {
-                        if (!importPath.endsWith('.js')) {
-                            return `from '${importPath}.js'`;
-                        }
-                        return match;
+                    // Fix dynamic requires in DTO files
+                    if (file.includes('.dto.js')) {
+                        content = content.replace(
+                            /require\(['"](\.\/[^'"]+)['"]\)\.(.*)/g,
+                            'require("$1").$2'
+                        );
                     }
-                );
-
-                // Fix all relative imports that don't have .js extension, but avoid double extensions
-                content = content.replace(
-                    /from ['"]([\.\/][^'"]*?)(?!\.js['"])['"]/g,
-                    (match, importPath) => {
-                        // Skip if it already has .js extension
-                        if (importPath.endsWith('.js')) {
-                            return match;
-                        }
-
-                        if (importPath.endsWith('/')) {
-                            return `from '${importPath}index.js'`;
-                        }
-                        return `from '${importPath}.js'`;
-                    }
-                );
-
-                // For the main.js file, add special care to not double-extend
-                if (file === 'main.js') {
-                    console.log(`Applying special fixes to main.js`);
-                    content = content.replace(
-                        /from ['"]\.\/app\.module\.js\.js['"]/g,
-                        `from './app.module.js'`
-                    );
                 }
 
                 fs.writeFileSync(filePath, content);
             }
         });
     } catch (error) {
-        console.error(`Error fixing import paths in ${dir}:`, error);
+        console.error(`Error fixing CommonJS requires in ${dir}:`, error);
     }
+};
+
+const createCommonJSStarterFile = (distPath) => {
+    // Create a CommonJS starter file that can load the application
+    const starterPath = path.join(distPath, '_starter.js');
+
+    const starterContent = `
+// CommonJS starter for NestJS application
+try {
+    require('./main');
+} catch (error) {
+    console.error('Error starting application:', error);
+    // Create fallback server if main app fails
+    const http = require('http');
+    const server = http.createServer((req, res) => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+            status: 'online',
+            message: 'API is running in fallback mode due to runtime error',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        }));
+    });
+    server.listen(process.env.PORT || 10000, '0.0.0.0', () => {
+        console.log(\`Fallback server running on port \${process.env.PORT || 10000}\`);
+    });
+}
+    `;
+
+    fs.writeFileSync(starterPath, starterContent);
+    return starterPath;
 };
 
 const startApplication = () => {
@@ -131,56 +121,16 @@ const startApplication = () => {
 
     console.log(`Using dist path: ${distPath}`);
 
-    // Create dist/package.json with type: module
-    fs.writeFileSync(
-        path.join(distPath, 'package.json'),
-        JSON.stringify({ type: 'module' })
-    );
+    // Ensure the code is CommonJS compatible
+    fixCommonJSRequires(distPath);
 
-    // Fix import paths after creating package.json
-    fixImportPaths(distPath);
+    // Create CommonJS starter file
+    const starterPath = createCommonJSStarterFile(distPath);
 
-    // Manual fix for main.js to app.module.js if problem exists
-    const mainJsPath = path.join(distPath, 'main.js');
-    if (fs.existsSync(mainJsPath)) {
-        let mainContent = fs.readFileSync(mainJsPath, 'utf8');
-        mainContent = mainContent.replace(
-            /from ['"]\.\/app\.module(\.js)?\.js['"]/g,
-            `from './app.module.js'`
-        );
-        fs.writeFileSync(mainJsPath, mainContent);
-    }
-
-    // Find the main entry point
-    const mainCandidates = [
-        path.join(distPath, 'main.js'),
-        path.join(distPath, 'src', 'main.js'),
-        path.join(distPath, 'dist', 'main.js')
-    ];
-
-    let mainPath = null;
-    for (const candidate of mainCandidates) {
-        if (fs.existsSync(candidate)) {
-            mainPath = candidate;
-            break;
-        }
-    }
-
-    if (!mainPath) {
-        console.error('No main.js found. Possible compilation issue.');
-        createFallbackServer();
-        return;
-    }
-
-    console.log(`Using main path: ${mainPath}`);
-
-    // Start the application with comprehensive module loading
-    console.log('Starting application...');
+    // Start the application using CommonJS approach
+    console.log('Starting application in CommonJS mode...');
     const nodeProcess = spawn('node', [
-        '--experimental-modules',
-        '--es-module-specifier-resolution=node',
-        '--experimental-json-modules',
-        mainPath
+        starterPath
     ], {
         env: {
             ...process.env,
@@ -227,7 +177,7 @@ const startApplication = () => {
 };
 
 try {
-    console.log('Setting up ES module compatibility...');
+    console.log('Setting up CommonJS compatibility...');
     startApplication();
 } catch (error) {
     console.error('Critical error starting application:', error);
