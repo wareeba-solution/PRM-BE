@@ -23,14 +23,61 @@ const createFallbackServer = () => {
     });
 };
 
+const debugFileSystem = (basePath) => {
+    console.log(`Debugging file system in: ${basePath}`);
+
+    const walkDir = (dir) => {
+        try {
+            const files = fs.readdirSync(dir);
+            files.forEach(file => {
+                const fullPath = path.join(dir, file);
+                const stat = fs.statSync(fullPath);
+
+                if (stat.isDirectory()) {
+                    console.log(`[DIR] ${fullPath}`);
+                    walkDir(fullPath);
+                } else {
+                    console.log(`[FILE] ${fullPath}`);
+                }
+            });
+        } catch (error) {
+            console.error(`Error walking directory ${dir}:`, error);
+        }
+    };
+
+    walkDir(basePath);
+};
+
 try {
     console.log('Setting up ES module compatibility...');
 
-    // Ensure dist directory exists
-    const distPath = path.join(process.cwd(), 'dist');
-    if (!fs.existsSync(distPath)) {
-        fs.mkdirSync(distPath, { recursive: true });
+    // Determine the correct dist path
+    const possibleDistPaths = [
+        path.join(process.cwd(), 'dist'),
+        path.join(process.cwd(), 'build'),
+        path.join(process.cwd(), 'out'),
+        path.join(__dirname, 'dist')
+    ];
+
+    let distPath = null;
+    for (const testPath of possibleDistPaths) {
+        if (fs.existsSync(testPath)) {
+            distPath = testPath;
+            break;
+        }
     }
+
+    if (!distPath) {
+        console.error('No dist directory found. Possible compilation issue.');
+        debugFileSystem(process.cwd());
+        createFallbackServer();
+        return;
+    }
+
+    console.log(`Using dist path: ${distPath}`);
+
+    // Debug the contents of the dist directory
+    debugFileSystem(distPath);
 
     // Create dist/package.json with type: module
     fs.writeFileSync(
@@ -38,12 +85,35 @@ try {
         JSON.stringify({ type: 'module' })
     );
 
+    // Find the main entry point
+    const mainCandidates = [
+        path.join(distPath, 'main.js'),
+        path.join(distPath, 'src', 'main.js'),
+        path.join(distPath, 'dist', 'main.js')
+    ];
+
+    let mainPath = null;
+    for (const candidate of mainCandidates) {
+        if (fs.existsSync(candidate)) {
+            mainPath = candidate;
+            break;
+        }
+    }
+
+    if (!mainPath) {
+        console.error('No main.js found. Possible compilation issue.');
+        createFallbackServer();
+        return;
+    }
+
+    console.log(`Using main path: ${mainPath}`);
+
     // Start the application with comprehensive module loading
     console.log('Starting application...');
     const nodeProcess = spawn('node', [
         '--experimental-modules',
         '--es-module-specifier-resolution=node',
-        'dist/main.js'
+        mainPath
     ], {
         env: {
             ...process.env,
