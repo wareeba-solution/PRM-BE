@@ -50,7 +50,11 @@ try {
 
     // Start the application with proper environment variables
     console.log('Starting application...');
-    const nodeProcess = spawn('node', ['--experimental-modules', 'dist/main.js'], {
+    const nodeProcess = spawn('node', [
+        '--experimental-modules',
+        '--es-module-specifier-resolution=node',
+        'dist/main.js'
+    ], {
         env: {
             ...process.env,
             PORT: PORT,
