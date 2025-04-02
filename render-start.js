@@ -69,6 +69,15 @@ const fixImportPaths = (dir) => {
             if (file.endsWith('.js')) {
                 let content = fs.readFileSync(filePath, 'utf8');
 
+                // Fix specific known problem imports
+                if (file === 'swagger.service.js' && filePath.includes('/swagger/')) {
+                    console.log(`Fixing Swagger service imports in ${filePath}`);
+                    content = content.replace(
+                        /from ['"]\.\/schemas['"]/g,
+                        `from './schemas/index.js'`
+                    );
+                }
+
                 // Fix bare imports for directories (without index.js)
                 content = content.replace(
                     /from ['"](.+?)\/([^\/'"]+)['"]/g,
@@ -125,9 +134,6 @@ const startApplication = () => {
     }
 
     console.log(`Using dist path: ${distPath}`);
-
-    // Debug the contents of the dist directory
-    debugFileSystem(distPath);
 
     // Fix import paths
     fixImportPaths(distPath);
