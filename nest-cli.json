@@ -1,34 +1,38 @@
 {
-    "$schema": "https://json.schemastore.org/nest-cli",
-    "collection": "@nestjs/schematics",
-    "sourceRoot": "src",
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": false,
+    "tsConfigPath": "tsconfig.json",
+    "plugins": [
+      {
+        "name": "@nestjs/swagger",
+        "options": {
+          "classValidatorShim": true,
+          "introspectComments": true,
+          "dtoFileNameSuffix": [".dto.ts", ".entity.ts"],
+          "controllerFileNameSuffix": [".controller.ts"]
+        }
+      }
+    ],
+    "assets": [
+      {
+        "include": "config/i18n/**/*",
+        "watchAssets": true
+      },
+      {
+        "include": "templates/**/*",
+        "watchAssets": true
+      }
+    ],
     "compilerOptions": {
-      "deleteOutDir": true,
-      "webpack": true,
-      "tsConfigPath": "tsconfig.json",
-      "plugins": [
-        {
-          "name": "@nestjs/swagger",
-          "options": {
-            "classValidatorShim": true,
-            "introspectComments": true,
-            "dtoFileNameSuffix": [".dto.ts", ".entity.ts"],
-            "controllerFileNameSuffix": [".controller.ts"]
-          }
-        }
-      ],
-      "assets": [
-        {
-          "include": "config/i18n/**/*",
-          "watchAssets": true
-        },
-        {
-          "include": "templates/**/*",
-          "watchAssets": true
-        }
-      ]
-    },
-    "generateOptions": {
-      "spec": true
+      "module": "ESNext",
+      "moduleResolution": "node"
     }
+  },
+  "generateOptions": {
+    "spec": true
   }
+}
