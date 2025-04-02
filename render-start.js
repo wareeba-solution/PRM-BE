@@ -1,6 +1,6 @@
-const { spawn } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { spawn } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 
 const PORT = process.env.PORT || 10000;
 
@@ -48,9 +48,7 @@ const debugFileSystem = (basePath) => {
     walkDir(basePath);
 };
 
-try {
-    console.log('Setting up ES module compatibility...');
-
+const startApplication = () => {
     // Determine the correct dist path
     const possibleDistPaths = [
         path.join(process.cwd(), 'dist'),
@@ -149,6 +147,11 @@ try {
             process.exit(code);
         }
     });
+};
+
+try {
+    console.log('Setting up ES module compatibility...');
+    startApplication();
 } catch (error) {
     console.error('Critical error starting application:', error);
     createFallbackServer();
