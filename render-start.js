@@ -1,6 +1,12 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import http from 'http';
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 10000;
 
@@ -8,7 +14,6 @@ console.log(`Starting application on port ${PORT}...`);
 
 const createFallbackServer = () => {
     console.log('Creating fallback HTTP server...');
-    const http = require('http');
     const server = http.createServer((req, res) => {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
@@ -48,6 +53,53 @@ const debugFileSystem = (basePath) => {
     walkDir(basePath);
 };
 
+const fixImportPaths = (dir) => {
+    console.log(`Fixing import paths in: ${dir}`);
+    try {
+        const files = fs.readdirSync(dir);
+        files.forEach(file => {
+            const filePath = path.join(dir, file);
+            const stat = fs.statSync(filePath);
+
+            if (stat.isDirectory()) {
+                fixImportPaths(filePath);
+                return;
+            }
+
+            if (file.endsWith('.js')) {
+                let content = fs.readFileSync(filePath, 'utf8');
+
+                // Fix bare imports for directories (without index.js)
+                content = content.replace(
+                    /from ['"](.+?)\/([^\/'"]+)['"]/g,
+                    (match, importPath, lastPart) => {
+                        const fullImportPath = path.join(path.dirname(filePath), importPath, lastPart);
+                        if (fs.existsSync(fullImportPath) && fs.statSync(fullImportPath).isDirectory()) {
+                            return `from '${importPath}/${lastPart}/index.js'`;
+                        }
+                        return match;
+                    }
+                );
+
+                // Add .js extension to all relative imports that don't have it
+                content = content.replace(
+                    /from ['"]([\.\/][^'"]*?)(?!\.js['"])['"]/g,
+                    (match, importPath) => {
+                        if (importPath.endsWith('/')) {
+                            return `from '${importPath}index.js'`;
+                        }
+                        return `from '${importPath}.js'`;
+                    }
+                );
+
+                fs.writeFileSync(filePath, content);
+            }
+        });
+    } catch (error) {
+        console.error(`Error fixing import paths in ${dir}:`, error);
+    }
+};
+
 const startApplication = () => {
     // Determine the correct dist path
     const possibleDistPaths = [
@@ -76,6 +128,9 @@ const startApplication = () => {
 
     // Debug the contents of the dist directory
     debugFileSystem(distPath);
+
+    // Fix import paths
+    fixImportPaths(distPath);
 
     // Create dist/package.json with type: module
     fs.writeFileSync(
