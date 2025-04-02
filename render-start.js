@@ -2,12 +2,10 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// Define port
 const PORT = process.env.PORT || 10000;
 
 console.log(`Starting application on port ${PORT}...`);
 
-// Create a simple HTTP server fallback
 const createFallbackServer = () => {
     console.log('Creating fallback HTTP server...');
     const http = require('http');
@@ -25,30 +23,22 @@ const createFallbackServer = () => {
     });
 };
 
-// Try to fix ES module issues
 try {
     console.log('Setting up ES module compatibility...');
 
+    // Ensure dist directory exists
+    const distPath = path.join(process.cwd(), 'dist');
+    if (!fs.existsSync(distPath)) {
+        fs.mkdirSync(distPath, { recursive: true });
+    }
+
     // Create dist/package.json with type: module
     fs.writeFileSync(
-        path.join(process.cwd(), 'dist', 'package.json'),
+        path.join(distPath, 'package.json'),
         JSON.stringify({ type: 'module' })
     );
 
-    // Check if schemas.js exists, and create it if not
-    const schemasPath = path.join(process.cwd(), 'dist', 'swagger', 'schemas.js');
-    const swaggerDir = path.dirname(schemasPath);
-
-    if (!fs.existsSync(swaggerDir)) {
-        fs.mkdirSync(swaggerDir, { recursive: true });
-    }
-
-    if (!fs.existsSync(schemasPath)) {
-        console.log('Creating missing schemas.js file...');
-        fs.writeFileSync(schemasPath, 'export default {};');
-    }
-
-    // Start the application with proper environment variables
+    // Start the application with comprehensive module loading
     console.log('Starting application...');
     const nodeProcess = spawn('node', [
         '--experimental-modules',
@@ -73,6 +63,12 @@ try {
         process.stderr.write(data);
     });
 
+    // Improved error handling
+    nodeProcess.on('error', (err) => {
+        console.error('Failed to start application:', err);
+        createFallbackServer();
+    });
+
     // If the process fails to start, fall back to a simple HTTP server
     nodeProcess.on('close', (code) => {
         if (code !== 0) {
@@ -84,6 +80,6 @@ try {
         }
     });
 } catch (error) {
-    console.error('Error starting application:', error);
+    console.error('Critical error starting application:', error);
     createFallbackServer();
 }
