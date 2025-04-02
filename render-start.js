@@ -28,31 +28,6 @@ const createFallbackServer = () => {
     });
 };
 
-const debugFileSystem = (basePath) => {
-    console.log(`Debugging file system in: ${basePath}`);
-
-    const walkDir = (dir) => {
-        try {
-            const files = fs.readdirSync(dir);
-            files.forEach(file => {
-                const fullPath = path.join(dir, file);
-                const stat = fs.statSync(fullPath);
-
-                if (stat.isDirectory()) {
-                    console.log(`[DIR] ${fullPath}`);
-                    walkDir(fullPath);
-                } else {
-                    console.log(`[FILE] ${fullPath}`);
-                }
-            });
-        } catch (error) {
-            console.error(`Error walking directory ${dir}:`, error);
-        }
-    };
-
-    walkDir(basePath);
-};
-
 const fixImportPaths = (dir) => {
     console.log(`Fixing import paths in: ${dir}`);
     try {
@@ -78,28 +53,30 @@ const fixImportPaths = (dir) => {
                     );
                 }
 
-                // Fix bare imports for directories (without index.js)
-                content = content.replace(
-                    /from ['"](.+?)\/([^\/'"]+)['"]/g,
-                    (match, importPath, lastPart) => {
-                        const fullImportPath = path.join(path.dirname(filePath), importPath, lastPart);
-                        if (fs.existsSync(fullImportPath) && fs.statSync(fullImportPath).isDirectory()) {
-                            return `from '${importPath}/${lastPart}/index.js'`;
-                        }
-                        return match;
-                    }
-                );
-
-                // Add .js extension to all relative imports that don't have it
+                // Fix all relative imports that don't have .js extension, but avoid double extensions
                 content = content.replace(
                     /from ['"]([\.\/][^'"]*?)(?!\.js['"])['"]/g,
                     (match, importPath) => {
+                        // Skip if it already has .js extension
+                        if (importPath.endsWith('.js')) {
+                            return match;
+                        }
+
                         if (importPath.endsWith('/')) {
                             return `from '${importPath}index.js'`;
                         }
                         return `from '${importPath}.js'`;
                     }
                 );
+
+                // For the main.js file, add special care to not double-extend
+                if (file === 'main.js') {
+                    console.log(`Applying special fixes to main.js`);
+                    content = content.replace(
+                        /from ['"]\.\/app\.module\.js\.js['"]/g,
+                        `from './app.module.js'`
+                    );
+                }
 
                 fs.writeFileSync(filePath, content);
             }
@@ -128,21 +105,31 @@ const startApplication = () => {
 
     if (!distPath) {
         console.error('No dist directory found. Possible compilation issue.');
-        debugFileSystem(process.cwd());
         createFallbackServer();
         return;
     }
 
     console.log(`Using dist path: ${distPath}`);
 
-    // Fix import paths
-    fixImportPaths(distPath);
-
     // Create dist/package.json with type: module
     fs.writeFileSync(
         path.join(distPath, 'package.json'),
         JSON.stringify({ type: 'module' })
     );
+
+    // Fix import paths after creating package.json
+    fixImportPaths(distPath);
+
+    // Manual fix for main.js to app.module.js if problem exists
+    const mainJsPath = path.join(distPath, 'main.js');
+    if (fs.existsSync(mainJsPath)) {
+        let mainContent = fs.readFileSync(mainJsPath, 'utf8');
+        mainContent = mainContent.replace(
+            /from ['"]\.\/app\.module(\.js)?\.js['"]/g,
+            `from './app.module.js'`
+        );
+        fs.writeFileSync(mainJsPath, mainContent);
+    }
 
     // Find the main entry point
     const mainCandidates = [
@@ -179,7 +166,12 @@ const startApplication = () => {
             PORT: PORT,
             REDIS_DISABLED: 'true',
             REDIS_HOST: 'localhost',
-            NODE_ENV: 'production'
+            NODE_ENV: 'production',
+            DB_HOST: process.env.DB_HOST || 'localhost',
+            DB_PORT: process.env.DB_PORT || '5432',
+            DB_USERNAME: process.env.DB_USERNAME || 'postgres',
+            DB_PASSWORD: process.env.DB_PASSWORD || 'postgres',
+            DB_NAME: process.env.DB_NAME || 'prm_db'
         }
     });
 
