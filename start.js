@@ -1,6 +1,6 @@
 // Pure CommonJS starter script
 
-const fs = require('fs');
+import fs from 'fs';
 const path = require('path');
 const http = require('http');
 import { spawn } from 'child_process';
