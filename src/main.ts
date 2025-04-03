@@ -68,14 +68,6 @@ async function bootstrap() {
       },
     }));
 
-    // Set up Swagger
-    try {
-      swaggerService.setup(app);
-      console.log('Swagger documentation set up at /api-docs');
-    } catch (swaggerError) {
-      logger.warn('Failed to set up Swagger:', swaggerError);
-    }
-
     // Final port confirmation
     const finalPort = (() => {
       const envPort = process.env.PORT;
@@ -96,7 +88,7 @@ async function bootstrap() {
       });
     });
 
-    // Start the NestJS server
+    // Start the NestJS server first
     console.log(`Starting NestJS server on port ${finalPort}...`);
     const server = await app.listen(finalPort);
 
@@ -104,6 +96,15 @@ async function bootstrap() {
     console.log(`=============================================`);
     console.log(`NESTJS SERVER RUNNING: http://localhost:${finalPort}`);
     console.log(`=============================================`);
+
+    // Then set up Swagger after server is running
+    try {
+      swaggerService.setup(app);
+      console.log('Swagger documentation set up at /api-docs');
+    } catch (swaggerError) {
+      logger.warn('Failed to set up Swagger:', swaggerError);
+    }
+
     logger.log(`Application is running on port: ${finalPort}`);
     logger.log(`API documentation available at: /api-docs`);
 
