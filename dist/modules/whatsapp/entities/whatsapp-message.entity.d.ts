@@ -88,9 +88,24 @@ export declare class WhatsAppMessage {
     automationTriggerId: string;
     createdAt: Date;
     updatedAt: Date;
+    /**
+     * Check if message can be retried
+     */
     canRetry(): boolean;
+    /**
+     * Check if message is expired
+     */
     isExpired(): boolean;
+    /**
+     * Check if message needs to be sent now
+     */
     shouldSendNow(): boolean;
+    /**
+     * Update message status
+     */
     updateStatus(status: MessageStatus): void;
+    /**
+     * Handle retry attempt
+     */
     retry(): void;
 }

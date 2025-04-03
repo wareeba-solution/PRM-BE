@@ -1,3 +1,6 @@
+/**
+ * Whatsapp template status enum
+ */
 export declare enum WhatsappTemplateStatus {
     DRAFT = "draft",
     PENDING_APPROVAL = "pending_approval",
@@ -7,6 +10,9 @@ export declare enum WhatsappTemplateStatus {
     INACTIVE = "inactive",
     DELETED = "deleted"
 }
+/**
+ * Whatsapp template category enum
+ */
 export declare enum WhatsappTemplateCategory {
     ACCOUNT_UPDATE = "account_update",
     PAYMENT_UPDATE = "payment_update",
@@ -24,12 +30,18 @@ export declare enum WhatsappTemplateCategory {
     UTILITY = "utility",
     AUTHENTICATION = "authentication"
 }
+/**
+ * Whatsapp template component type enum
+ */
 export declare enum WhatsappTemplateComponentType {
     HEADER = "header",
     BODY = "body",
     FOOTER = "footer",
     BUTTONS = "buttons"
 }
+/**
+ * Whatsapp template header type enum
+ */
 export declare enum WhatsappTemplateHeaderType {
     TEXT = "text",
     IMAGE = "image",
@@ -37,6 +49,9 @@ export declare enum WhatsappTemplateHeaderType {
     DOCUMENT = "document",
     LOCATION = "location"
 }
+/**
+ * Whatsapp template button type enum
+ */
 export declare enum WhatsappTemplateButtonType {
     PHONE_NUMBER = "phone_number",
     URL = "url",

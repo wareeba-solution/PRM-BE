@@ -1,4 +1,7 @@
 import { DayOfWeek } from '../enums/day-of-week.enum';
+/**
+ * Interface representing a doctor's schedule
+ */
 export interface IDoctorSchedule {
     id: string;
     doctorId: string;
@@ -30,6 +33,9 @@ export interface IDoctorSchedule {
     updatedAt: Date;
     deletedAt?: Date;
 }
+/**
+ * Interface for schedule update parameters
+ */
 export interface DoctorScheduleUpdateParams {
     startTime?: string;
     endTime?: string;
@@ -53,12 +59,18 @@ export interface DoctorScheduleUpdateParams {
     metadata?: Record<string, any>;
     updatedById: string;
 }
+/**
+ * Interface for doctor availability check parameters
+ */
 export interface AvailabilityCheckParams {
     doctorId: string;
     startTime: Date;
     endTime: Date;
     organizationId: string;
 }
+/**
+ * Interface for schedule availability slot
+ */
 export interface ScheduleSlot {
     startTime: Date;
     endTime: Date;

@@ -1,8 +1,14 @@
+/**
+ * Enum for notification priorities
+ */
 export declare enum NotificationPriority {
     HIGH = "HIGH",
     MEDIUM = "MEDIUM",
     LOW = "LOW"
 }
+/**
+ * DTO for sending a notification
+ */
 export declare class SendNotificationDto {
     userId: string;
     type: string;
@@ -15,6 +21,9 @@ export declare class SendNotificationDto {
     persist?: boolean;
     scheduledFor?: Date;
 }
+/**
+ * DTO for bulk sending notifications to multiple users
+ */
 export declare class BulkSendNotificationDto {
     userIds: string[];
     type: string;

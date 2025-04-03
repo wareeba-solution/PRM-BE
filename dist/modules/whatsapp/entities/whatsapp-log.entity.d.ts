@@ -1,4 +1,7 @@
 import { WhatsappTemplate } from './whatsapp-template.entity';
+/**
+ * WhatsApp message status enum
+ */
 export declare enum WhatsappMessageStatus {
     QUEUED = "queued",
     SENDING = "sending",
@@ -10,6 +13,9 @@ export declare enum WhatsappMessageStatus {
     CANCELED = "canceled",
     EXPIRED = "expired"
 }
+/**
+ * WhatsApp message type enum
+ */
 export declare enum WhatsappMessageType {
     TEXT = "text",
     TEMPLATE = "template",
@@ -24,6 +30,9 @@ export declare enum WhatsappMessageType {
     REACTION = "reaction",
     BUTTON = "button"
 }
+/**
+ * WhatsApp media type enum
+ */
 export declare enum WhatsappMediaType {
     IMAGE = "image",
     DOCUMENT = "document",
@@ -31,6 +40,9 @@ export declare enum WhatsappMediaType {
     VIDEO = "video",
     STICKER = "sticker"
 }
+/**
+ * WhatsApp log entity
+ */
 export declare class WhatsappLog {
     id: string;
     organizationId: string;
@@ -108,10 +120,25 @@ export declare class WhatsappLog {
         mentionedContacts?: string[];
     };
     externalBusinessId?: string;
+    /**
+     * Checks if the message is in a final status
+     */
     isInFinalStatus(): boolean;
+    /**
+     * Checks if the message was successfully delivered
+     */
     isSuccessful(): boolean;
+    /**
+     * Updates the status of the WhatsApp message
+     */
     updateStatus(status: WhatsappMessageStatus, details?: Partial<WhatsappLog['deliveryDetails']>): void;
+    /**
+     * Get formatted content for display or logs
+     */
     getFormattedContent(): string;
+    /**
+     * Get the cost of the message if available
+     */
     getCost(): {
         amount: number;
         currency: string;

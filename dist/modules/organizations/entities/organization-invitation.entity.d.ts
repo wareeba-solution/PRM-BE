@@ -33,8 +33,20 @@ export declare class OrganizationInvitation {
     resendCount: number;
     createdAt: Date;
     updatedAt: Date;
+    /**
+     * Check if invitation has expired
+     */
     isExpired(): boolean;
+    /**
+     * Check if invitation can be resent
+     */
     canBeResent(): boolean;
+    /**
+     * Check if invitation can be accepted
+     */
     canBeAccepted(): boolean;
+    /**
+     * Check if invitation can be revoked
+     */
     canBeRevoked(): boolean;
 }

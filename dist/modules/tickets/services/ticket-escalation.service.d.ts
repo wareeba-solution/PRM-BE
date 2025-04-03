@@ -13,13 +13,37 @@ export declare class TicketEscalationService {
     private readonly logger;
     private readonly escalationRules;
     constructor(ticketRepository: Repository<Ticket>, activityRepository: Repository<TicketActivity>, notificationsService: NotificationsService, organizationsService: OrganizationsService, configService: ConfigService);
+    /**
+     * Check tickets for escalation
+     */
     checkTicketsForEscalation(): Promise<void>;
+    /**
+     * Get the current escalation level from the ticket's metadata or activities
+     */
     private getCurrentEscalationLevel;
+    /**
+     * Check single ticket for escalation
+     */
     private checkTicketEscalation;
+    /**
+     * Escalate a ticket to the next level
+     */
     private escalateTicket;
+    /**
+     * Send escalation notifications
+     */
     private notifyEscalation;
+    /**
+     * Get organization staff by roles (implementation depends on your OrganizationsService)
+     */
     private getOrganizationStaffByRoles;
+    /**
+     * Calculate hours elapsed since a given date
+     */
     private getHoursElapsed;
+    /**
+     * Get SLA status for a ticket
+     */
     getTicketSlaStatus(ticketId: string): Promise<{
         responseTime: {
             target: number;
@@ -32,5 +56,8 @@ export declare class TicketEscalationService {
             breached: boolean;
         };
     }>;
+    /**
+     * Check if ticket needs auto-escalation due to SLA breach
+     */
     checkSlaBreachEscalation(ticketId: string): Promise<void>;
 }

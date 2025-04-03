@@ -1,0 +1,241 @@
+"use strict";
+var __esDecorate = (this && this.__esDecorate) || function (ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
+    function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
+    var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
+    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+    var _, done = false;
+    for (var i = decorators.length - 1; i >= 0; i--) {
+        var context = {};
+        for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
+        for (var p in contextIn.access) context.access[p] = contextIn.access[p];
+        context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
+        var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
+        if (kind === "accessor") {
+            if (result === void 0) continue;
+            if (result === null || typeof result !== "object") throw new TypeError("Object expected");
+            if (_ = accept(result.get)) descriptor.get = _;
+            if (_ = accept(result.set)) descriptor.set = _;
+            if (_ = accept(result.init)) initializers.unshift(_);
+        }
+        else if (_ = accept(result)) {
+            if (kind === "field") initializers.unshift(_);
+            else descriptor[key] = _;
+        }
+    }
+    if (target) Object.defineProperty(target, contextIn.name, descriptor);
+    done = true;
+};
+var __runInitializers = (this && this.__runInitializers) || function (thisArg, initializers, value) {
+    var useValue = arguments.length > 2;
+    for (var i = 0; i < initializers.length; i++) {
+        value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
+    }
+    return useValue ? value : void 0;
+};
+var __setFunctionName = (this && this.__setFunctionName) || function (f, name, prefix) {
+    if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
+    return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.OrganizationAuditLog = void 0;
+var openapi = require("@nestjs/swagger");
+var typeorm_1 = require("typeorm");
+var organization_entity_1 = require("./organization.entity");
+var OrganizationAuditLog = function () {
+    var _classDecorators = [(0, typeorm_1.Entity)('organization_audit_logs')];
+    var _classDescriptor;
+    var _classExtraInitializers = [];
+    var _classThis;
+    var _id_decorators;
+    var _id_initializers = [];
+    var _id_extraInitializers = [];
+    var _organizationId_decorators;
+    var _organizationId_initializers = [];
+    var _organizationId_extraInitializers = [];
+    var _organization_decorators;
+    var _organization_initializers = [];
+    var _organization_extraInitializers = [];
+    var _eventType_decorators;
+    var _eventType_initializers = [];
+    var _eventType_extraInitializers = [];
+    var _data_decorators;
+    var _data_initializers = [];
+    var _data_extraInitializers = [];
+    var _performedBy_decorators;
+    var _performedBy_initializers = [];
+    var _performedBy_extraInitializers = [];
+    var _timestamp_decorators;
+    var _timestamp_initializers = [];
+    var _timestamp_extraInitializers = [];
+    var _metadata_decorators;
+    var _metadata_initializers = [];
+    var _metadata_extraInitializers = [];
+    var _ipAddress_decorators;
+    var _ipAddress_initializers = [];
+    var _ipAddress_extraInitializers = [];
+    var _userAgent_decorators;
+    var _userAgent_initializers = [];
+    var _userAgent_extraInitializers = [];
+    var _resourceType_decorators;
+    var _resourceType_initializers = [];
+    var _resourceType_extraInitializers = [];
+    var _resourceId_decorators;
+    var _resourceId_initializers = [];
+    var _resourceId_extraInitializers = [];
+    var _actionType_decorators;
+    var _actionType_initializers = [];
+    var _actionType_extraInitializers = [];
+    var _status_decorators;
+    var _status_initializers = [];
+    var _status_extraInitializers = [];
+    var _errorMessage_decorators;
+    var _errorMessage_initializers = [];
+    var _errorMessage_extraInitializers = [];
+    var _changes_decorators;
+    var _changes_initializers = [];
+    var _changes_extraInitializers = [];
+    var _tags_decorators;
+    var _tags_initializers = [];
+    var _tags_extraInitializers = [];
+    var _isSensitive_decorators;
+    var _isSensitive_initializers = [];
+    var _isSensitive_extraInitializers = [];
+    var _duration_decorators;
+    var _duration_initializers = [];
+    var _duration_extraInitializers = [];
+    var _sessionId_decorators;
+    var _sessionId_initializers = [];
+    var _sessionId_extraInitializers = [];
+    var _requestId_decorators;
+    var _requestId_initializers = [];
+    var _requestId_extraInitializers = [];
+    var _environment_decorators;
+    var _environment_initializers = [];
+    var _environment_extraInitializers = [];
+    var _version_decorators;
+    var _version_initializers = [];
+    var _version_extraInitializers = [];
+    var _performedByEmail_decorators;
+    var _performedByEmail_initializers = [];
+    var _performedByEmail_extraInitializers = [];
+    var _performedByRole_decorators;
+    var _performedByRole_initializers = [];
+    var _performedByRole_extraInitializers = [];
+    var _resourceName_decorators;
+    var _resourceName_initializers = [];
+    var _resourceName_extraInitializers = [];
+    var _retainOnDelete_decorators;
+    var _retainOnDelete_initializers = [];
+    var _retainOnDelete_extraInitializers = [];
+    var _complianceMetadata_decorators;
+    var _complianceMetadata_initializers = [];
+    var _complianceMetadata_extraInitializers = [];
+    var OrganizationAuditLog = _classThis = /** @class */ (function () {
+        function OrganizationAuditLog_1() {
+            this.id = __runInitializers(this, _id_initializers, void 0);
+            this.organizationId = (__runInitializers(this, _id_extraInitializers), __runInitializers(this, _organizationId_initializers, void 0));
+            this.organization = (__runInitializers(this, _organizationId_extraInitializers), __runInitializers(this, _organization_initializers, void 0));
+            this.eventType = (__runInitializers(this, _organization_extraInitializers), __runInitializers(this, _eventType_initializers, void 0));
+            this.data = (__runInitializers(this, _eventType_extraInitializers), __runInitializers(this, _data_initializers, void 0));
+            this.performedBy = (__runInitializers(this, _data_extraInitializers), __runInitializers(this, _performedBy_initializers, void 0));
+            this.timestamp = (__runInitializers(this, _performedBy_extraInitializers), __runInitializers(this, _timestamp_initializers, void 0));
+            this.metadata = (__runInitializers(this, _timestamp_extraInitializers), __runInitializers(this, _metadata_initializers, void 0));
+            this.ipAddress = (__runInitializers(this, _metadata_extraInitializers), __runInitializers(this, _ipAddress_initializers, void 0));
+            this.userAgent = (__runInitializers(this, _ipAddress_extraInitializers), __runInitializers(this, _userAgent_initializers, void 0));
+            this.resourceType = (__runInitializers(this, _userAgent_extraInitializers), __runInitializers(this, _resourceType_initializers, void 0));
+            this.resourceId = (__runInitializers(this, _resourceType_extraInitializers), __runInitializers(this, _resourceId_initializers, void 0));
+            this.actionType = (__runInitializers(this, _resourceId_extraInitializers), __runInitializers(this, _actionType_initializers, void 0));
+            this.status = (__runInitializers(this, _actionType_extraInitializers), __runInitializers(this, _status_initializers, void 0));
+            this.errorMessage = (__runInitializers(this, _status_extraInitializers), __runInitializers(this, _errorMessage_initializers, void 0));
+            this.changes = (__runInitializers(this, _errorMessage_extraInitializers), __runInitializers(this, _changes_initializers, void 0));
+            this.tags = (__runInitializers(this, _changes_extraInitializers), __runInitializers(this, _tags_initializers, void 0));
+            this.isSensitive = (__runInitializers(this, _tags_extraInitializers), __runInitializers(this, _isSensitive_initializers, void 0));
+            this.duration = (__runInitializers(this, _isSensitive_extraInitializers), __runInitializers(this, _duration_initializers, void 0)); // Duration of the operation in milliseconds
+            this.sessionId = (__runInitializers(this, _duration_extraInitializers), __runInitializers(this, _sessionId_initializers, void 0));
+            this.requestId = (__runInitializers(this, _sessionId_extraInitializers), __runInitializers(this, _requestId_initializers, void 0));
+            this.environment = (__runInitializers(this, _requestId_extraInitializers), __runInitializers(this, _environment_initializers, void 0));
+            this.version = (__runInitializers(this, _environment_extraInitializers), __runInitializers(this, _version_initializers, void 0));
+            // Denormalized fields for better query performance
+            this.performedByEmail = (__runInitializers(this, _version_extraInitializers), __runInitializers(this, _performedByEmail_initializers, void 0));
+            this.performedByRole = (__runInitializers(this, _performedByEmail_extraInitializers), __runInitializers(this, _performedByRole_initializers, void 0));
+            this.resourceName = (__runInitializers(this, _performedByRole_extraInitializers), __runInitializers(this, _resourceName_initializers, void 0));
+            // Optional cascade delete configuration
+            this.retainOnDelete = (__runInitializers(this, _resourceName_extraInitializers), __runInitializers(this, _retainOnDelete_initializers, void 0));
+            // Additional metadata for compliance
+            this.complianceMetadata = (__runInitializers(this, _retainOnDelete_extraInitializers), __runInitializers(this, _complianceMetadata_initializers, void 0));
+            __runInitializers(this, _complianceMetadata_extraInitializers);
+        }
+        OrganizationAuditLog_1._OPENAPI_METADATA_FACTORY = function () {
+            return { id: { required: true, type: function () { return String; } }, organizationId: { required: true, type: function () { return String; } }, organization: { required: true, type: function () { return require("./organization.entity").Organization; } }, eventType: { required: true, type: function () { return String; } }, data: { required: true, type: function () { return Object; } }, performedBy: { required: true, type: function () { return String; } }, timestamp: { required: true, type: function () { return Date; } }, metadata: { required: false, type: function () { return Object; } }, ipAddress: { required: false, type: function () { return String; } }, userAgent: { required: false, type: function () { return String; } }, resourceType: { required: false, type: function () { return String; } }, resourceId: { required: false, type: function () { return String; } }, actionType: { required: false, type: function () { return String; } }, status: { required: false, type: function () { return Object; } }, errorMessage: { required: false, type: function () { return String; } }, changes: { required: false, type: function () { return ({ before: { required: true, type: function () { return Object; } }, after: { required: true, type: function () { return Object; } } }); } }, tags: { required: false, type: function () { return [String]; } }, isSensitive: { required: true, type: function () { return Boolean; } }, duration: { required: false, type: function () { return Number; } }, sessionId: { required: false, type: function () { return String; } }, requestId: { required: false, type: function () { return String; } }, environment: { required: false, type: function () { return String; } }, version: { required: false, type: function () { return String; } }, performedByEmail: { required: false, type: function () { return String; } }, performedByRole: { required: false, type: function () { return String; } }, resourceName: { required: false, type: function () { return String; } }, retainOnDelete: { required: false, type: function () { return Boolean; } }, complianceMetadata: { required: false, type: function () { return ({ dataRetentionPeriod: { required: false, type: function () { return Number; } }, dataClassification: { required: false, type: function () { return String; } }, regulatoryRequirements: { required: false, type: function () { return [String]; } }, piiInvolved: { required: false, type: function () { return Boolean; } } }); } } };
+        };
+        return OrganizationAuditLog_1;
+    }());
+    __setFunctionName(_classThis, "OrganizationAuditLog");
+    (function () {
+        var _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+        _id_decorators = [(0, typeorm_1.PrimaryGeneratedColumn)('uuid')];
+        _organizationId_decorators = [(0, typeorm_1.Column)('uuid'), (0, typeorm_1.Index)()];
+        _organization_decorators = [(0, typeorm_1.ManyToOne)(function () { return organization_entity_1.Organization; }), (0, typeorm_1.JoinColumn)({ name: 'organizationId' })];
+        _eventType_decorators = [(0, typeorm_1.Column)(), (0, typeorm_1.Index)()];
+        _data_decorators = [(0, typeorm_1.Column)('jsonb')];
+        _performedBy_decorators = [(0, typeorm_1.Column)('uuid'), (0, typeorm_1.Index)()];
+        _timestamp_decorators = [(0, typeorm_1.CreateDateColumn)(), (0, typeorm_1.Index)()];
+        _metadata_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
+        _ipAddress_decorators = [(0, typeorm_1.Column)({ nullable: true })];
+        _userAgent_decorators = [(0, typeorm_1.Column)({ nullable: true })];
+        _resourceType_decorators = [(0, typeorm_1.Column)('varchar', { length: 50, nullable: true }), (0, typeorm_1.Index)()];
+        _resourceId_decorators = [(0, typeorm_1.Column)('uuid', { nullable: true }), (0, typeorm_1.Index)()];
+        _actionType_decorators = [(0, typeorm_1.Column)('varchar', { length: 50, nullable: true }), (0, typeorm_1.Index)()];
+        _status_decorators = [(0, typeorm_1.Column)('varchar', { length: 50, nullable: true }), (0, typeorm_1.Index)()];
+        _errorMessage_decorators = [(0, typeorm_1.Column)('text', { nullable: true })];
+        _changes_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
+        _tags_decorators = [(0, typeorm_1.Column)('text', { array: true, nullable: true })];
+        _isSensitive_decorators = [(0, typeorm_1.Column)('boolean', { default: false })];
+        _duration_decorators = [(0, typeorm_1.Column)('int', { nullable: true })];
+        _sessionId_decorators = [(0, typeorm_1.Column)('varchar', { length: 100, nullable: true })];
+        _requestId_decorators = [(0, typeorm_1.Column)('varchar', { length: 100, nullable: true })];
+        _environment_decorators = [(0, typeorm_1.Column)('varchar', { length: 50, nullable: true })];
+        _version_decorators = [(0, typeorm_1.Column)('varchar', { length: 50, nullable: true })];
+        _performedByEmail_decorators = [(0, typeorm_1.Column)('varchar', { length: 255, nullable: true }), (0, typeorm_1.Index)()];
+        _performedByRole_decorators = [(0, typeorm_1.Column)('varchar', { length: 100, nullable: true }), (0, typeorm_1.Index)()];
+        _resourceName_decorators = [(0, typeorm_1.Column)('varchar', { length: 255, nullable: true }), (0, typeorm_1.Index)()];
+        _retainOnDelete_decorators = [(0, typeorm_1.Column)('boolean', { default: false })];
+        _complianceMetadata_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
+        __esDecorate(null, null, _id_decorators, { kind: "field", name: "id", static: false, private: false, access: { has: function (obj) { return "id" in obj; }, get: function (obj) { return obj.id; }, set: function (obj, value) { obj.id = value; } }, metadata: _metadata }, _id_initializers, _id_extraInitializers);
+        __esDecorate(null, null, _organizationId_decorators, { kind: "field", name: "organizationId", static: false, private: false, access: { has: function (obj) { return "organizationId" in obj; }, get: function (obj) { return obj.organizationId; }, set: function (obj, value) { obj.organizationId = value; } }, metadata: _metadata }, _organizationId_initializers, _organizationId_extraInitializers);
+        __esDecorate(null, null, _organization_decorators, { kind: "field", name: "organization", static: false, private: false, access: { has: function (obj) { return "organization" in obj; }, get: function (obj) { return obj.organization; }, set: function (obj, value) { obj.organization = value; } }, metadata: _metadata }, _organization_initializers, _organization_extraInitializers);
+        __esDecorate(null, null, _eventType_decorators, { kind: "field", name: "eventType", static: false, private: false, access: { has: function (obj) { return "eventType" in obj; }, get: function (obj) { return obj.eventType; }, set: function (obj, value) { obj.eventType = value; } }, metadata: _metadata }, _eventType_initializers, _eventType_extraInitializers);
+        __esDecorate(null, null, _data_decorators, { kind: "field", name: "data", static: false, private: false, access: { has: function (obj) { return "data" in obj; }, get: function (obj) { return obj.data; }, set: function (obj, value) { obj.data = value; } }, metadata: _metadata }, _data_initializers, _data_extraInitializers);
+        __esDecorate(null, null, _performedBy_decorators, { kind: "field", name: "performedBy", static: false, private: false, access: { has: function (obj) { return "performedBy" in obj; }, get: function (obj) { return obj.performedBy; }, set: function (obj, value) { obj.performedBy = value; } }, metadata: _metadata }, _performedBy_initializers, _performedBy_extraInitializers);
+        __esDecorate(null, null, _timestamp_decorators, { kind: "field", name: "timestamp", static: false, private: false, access: { has: function (obj) { return "timestamp" in obj; }, get: function (obj) { return obj.timestamp; }, set: function (obj, value) { obj.timestamp = value; } }, metadata: _metadata }, _timestamp_initializers, _timestamp_extraInitializers);
+        __esDecorate(null, null, _metadata_decorators, { kind: "field", name: "metadata", static: false, private: false, access: { has: function (obj) { return "metadata" in obj; }, get: function (obj) { return obj.metadata; }, set: function (obj, value) { obj.metadata = value; } }, metadata: _metadata }, _metadata_initializers, _metadata_extraInitializers);
+        __esDecorate(null, null, _ipAddress_decorators, { kind: "field", name: "ipAddress", static: false, private: false, access: { has: function (obj) { return "ipAddress" in obj; }, get: function (obj) { return obj.ipAddress; }, set: function (obj, value) { obj.ipAddress = value; } }, metadata: _metadata }, _ipAddress_initializers, _ipAddress_extraInitializers);
+        __esDecorate(null, null, _userAgent_decorators, { kind: "field", name: "userAgent", static: false, private: false, access: { has: function (obj) { return "userAgent" in obj; }, get: function (obj) { return obj.userAgent; }, set: function (obj, value) { obj.userAgent = value; } }, metadata: _metadata }, _userAgent_initializers, _userAgent_extraInitializers);
+        __esDecorate(null, null, _resourceType_decorators, { kind: "field", name: "resourceType", static: false, private: false, access: { has: function (obj) { return "resourceType" in obj; }, get: function (obj) { return obj.resourceType; }, set: function (obj, value) { obj.resourceType = value; } }, metadata: _metadata }, _resourceType_initializers, _resourceType_extraInitializers);
+        __esDecorate(null, null, _resourceId_decorators, { kind: "field", name: "resourceId", static: false, private: false, access: { has: function (obj) { return "resourceId" in obj; }, get: function (obj) { return obj.resourceId; }, set: function (obj, value) { obj.resourceId = value; } }, metadata: _metadata }, _resourceId_initializers, _resourceId_extraInitializers);
+        __esDecorate(null, null, _actionType_decorators, { kind: "field", name: "actionType", static: false, private: false, access: { has: function (obj) { return "actionType" in obj; }, get: function (obj) { return obj.actionType; }, set: function (obj, value) { obj.actionType = value; } }, metadata: _metadata }, _actionType_initializers, _actionType_extraInitializers);
+        __esDecorate(null, null, _status_decorators, { kind: "field", name: "status", static: false, private: false, access: { has: function (obj) { return "status" in obj; }, get: function (obj) { return obj.status; }, set: function (obj, value) { obj.status = value; } }, metadata: _metadata }, _status_initializers, _status_extraInitializers);
+        __esDecorate(null, null, _errorMessage_decorators, { kind: "field", name: "errorMessage", static: false, private: false, access: { has: function (obj) { return "errorMessage" in obj; }, get: function (obj) { return obj.errorMessage; }, set: function (obj, value) { obj.errorMessage = value; } }, metadata: _metadata }, _errorMessage_initializers, _errorMessage_extraInitializers);
+        __esDecorate(null, null, _changes_decorators, { kind: "field", name: "changes", static: false, private: false, access: { has: function (obj) { return "changes" in obj; }, get: function (obj) { return obj.changes; }, set: function (obj, value) { obj.changes = value; } }, metadata: _metadata }, _changes_initializers, _changes_extraInitializers);
+        __esDecorate(null, null, _tags_decorators, { kind: "field", name: "tags", static: false, private: false, access: { has: function (obj) { return "tags" in obj; }, get: function (obj) { return obj.tags; }, set: function (obj, value) { obj.tags = value; } }, metadata: _metadata }, _tags_initializers, _tags_extraInitializers);
+        __esDecorate(null, null, _isSensitive_decorators, { kind: "field", name: "isSensitive", static: false, private: false, access: { has: function (obj) { return "isSensitive" in obj; }, get: function (obj) { return obj.isSensitive; }, set: function (obj, value) { obj.isSensitive = value; } }, metadata: _metadata }, _isSensitive_initializers, _isSensitive_extraInitializers);
+        __esDecorate(null, null, _duration_decorators, { kind: "field", name: "duration", static: false, private: false, access: { has: function (obj) { return "duration" in obj; }, get: function (obj) { return obj.duration; }, set: function (obj, value) { obj.duration = value; } }, metadata: _metadata }, _duration_initializers, _duration_extraInitializers);
+        __esDecorate(null, null, _sessionId_decorators, { kind: "field", name: "sessionId", static: false, private: false, access: { has: function (obj) { return "sessionId" in obj; }, get: function (obj) { return obj.sessionId; }, set: function (obj, value) { obj.sessionId = value; } }, metadata: _metadata }, _sessionId_initializers, _sessionId_extraInitializers);
+        __esDecorate(null, null, _requestId_decorators, { kind: "field", name: "requestId", static: false, private: false, access: { has: function (obj) { return "requestId" in obj; }, get: function (obj) { return obj.requestId; }, set: function (obj, value) { obj.requestId = value; } }, metadata: _metadata }, _requestId_initializers, _requestId_extraInitializers);
+        __esDecorate(null, null, _environment_decorators, { kind: "field", name: "environment", static: false, private: false, access: { has: function (obj) { return "environment" in obj; }, get: function (obj) { return obj.environment; }, set: function (obj, value) { obj.environment = value; } }, metadata: _metadata }, _environment_initializers, _environment_extraInitializers);
+        __esDecorate(null, null, _version_decorators, { kind: "field", name: "version", static: false, private: false, access: { has: function (obj) { return "version" in obj; }, get: function (obj) { return obj.version; }, set: function (obj, value) { obj.version = value; } }, metadata: _metadata }, _version_initializers, _version_extraInitializers);
+        __esDecorate(null, null, _performedByEmail_decorators, { kind: "field", name: "performedByEmail", static: false, private: false, access: { has: function (obj) { return "performedByEmail" in obj; }, get: function (obj) { return obj.performedByEmail; }, set: function (obj, value) { obj.performedByEmail = value; } }, metadata: _metadata }, _performedByEmail_initializers, _performedByEmail_extraInitializers);
+        __esDecorate(null, null, _performedByRole_decorators, { kind: "field", name: "performedByRole", static: false, private: false, access: { has: function (obj) { return "performedByRole" in obj; }, get: function (obj) { return obj.performedByRole; }, set: function (obj, value) { obj.performedByRole = value; } }, metadata: _metadata }, _performedByRole_initializers, _performedByRole_extraInitializers);
+        __esDecorate(null, null, _resourceName_decorators, { kind: "field", name: "resourceName", static: false, private: false, access: { has: function (obj) { return "resourceName" in obj; }, get: function (obj) { return obj.resourceName; }, set: function (obj, value) { obj.resourceName = value; } }, metadata: _metadata }, _resourceName_initializers, _resourceName_extraInitializers);
+        __esDecorate(null, null, _retainOnDelete_decorators, { kind: "field", name: "retainOnDelete", static: false, private: false, access: { has: function (obj) { return "retainOnDelete" in obj; }, get: function (obj) { return obj.retainOnDelete; }, set: function (obj, value) { obj.retainOnDelete = value; } }, metadata: _metadata }, _retainOnDelete_initializers, _retainOnDelete_extraInitializers);
+        __esDecorate(null, null, _complianceMetadata_decorators, { kind: "field", name: "complianceMetadata", static: false, private: false, access: { has: function (obj) { return "complianceMetadata" in obj; }, get: function (obj) { return obj.complianceMetadata; }, set: function (obj, value) { obj.complianceMetadata = value; } }, metadata: _metadata }, _complianceMetadata_initializers, _complianceMetadata_extraInitializers);
+        __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+        OrganizationAuditLog = _classThis = _classDescriptor.value;
+        if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+        __runInitializers(_classThis, _classExtraInitializers);
+    })();
+    return OrganizationAuditLog = _classThis;
+}();
+exports.OrganizationAuditLog = OrganizationAuditLog;
+//# sourceMappingURL=organization-audit-log.entity.js.map

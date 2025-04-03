@@ -1,5 +1,8 @@
 import { User } from '../../users/entities/user.entity';
 import { Organization } from '../../organizations/entities/organization.entity';
+/**
+ * Entity for doctor's schedule exceptions (time off, vacations, etc.)
+ */
 export declare class ScheduleException {
     id: string;
     doctorId: string;
@@ -19,5 +22,8 @@ export declare class ScheduleException {
     updater: User;
     createdAt: Date;
     updatedAt: Date;
+    /**
+     * Check if a given datetime falls within the exception
+     */
     isDateTimeInException(dateTime: Date): boolean;
 }

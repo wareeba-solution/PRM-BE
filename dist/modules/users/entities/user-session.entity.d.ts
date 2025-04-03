@@ -32,14 +32,44 @@ export declare class UserSession {
     lastTokenRotation: Date;
     createdAt: Date;
     updatedAt: Date;
+    /**
+     * Check if session is expired
+     */
     isExpired(): boolean;
+    /**
+     * Check if session is active
+     */
     isActive(): boolean;
+    /**
+     * Check if session can be extended
+     */
     canBeExtended(): boolean;
+    /**
+     * Check if session requires rotation
+     */
     requiresRotation(): boolean;
+    /**
+     * Extend session expiry
+     */
     extend(duration: number): void;
+    /**
+     * Update last activity
+     */
     updateActivity(): void;
+    /**
+     * Revoke session
+     */
     revoke(revokedBy: string, reason?: string): void;
+    /**
+     * Mark session as logged out
+     */
     logout(): void;
+    /**
+     * Check if session is from same IP
+     */
     isSameIp(ip: string): boolean;
+    /**
+     * Check if session is from same device
+     */
     isSameDevice(deviceId: string): boolean;
 }

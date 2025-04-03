@@ -16,7 +16,16 @@ export declare class AuthService {
     private readonly usersService;
     private readonly configService;
     constructor(userRepository: Repository<User>, refreshTokenRepository: Repository<RefreshToken>, organizationRepository: Repository<Organization>, jwtService: JwtService, usersService: UsersService, configService: ConfigService);
+    /**
+     * Checks if a token has been blacklisted
+     * @param token The JWT token to check
+     * @returns boolean True if the token is blacklisted, false otherwise
+     */
     isTokenBlacklisted(token: string): boolean;
+    /**
+     * Determines if email verification is required
+     * @returns boolean True if email verification is required, false otherwise
+     */
     get requireEmailVerification(): boolean;
     checkOrganizationAccess(userId: string, organizationId: string): Promise<boolean>;
     getUserPermissions(userId: string): Promise<string[]>;

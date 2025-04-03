@@ -37,11 +37,29 @@ export declare class EmailService {
         organizationName: string;
     }): Promise<void>;
     constructor(templateRepository: Repository<EmailTemplate>, queueRepository: Repository<EmailQueue>, logRepository: Repository<EmailLog>, configService: ConfigService);
+    /**
+     * Queue an email for sending
+     */
     queueEmail(options: SendEmailOptions): Promise<EmailQueue>;
+    /**
+     * Process queued emails
+     */
     processQueue(batchSize?: number): Promise<void>;
+    /**
+     * Send a single email
+     */
     private sendEmail;
+    /**
+     * Handle email send errors
+     */
     private handleSendError;
+    /**
+     * Compile template with variables
+     */
     private compileTemplate;
+    /**
+     * Get email logs for an organization
+     */
     getEmailLogs(organizationId: string, options?: {
         status?: EmailStatus;
         from?: Date;
@@ -49,6 +67,9 @@ export declare class EmailService {
         limit?: number;
         offset?: number;
     }): Promise<[EmailLog[], number]>;
+    /**
+     * Update email tracking status
+     */
     updateTrackingStatus(messageId: string, status: EmailStatus, metadata?: Record<string, any>): Promise<void>;
 }
 export {};

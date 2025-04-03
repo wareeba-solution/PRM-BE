@@ -15,6 +15,15 @@ export declare enum Role {
 }
 export declare const RoleHierarchy: Record<Role, number>;
 export declare const RolePermissions: Record<Role, string[]>;
+/**
+ * Check if role has permission
+ */
 export declare function hasPermission(role: Role, permission: string): boolean;
+/**
+ * Check if role has higher or equal hierarchy level
+ */
 export declare function hasHigherOrEqualRole(userRole: Role, requiredRole: Role): boolean;
+/**
+ * Get role display name
+ */
 export declare function getRoleDisplayName(role: Role): string;

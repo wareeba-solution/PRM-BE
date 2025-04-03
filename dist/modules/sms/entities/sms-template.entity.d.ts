@@ -1,3 +1,6 @@
+/**
+ * SMS template types for different scenarios
+ */
 export declare enum SmsTemplateType {
     APPOINTMENT_REMINDER = "appointment_reminder",
     APPOINTMENT_CONFIRMATION = "appointment_confirmation",
@@ -20,7 +23,17 @@ export declare class SmsTemplate {
     updatedById: string;
     createdAt: Date;
     updatedAt: Date;
+    /**
+     * Sample variables that can be used in this template
+     * Stored as a JSON object { variableName: description }
+     */
     sampleVariables: Record<string, string>;
+    /**
+     * The maximum allowed length for SMS (for reference)
+     */
     maxLength: number;
+    /**
+     * Optional metadata for additional properties
+     */
     metadata: Record<string, any>;
 }

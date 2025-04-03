@@ -71,8 +71,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { INestApplication } from '@nestjs/common';
 import { SwaggerModule as NestSwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ManualOpenAPIObject } from './interfaces/manual-api.interface';
-import * as schemasModule from './schemas/index.js';
-import * as pathsModule from './paths/index.js';
+import * as schemasModule from './schemas/index';
+import * as pathsModule from './paths/index';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()

@@ -1,9 +1,15 @@
+/**
+ * Email template status enum
+ */
 export declare enum EmailTemplateStatus {
     DRAFT = "draft",
     ACTIVE = "active",
     INACTIVE = "inactive",
     ARCHIVED = "archived"
 }
+/**
+ * Email template type enum
+ */
 export declare enum EmailTemplateType {
     TRANSACTIONAL = "transactional",
     MARKETING = "marketing",
@@ -11,6 +17,9 @@ export declare enum EmailTemplateType {
     REPORT = "report",
     GENERAL = "general"
 }
+/**
+ * Email template entity
+ */
 export declare class EmailTemplate {
     id: string;
     organizationId: string;
@@ -44,6 +53,16 @@ export declare class EmailTemplate {
     deletedAt?: Date;
     lastUsedAt?: Date;
     useCount: number;
+    /**
+     * Processes template content by replacing variable placeholders with values
+     * @param variables The values to replace placeholders with
+     * @returns Processed email content
+     */
     processContent(variables: Record<string, any>): string;
+    /**
+     * Processes email subject by replacing variable placeholders with values
+     * @param variables The values to replace placeholders with
+     * @returns Processed email subject
+     */
     processSubject(variables: Record<string, any>): string;
 }

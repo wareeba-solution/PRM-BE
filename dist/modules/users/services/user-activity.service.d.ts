@@ -33,7 +33,13 @@ export declare class UserActivityService {
     private readonly userRepository;
     private readonly logger;
     constructor(activityRepository: Repository<UserActivity>, userRepository: Repository<User>);
+    /**
+     * Log user activity
+     */
     logActivity(options: ActivityOptions): Promise<UserActivity>;
+    /**
+     * Get user activity history
+     */
     getUserActivity(userId: string, options?: {
         startDate?: Date;
         endDate?: Date;
@@ -42,6 +48,9 @@ export declare class UserActivityService {
         limit?: number;
         offset?: number;
     }): Promise<[UserActivity[], number]>;
+    /**
+     * Get organization user activity
+     */
     getOrganizationActivity(organizationId: string, options?: {
         startDate?: Date;
         endDate?: Date;
@@ -51,7 +60,13 @@ export declare class UserActivityService {
         limit?: number;
         offset?: number;
     }): Promise<[UserActivity[], number]>;
+    /**
+     * Get activity summary for a user
+     */
     getUserActivitySummary(userId: string, days?: number): Promise<Record<string, number>>;
+    /**
+     * Get most active users in organization
+     */
     getMostActiveUsers(organizationId: string, options?: {
         startDate?: Date;
         endDate?: Date;
@@ -60,6 +75,9 @@ export declare class UserActivityService {
         userId: string;
         count: number;
     }>>;
+    /**
+     * Clean up old activity logs
+     */
     cleanupOldLogs(retentionDays?: number): Promise<number>;
 }
 export {};

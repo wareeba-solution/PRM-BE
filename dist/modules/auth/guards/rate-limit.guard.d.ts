@@ -5,5 +5,8 @@ export declare class RateLimitGuard implements CanActivate {
     private readonly maxRequests;
     private readonly windowMs;
     canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean>;
+    /**
+     * Get IP address from request, handling proxies
+     */
     private getIp;
 }

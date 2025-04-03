@@ -1,11 +1,14 @@
+/**
+ * Enum representing the possible statuses of a message
+ */
 export declare enum MessageStatus {
-    DRAFT = "DRAFT",
-    QUEUED = "QUEUED",
-    SENDING = "SENDING",
-    SENT = "SENT",
-    DELIVERED = "DELIVERED",
-    READ = "READ",
-    FAILED = "FAILED",
-    CANCELLED = "CANCELLED",
+    DRAFT = "DRAFT",// Message created but not sent
+    QUEUED = "QUEUED",// Message queued for sending
+    SENDING = "SENDING",// Message is in the process of being sent
+    SENT = "SENT",// Message successfully sent
+    DELIVERED = "DELIVERED",// Message delivered to recipient
+    READ = "READ",// Message has been read by recipient
+    FAILED = "FAILED",// Message failed to send
+    CANCELLED = "CANCELLED",// Message was cancelled before sending
     SCHEDULED = "SCHEDULED"
 }

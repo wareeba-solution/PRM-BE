@@ -1,4 +1,7 @@
 import { SmsTemplate } from '../entities/sms-template.entity';
+/**
+ * Status of SMS delivery
+ */
 export declare enum SmsStatus {
     PENDING = "pending",
     SENT = "sent",
@@ -7,6 +10,9 @@ export declare enum SmsStatus {
     UNDELIVERED = "undelivered",
     REJECTED = "rejected"
 }
+/**
+ * Entity to log all SMS communications
+ */
 export declare class SmsLog {
     id: string;
     to: string;
@@ -31,5 +37,8 @@ export declare class SmsLog {
     updatedAt: Date;
     deliveredAt: Date;
     createdById: string;
+    /**
+     * Optional metadata for additional properties
+     */
     metadata: Record<string, any>;
 }

@@ -57,19 +57,37 @@ export declare class ContactsService {
         organizationId: string;
         userId: string;
     }): Promise<Contact>;
+    /**
+     * Gets all relationships for a contact
+     */
     getRelationships(id: string, organizationId: string, includeInactive?: boolean): Promise<ContactRelationship[]>;
+    /**
+     * Creates a new relationship between two contacts
+     * If the relationship is bidirectional, creates the inverse relationship too
+     */
     createRelationship(contactId: string, relationshipDto: CreateContactRelationshipDto, context: {
         organizationId: string;
         userId: string;
     }): Promise<ContactRelationship>;
+    /**
+     * Updates an existing relationship between contacts
+     * If the relationship is bidirectional, updates the inverse relationship too
+     */
     updateRelationship(id: string, updateDto: UpdateContactRelationshipDto, context: {
         organizationId: string;
         userId: string;
     }): Promise<ContactRelationship>;
+    /**
+     * Deletes a relationship between contacts
+     * If the relationship is bidirectional, deletes the inverse relationship too
+     */
     deleteRelationship(id: string, context: {
         organizationId: string;
         userId: string;
     }): Promise<void>;
+    /**
+     * Gets all contacts related to a contact by a specific relationship type
+     */
     getContactsByRelationshipType(contactId: string, type: RelationshipType, query: {
         organizationId: string;
     }): Promise<any[]>;

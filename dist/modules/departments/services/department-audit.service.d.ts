@@ -20,7 +20,13 @@ export declare class DepartmentAuditService {
     private readonly auditLogRepository;
     private readonly departmentRepository;
     constructor(auditLogRepository: Repository<DepartmentAuditLog>, departmentRepository: Repository<Department>);
+    /**
+     * Create audit log entry
+     */
     log(options: AuditLogOptions): Promise<DepartmentAuditLog>;
+    /**
+     * Get audit trail for a specific department
+     */
     getDepartmentAuditTrail(departmentId: string, options?: {
         startDate?: Date;
         endDate?: Date;
@@ -28,6 +34,9 @@ export declare class DepartmentAuditService {
         limit?: number;
         offset?: number;
     }): Promise<[DepartmentAuditLog[], number]>;
+    /**
+     * Get user activity in departments
+     */
     getUserDepartmentActivity(userId: string, options?: {
         startDate?: Date;
         endDate?: Date;
@@ -35,7 +44,13 @@ export declare class DepartmentAuditService {
         limit?: number;
         offset?: number;
     }): Promise<[DepartmentAuditLog[], number]>;
+    /**
+     * Compare and generate changes object
+     */
     compareChanges(oldData: Record<string, any>, newData: Record<string, any>): Record<string, ChangeRecord>;
+    /**
+     * Clean up old audit logs
+     */
     cleanupOldLogs(retentionDays?: number): Promise<number>;
 }
 export {};

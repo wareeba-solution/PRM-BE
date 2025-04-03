@@ -17,20 +17,8 @@
         }
       }
     ],
-    "assets": [
-      {
-        "include": "config/i18n/**/*",
-        "watchAssets": true
-      },
-      {
-        "include": "templates/**/*",
-        "watchAssets": true
-      }
-    ],
-    "compilerOptions": {
-      "module": "ESNext",
-      "moduleResolution": "node"
-    }
+    "module": "ESNext",
+    "moduleResolution": "node"
   },
   "generateOptions": {
     "spec": true

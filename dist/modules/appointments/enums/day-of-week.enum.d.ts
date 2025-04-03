@@ -1,3 +1,7 @@
+/**
+ * Enum representing days of the week, aligned with JavaScript's Date.getDay() values
+ * Sunday = 0, Monday = 1, etc.
+ */
 export declare enum DayOfWeek {
     SUNDAY = 0,
     MONDAY = 1,
