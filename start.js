@@ -118,11 +118,14 @@ function createPackageJson(distPath) {
     // Create a package.json in the dist directory to control module type
     const packageJsonPath = path.join(distPath, 'package.json');
     const packageJson = {
-        "type": "module"
+        "type": "commonjs",  // Changed from "module" to "commonjs"
+        "_moduleAliases": {
+            "@": "."
+        }
     };
 
     fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
-    console.log(`Created package.json in ${distPath}`);
+    console.log(`Created package.json in ${distPath} with type: commonjs`);
 }
 
 function startApplication() {
@@ -165,8 +168,9 @@ function startApplication() {
     // Start the application
     console.log('Starting NestJS application...');
     const nodeProcess = spawn('node', [
-        '--experimental-specifier-resolution=node',
-        '--experimental-modules',
+        // Remove flags that are specific to ES modules
+        // '--experimental-specifier-resolution=node',
+        // '--experimental-modules',
         mainJsPath
     ], {
         env: {
