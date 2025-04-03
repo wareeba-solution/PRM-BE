@@ -59,7 +59,16 @@ TypeOrmModule.forRoot({
     SwaggerModule,
 
     // Database Module
-    TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      url: process.env.DATABASE_URL, // Use the full connection URL from Render
+      autoLoadEntities: true,
+      synchronize: false, // Always false in production
+      logging: ['error', 'schema'],
+      ssl: {
+        rejectUnauthorized: false // Typically needed for cloud databases
+      }
+    }),
 
     // Rate Limiting
     ThrottlerModule.forRoot({
