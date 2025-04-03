@@ -8,6 +8,7 @@ import { SwaggerService } from './swagger/swagger.service';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
+  console.log('Starting application bootstrap process...');
 
   try {
     const app = await NestFactory.create(AppModule);
@@ -54,14 +55,23 @@ async function bootstrap() {
       const configPort = configService.get('app.port');
       const defaultPort = 3000;
 
-      return Number(envPort) || Number(configPort) || defaultPort;
+      const selectedPort = Number(envPort) || Number(configPort) || defaultPort;
+      console.log(`Using port: ${selectedPort} (from env: ${envPort}, config: ${configPort}, default: ${defaultPort})`);
+      return selectedPort;
     })();
 
+    // Add prominent direct console logs
+    console.log(`Attempting to start server on port ${port}...`);
+
     // Enhanced listening with timeout and error handling
-    const server = await app.listen(port, '0.0.0.0', () => {
-      logger.log(`Application is running on port: ${port}`);
-      logger.log(`API documentation available at: /api-docs`);
-    });
+    const server = await app.listen(port, '0.0.0.0');
+
+    // Log port binding with prominent console output
+    console.log(`=============================================`);
+    console.log(`SERVER RUNNING: http://0.0.0.0:${port}`);
+    console.log(`=============================================`);
+    logger.log(`Application is running on port: ${port}`);
+    logger.log(`API documentation available at: /api-docs`);
 
     // Set server timeout
     server.setTimeout(30000); // 30 seconds
@@ -92,6 +102,12 @@ async function bootstrap() {
     process.exit(1);
   }
 }
+
+// Add global error handler to prevent crashes
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Promise Rejection:', reason);
+  // Don't exit the process, just log the error
+});
 
 bootstrap().catch(err => {
   console.error('Unhandled error during bootstrap:', err);
