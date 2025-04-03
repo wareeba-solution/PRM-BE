@@ -40,7 +40,7 @@ async function bootstrap() {
 
     // Set global prefix with exclusions for Swagger
     app.setGlobalPrefix('api', {
-      exclude: ['api-docs', 'api-docs/(.*)', 'api-docs-json'],
+      exclude: ['/api-docs', '/api-docs/(.*)', '/api-docs-json'],  // Added leading slashes
     });
 
     // Initialize our custom Swagger service
