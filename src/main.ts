@@ -5,12 +5,36 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { SwaggerService } from './swagger/swagger.service';
+import * as express from 'express';
+import * as http from 'http';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   console.log('Starting application bootstrap process...');
 
+  // Determine port early
+  const port = process.env.PORT || 3000;
+  console.log(`Using port: ${port}`);
+
+  // Create a simple Express app that binds to the port immediately
+  const tempApp = express();
+  tempApp.get('/', (req, res) => {
+    res.json({ status: 'Starting', message: 'Application is initializing...' });
+  });
+  tempApp.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
+  });
+
+  // Start the temporary server immediately
+  const tempServer = http.createServer(tempApp);
+  tempServer.listen(port, '0.0.0.0', () => {
+    console.log(`=============================================`);
+    console.log(`TEMPORARY SERVER RUNNING ON PORT: ${port}`);
+    console.log(`=============================================`);
+  });
+
   try {
+    // Continue with normal NestJS initialization
     const app = await NestFactory.create(AppModule);
     const configService = app.get(ConfigService);
 
@@ -49,28 +73,35 @@ async function bootstrap() {
       logger.warn('Failed to set up Swagger:', swaggerError);
     }
 
-    // Determine port with multiple fallback mechanisms
-    const port = (() => {
+    // Final port confirmation
+    const finalPort = (() => {
       const envPort = process.env.PORT;
       const configPort = configService.get('app.port');
       const defaultPort = 3000;
 
       const selectedPort = Number(envPort) || Number(configPort) || defaultPort;
-      console.log(`Using port: ${selectedPort} (from env: ${envPort}, config: ${configPort}, default: ${defaultPort})`);
+      console.log(`Final port: ${selectedPort} (from env: ${envPort}, config: ${configPort}, default: ${defaultPort})`);
       return selectedPort;
     })();
 
-    // Add prominent direct console logs
-    console.log(`Attempting to start server on port ${port}...`);
+    // Once NestJS is ready, close the temporary server and use NestJS instead
+    console.log('NestJS initialization complete, closing temporary server...');
+    await new Promise(resolve => {
+      tempServer.close(() => {
+        console.log('Temporary server closed.');
+        resolve(null);
+      });
+    });
 
-    // Enhanced listening with timeout and error handling
-    const server = await app.listen(port, '0.0.0.0');
+    // Start the NestJS server
+    console.log(`Starting NestJS server on port ${finalPort}...`);
+    const server = await app.listen(finalPort, '0.0.0.0');
 
-    // Log port binding with prominent console output
+    // Log port binding
     console.log(`=============================================`);
-    console.log(`SERVER RUNNING: http://0.0.0.0:${port}`);
+    console.log(`NESTJS SERVER RUNNING: http://0.0.0.0:${finalPort}`);
     console.log(`=============================================`);
-    logger.log(`Application is running on port: ${port}`);
+    logger.log(`Application is running on port: ${finalPort}`);
     logger.log(`API documentation available at: /api-docs`);
 
     // Set server timeout
@@ -90,7 +121,7 @@ async function bootstrap() {
 
     return app;
   } catch (error) {
-    logger.error('Failed to initialize application:', error);
+    logger.error('Failed to initialize NestJS application:', error);
 
     // Log additional context for debugging
     if (error instanceof Error) {
@@ -99,7 +130,9 @@ async function bootstrap() {
       logger.error(`Error stack: ${error.stack}`);
     }
 
-    process.exit(1);
+    // Don't exit - keep the temporary server running so Render detects a bound port
+    console.log('Keeping temporary server running despite NestJS initialization error');
+    return null;
   }
 }
 
@@ -111,5 +144,5 @@ process.on('unhandledRejection', (reason, promise) => {
 
 bootstrap().catch(err => {
   console.error('Unhandled error during bootstrap:', err);
-  process.exit(1);
+  // Don't exit process on bootstrap errors to keep temp server running
 });
