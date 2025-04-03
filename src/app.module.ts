@@ -43,7 +43,7 @@ import { ThrottlerConfigService } from './config/throttler.config';
       load: [appConfig, databaseConfig, mailConfig, jwtConfig],
     }),
 
-    // Database - simplified configuration
+    // Database - enhanced configuration with resilience options
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -57,6 +57,23 @@ import { ThrottlerConfigService } from './config/throttler.config';
         autoLoadEntities: true,
         synchronize: configService.get<boolean>('database.synchronize', false),
         logging: ["error", "schema"], // Only log errors and schema-related queries
+
+        // Connection resilience options
+        connectTimeout: 30000,
+        retryAttempts: 5,
+        retryDelay: 3000,
+        keepConnectionAlive: true,
+
+        // SSL settings for cloud deployments
+        ssl: configService.get('NODE_ENV') === 'production'
+            ? { rejectUnauthorized: false }
+            : false,
+
+        // Extra options for better stability
+        extra: {
+          max: 20, // Maximum number of connections in the pool
+          idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
+        }
       }),
     }),
 
