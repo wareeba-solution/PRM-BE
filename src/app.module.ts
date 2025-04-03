@@ -2,7 +2,8 @@
 
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleAsyncOptions, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { SwaggerModule } from '@nestjs/swagger';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -25,7 +26,6 @@ import { DomainModule } from './modules/domain/domain.module';
 // Configuration
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
-
 import mailConfig from './config/mail.config';
 import jwtConfig from './config/jwt.config';
 
@@ -35,47 +35,31 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { ThrottlerConfigService } from './config/throttler.config';
 
+// TypeORM Async Configuration
+TypeOrmModule.forRoot({
+  type: 'postgres',
+  url: process.env.DATABASE_URL, // Use the full connection URL from Render
+  autoLoadEntities: true,
+  synchronize: false, // Always false in production
+  logging: ['error', 'schema'],
+  ssl: {
+    rejectUnauthorized: false // Typically needed for cloud databases
+  }
+})
+
 @Module({
   imports: [
-    // Configuration
+    // Configuration Modules
     ConfigModule.forRoot({
       isGlobal: true,
       load: [appConfig, databaseConfig, mailConfig, jwtConfig],
     }),
 
-    // Database - enhanced configuration with resilience options
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('database.host', 'localhost'),
-        port: configService.get<number>('database.port', 5432),
-        username: configService.get<string>('database.username', 'postgres'),
-        password: configService.get<string>('database.password', 'postgres'),
-        database: configService.get<string>('database.name', 'prm_db'),
-        autoLoadEntities: true,
-        synchronize: configService.get<boolean>('database.synchronize', false),
-        logging: ["error", "schema"], // Only log errors and schema-related queries
+    // Swagger Module
+    SwaggerModule,
 
-        // Connection resilience options
-        connectTimeout: 30000,
-        retryAttempts: 5,
-        retryDelay: 3000,
-        keepConnectionAlive: true,
-
-        // SSL settings for cloud deployments
-        ssl: configService.get('NODE_ENV') === 'production'
-            ? { rejectUnauthorized: false }
-            : false,
-
-        // Extra options for better stability
-        extra: {
-          max: 20, // Maximum number of connections in the pool
-          idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
-        }
-      }),
-    }),
+    // Database Module
+    TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
 
     // Rate Limiting
     ThrottlerModule.forRoot({
