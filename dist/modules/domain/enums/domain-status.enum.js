@@ -123,5 +123,5 @@ var DomainStatus;
      * Domain has been deleted
      */
     DomainStatus["DELETED"] = "deleted";
-})(DomainStatus || (exports.DomainStatus = DomainStatus = {}));
+})(DomainStatus = exports.DomainStatus || (exports.DomainStatus = {}));
 //# sourceMappingURL=domain-status.enum.js.map

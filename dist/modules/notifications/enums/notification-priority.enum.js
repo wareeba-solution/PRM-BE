@@ -8,5 +8,5 @@ var NotificationPriority;
     NotificationPriority["MEDIUM"] = "MEDIUM";
     NotificationPriority["HIGH"] = "HIGH";
     NotificationPriority["URGENT"] = "URGENT";
-})(NotificationPriority || (exports.NotificationPriority = NotificationPriority = {}));
+})(NotificationPriority = exports.NotificationPriority || (exports.NotificationPriority = {}));
 //# sourceMappingURL=notification-priority.enum.js.map

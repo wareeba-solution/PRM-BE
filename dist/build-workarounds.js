@@ -12,7 +12,7 @@ console.log('build-workarounds.ts loaded'); // Added console log for debugging
 // if (typeof window !== 'undefined') {
 //   // Add any runtime polyfills if needed
 // }
-var fixSwaggerCircularDependencies = function () {
+const fixSwaggerCircularDependencies = () => {
     // Monkey patch SwaggerModule to handle circular dependencies
     try {
         // This is just a placeholder - we handle this in main.ts

@@ -103,5 +103,5 @@ var DomainVerificationMethod;
      */
     DomainVerificationMethod["MULTI_METHOD"] = "multi_method";
     DomainVerificationMethod["FILE"] = "FILE";
-})(DomainVerificationMethod || (exports.DomainVerificationMethod = DomainVerificationMethod = {}));
+})(DomainVerificationMethod = exports.DomainVerificationMethod || (exports.DomainVerificationMethod = {}));
 //# sourceMappingURL=domain-verification-method.enum.js.map

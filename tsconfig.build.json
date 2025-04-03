@@ -3,7 +3,10 @@
   "compilerOptions": {
     "skipLibCheck": true,
     "noImplicitAny": false,
-    "types": []
+    "types": [],
+    "sourceMap": false,
+    "removeComments": true,
+    "incremental": true
   },
   "exclude": [
     "node_modules",
@@ -14,6 +17,6 @@
     "**/*.e2e-spec.ts"
   ],
   "include": [
-    "src/**/*" // Ensure all files in 'src' are included for compilation
+    "src/**/*"
   ]
 }

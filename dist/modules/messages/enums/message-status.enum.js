@@ -16,5 +16,5 @@ var MessageStatus;
     MessageStatus["FAILED"] = "FAILED";
     MessageStatus["CANCELLED"] = "CANCELLED";
     MessageStatus["SCHEDULED"] = "SCHEDULED";
-})(MessageStatus || (exports.MessageStatus = MessageStatus = {}));
+})(MessageStatus = exports.MessageStatus || (exports.MessageStatus = {}));
 //# sourceMappingURL=message-status.enum.js.map

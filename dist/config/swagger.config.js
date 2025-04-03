@@ -1,10 +1,33 @@
 "use strict";
 // src/config/swagger.config.ts
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.swaggerSecurityConfig = exports.swaggerCustomOptions = exports.createSwaggerDocument = exports.getSwaggerConfig = exports.swaggerConfigValidationSchema = void 0;
-var config_1 = require("@nestjs/config");
-var Joi = require("joi");
-var swagger_1 = require("@nestjs/swagger");
+const config_1 = require("@nestjs/config");
+const Joi = __importStar(require("joi"));
+const swagger_1 = require("@nestjs/swagger");
 exports.swaggerConfigValidationSchema = Joi.object({
     SWAGGER_ENABLED: Joi.boolean().default(true),
     SWAGGER_TITLE: Joi.string().default('Patient Relationship Manager API'),
@@ -21,7 +44,7 @@ exports.swaggerConfigValidationSchema = Joi.object({
         then: Joi.required(),
     }),
 });
-var swaggerConfig = (0, config_1.registerAs)('swagger', function () { return ({
+const swaggerConfig = (0, config_1.registerAs)('swagger', () => ({
     enabled: process.env.SWAGGER_ENABLED === 'true',
     title: process.env.SWAGGER_TITLE || 'Patient Relationship Manager API',
     description: process.env.SWAGGER_DESCRIPTION || 'API documentation for PRM system',
@@ -48,17 +71,17 @@ var swaggerConfig = (0, config_1.registerAs)('swagger', function () { return ({
             description: 'Development server',
         },
     ],
-}); });
+}));
 exports.default = swaggerConfig;
 // Helper function to get config without accessing process.env directly
-var getSwaggerConfig = function () {
+const getSwaggerConfig = () => {
     return swaggerConfig();
 };
 exports.getSwaggerConfig = getSwaggerConfig;
 // Swagger document configuration
-var createSwaggerDocument = function () {
-    var config = (0, exports.getSwaggerConfig)();
-    var builder = new swagger_1.DocumentBuilder()
+const createSwaggerDocument = () => {
+    const config = (0, exports.getSwaggerConfig)();
+    const builder = new swagger_1.DocumentBuilder()
         .setTitle(config.title)
         .setDescription(config.description)
         .setVersion(config.version)
@@ -71,11 +94,11 @@ var createSwaggerDocument = function () {
         in: 'header',
     }, 'JWT-auth');
     // Add tags
-    config.tags.forEach(function (tag) {
+    config.tags.forEach((tag) => {
         builder.addTag(tag);
     });
     // Add servers
-    config.servers.forEach(function (server) {
+    config.servers.forEach((server) => {
         builder.addServer(server.url, server.description);
     });
     return builder.build();
@@ -91,20 +114,25 @@ exports.swaggerCustomOptions = {
         tryItOutEnabled: true,
     },
     customSiteTitle: 'PRM API Documentation',
-    customCss: "\n        .swagger-ui .topbar { display: none }\n        .swagger-ui .information-container { padding: 20px }\n        .swagger-ui .scheme-container { padding: 20px }\n        .swagger-ui .opblock-tag { padding: 10px }\n    ",
+    customCss: `
+        .swagger-ui .topbar { display: none }
+        .swagger-ui .information-container { padding: 20px }
+        .swagger-ui .scheme-container { padding: 20px }
+        .swagger-ui .opblock-tag { padding: 10px }
+    `,
 };
 // Swagger security configuration
-var swaggerSecurityConfig = function (app) {
-    var config = (0, exports.getSwaggerConfig)();
+const swaggerSecurityConfig = (app) => {
+    const config = (0, exports.getSwaggerConfig)();
     if (config.auth.enabled) {
-        app.use("/".concat(config.path), function (req, res, next) {
-            var auth = req.headers.authorization;
+        app.use(`/${config.path}`, (req, res, next) => {
+            const auth = req.headers.authorization;
             if (!auth || auth.split(' ')[0] !== 'Basic') {
                 res.setHeader('WWW-Authenticate', 'Basic');
                 res.status(401).send('Authentication required');
                 return;
             }
-            var credentials = Buffer.from(auth.split(' ')[1], 'base64')
+            const credentials = Buffer.from(auth.split(' ')[1], 'base64')
                 .toString()
                 .split(':');
             if (credentials[0] === config.auth.username &&

@@ -2,28 +2,26 @@
 // src/utils/validation.util.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ValidationUtil = void 0;
-var ValidationUtil = /** @class */ (function () {
-    function ValidationUtil() {
-    }
+class ValidationUtil {
     /**
      * Email validation
      */
-    ValidationUtil.isValidEmail = function (email) {
-        var pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    static isValidEmail(email) {
+        const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         return pattern.test(email);
-    };
+    }
     /**
      * Phone number validation (international format)
      */
-    ValidationUtil.isValidPhoneNumber = function (phone) {
-        var pattern = /^\+?[1-9]\d{1,14}$/;
+    static isValidPhoneNumber(phone) {
+        const pattern = /^\+?[1-9]\d{1,14}$/;
         return pattern.test(phone.replace(/[\s-()]/g, ''));
-    };
+    }
     /**
      * Password strength validation
      */
-    ValidationUtil.isValidPassword = function (password) {
-        var errors = [];
+    static isValidPassword(password) {
+        const errors = [];
         if (password.length < 8) {
             errors.push('Password must be at least 8 characters long');
         }
@@ -41,37 +39,37 @@ var ValidationUtil = /** @class */ (function () {
         }
         return {
             isValid: errors.length === 0,
-            errors: errors
+            errors
         };
-    };
+    }
     /**
      * Medical license number validation
      */
-    ValidationUtil.isValidLicenseNumber = function (license) {
+    static isValidLicenseNumber(license) {
         // Format: 2 letters followed by 6 digits
-        var pattern = /^[A-Z]{2}\d{6}$/;
+        const pattern = /^[A-Z]{2}\d{6}$/;
         return pattern.test(license);
-    };
+    }
     /**
      * National ID validation
      */
-    ValidationUtil.isValidNationalId = function (id) {
+    static isValidNationalId(id) {
         // Format: 9 digits followed by 1 letter or digit
-        var pattern = /^\d{9}[A-Z0-9]$/;
+        const pattern = /^\d{9}[A-Z0-9]$/;
         return pattern.test(id);
-    };
+    }
     /**
      * Insurance policy number validation
      */
-    ValidationUtil.isValidPolicyNumber = function (policy) {
+    static isValidPolicyNumber(policy) {
         // Format: 3 letters followed by 9 digits
-        var pattern = /^[A-Z]{3}\d{9}$/;
+        const pattern = /^[A-Z]{3}\d{9}$/;
         return pattern.test(policy);
-    };
+    }
     /**
      * URL validation
      */
-    ValidationUtil.isValidUrl = function (url) {
+    static isValidUrl(url) {
         try {
             new URL(url);
             return true;
@@ -79,61 +77,58 @@ var ValidationUtil = /** @class */ (function () {
         catch (_a) {
             return false;
         }
-    };
+    }
     /**
      * UUID validation
      */
-    ValidationUtil.isValidUUID = function (uuid) {
-        var pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    static isValidUUID(uuid) {
+        const pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         return pattern.test(uuid);
-    };
+    }
     /**
      * Age validation
      */
-    ValidationUtil.isValidAge = function (birthDate, minAge, maxAge) {
-        if (minAge === void 0) { minAge = 0; }
-        if (maxAge === void 0) { maxAge = 150; }
-        var today = new Date();
-        var age = today.getFullYear() - birthDate.getFullYear();
-        var monthDiff = today.getMonth() - birthDate.getMonth();
+    static isValidAge(birthDate, minAge = 0, maxAge = 150) {
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
         if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
             age--;
         }
         return age >= minAge && age <= maxAge;
-    };
+    }
     /**
      * Blood type validation
      */
-    ValidationUtil.isValidBloodType = function (bloodType) {
-        var validTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+    static isValidBloodType(bloodType) {
+        const validTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
         return validTypes.includes(bloodType);
-    };
+    }
     /**
      * Postal code validation
      */
-    ValidationUtil.isValidPostalCode = function (code, countryCode) {
+    static isValidPostalCode(code, countryCode = 'US') {
         var _a, _b;
-        if (countryCode === void 0) { countryCode = 'US'; }
-        var patterns = {
+        const patterns = {
             US: /^\d{5}(-\d{4})?$/,
             UK: /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i,
             CA: /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z] ?\d[ABCEGHJ-NPRSTV-Z]\d$/i,
             // Add more country patterns as needed
         };
         return (_b = (_a = patterns[countryCode]) === null || _a === void 0 ? void 0 : _a.test(code)) !== null && _b !== void 0 ? _b : false;
-    };
+    }
     /**
      * Credit card validation (Luhn algorithm)
      */
-    ValidationUtil.isValidCreditCard = function (number) {
-        var digits = number.replace(/\D/g, '');
+    static isValidCreditCard(number) {
+        const digits = number.replace(/\D/g, '');
         if (digits.length < 13 || digits.length > 19) {
             return false;
         }
-        var sum = 0;
-        var isEven = false;
-        for (var i = digits.length - 1; i >= 0; i--) {
-            var digit = parseInt(digits[i]);
+        let sum = 0;
+        let isEven = false;
+        for (let i = digits.length - 1; i >= 0; i--) {
+            let digit = parseInt(digits[i]);
             if (isEven) {
                 digit *= 2;
                 if (digit > 9) {
@@ -144,32 +139,31 @@ var ValidationUtil = /** @class */ (function () {
             isEven = !isEven;
         }
         return sum % 10 === 0;
-    };
+    }
     /**
      * Currency amount validation
      */
-    ValidationUtil.isValidCurrencyAmount = function (amount) {
-        var pattern = /^\d+(\.\d{1,2})?$/;
+    static isValidCurrencyAmount(amount) {
+        const pattern = /^\d+(\.\d{1,2})?$/;
         return pattern.test(amount);
-    };
+    }
     /**
      * Time format validation (24-hour)
      */
-    ValidationUtil.isValidTime = function (time) {
-        var pattern = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    static isValidTime(time) {
+        const pattern = /^([01]\d|2[0-3]):([0-5]\d)$/;
         return pattern.test(time);
-    };
+    }
     /**
      * RGB color validation
      */
-    ValidationUtil.isValidRGBColor = function (color) {
-        var pattern = /^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/;
+    static isValidRGBColor(color) {
+        const pattern = /^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/;
         if (!pattern.test(color))
             return false;
-        var _a = color.match(pattern) || [], _ = _a[0], r = _a[1], g = _a[2], b = _a[3];
-        return [r, g, b].every(function (val) { return parseInt(val) >= 0 && parseInt(val) <= 255; });
-    };
-    return ValidationUtil;
-}());
+        const [_, r, g, b] = color.match(pattern) || [];
+        return [r, g, b].every(val => parseInt(val) >= 0 && parseInt(val) <= 255);
+    }
+}
 exports.ValidationUtil = ValidationUtil;
 //# sourceMappingURL=validation.util.js.map

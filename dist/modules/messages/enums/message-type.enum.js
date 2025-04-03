@@ -15,5 +15,5 @@ var MessageType;
     MessageType["WHATSAPP"] = "WHATSAPP";
     MessageType["TELEGRAM"] = "TELEGRAM";
     MessageType["INTERNAL"] = "INTERNAL";
-})(MessageType || (exports.MessageType = MessageType = {}));
+})(MessageType = exports.MessageType || (exports.MessageType = {}));
 //# sourceMappingURL=message-type.enum.js.map

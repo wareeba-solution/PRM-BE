@@ -1,11 +1,34 @@
 "use strict";
 // src/config/mail.config.ts
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.emailTemplates = exports.mailerConfig = exports.getMailConfig = exports.mailConfigValidationSchema = void 0;
-var config_1 = require("@nestjs/config");
-var Joi = require("joi");
-var handlebars_adapter_1 = require("@nestjs-modules/mailer/dist/adapters/handlebars.adapter");
-var path_1 = require("path");
+const config_1 = require("@nestjs/config");
+const Joi = __importStar(require("joi"));
+const handlebars_adapter_1 = require("@nestjs-modules/mailer/dist/adapters/handlebars.adapter");
+const path_1 = require("path");
 exports.mailConfigValidationSchema = Joi.object({
     MAIL_HOST: Joi.string().required(),
     MAIL_PORT: Joi.number().default(587),
@@ -22,7 +45,7 @@ exports.mailConfigValidationSchema = Joi.object({
     MAIL_RATE_LIMIT_ENABLED: Joi.boolean().default(true),
     MAIL_RATE_LIMIT_PER_HOUR: Joi.number().default(100),
 });
-var mailConfig = (0, config_1.registerAs)('mail', function () { return ({
+const mailConfig = (0, config_1.registerAs)('mail', () => ({
     host: process.env.MAIL_HOST,
     port: parseInt(process.env.MAIL_PORT || '587', 10),
     secure: process.env.MAIL_SECURE === 'true',
@@ -31,7 +54,7 @@ var mailConfig = (0, config_1.registerAs)('mail', function () { return ({
         pass: process.env.MAIL_PASS,
     },
     defaults: {
-        from: "\"".concat(process.env.MAIL_FROM_NAME || 'PRM System', "\" <").concat(process.env.MAIL_FROM, ">"),
+        from: `"${process.env.MAIL_FROM_NAME || 'PRM System'}" <${process.env.MAIL_FROM}>`,
     },
     template: {
         dir: process.env.MAIL_TEMPLATE_DIR || (0, path_1.join)(__dirname, '..', 'templates', 'email'),
@@ -50,16 +73,16 @@ var mailConfig = (0, config_1.registerAs)('mail', function () { return ({
         enabled: process.env.MAIL_RATE_LIMIT_ENABLED === 'true',
         maxPerHour: parseInt(process.env.MAIL_RATE_LIMIT_PER_HOUR || '100', 10),
     },
-}); });
+}));
 exports.default = mailConfig;
 // Helper function to get config without accessing process.env directly
-var getMailConfig = function () {
+const getMailConfig = () => {
     return mailConfig();
 };
 exports.getMailConfig = getMailConfig;
 // Mailer module configuration
-var mailerConfig = function () {
-    var config = (0, exports.getMailConfig)();
+const mailerConfig = () => {
+    const config = (0, exports.getMailConfig)();
     return {
         transport: {
             host: config.host,
@@ -85,26 +108,26 @@ var mailerConfig = function () {
 exports.mailerConfig = mailerConfig;
 // Email templates configuration
 exports.emailTemplates = {
-    welcome: function (name) { return ({
+    welcome: (name) => ({
         subject: 'Welcome to PRM System',
         template: 'welcome',
-        context: { name: name },
-    }); },
-    resetPassword: function (token) { return ({
+        context: { name },
+    }),
+    resetPassword: (token) => ({
         subject: 'Reset Your Password',
         template: 'reset-password',
-        context: { token: token },
-    }); },
-    appointmentReminder: function (appointment) { return ({
+        context: { token },
+    }),
+    appointmentReminder: (appointment) => ({
         subject: 'Appointment Reminder',
         template: 'appointment-reminder',
-        context: { appointment: appointment },
-    }); },
-    appointmentConfirmation: function (appointment) { return ({
+        context: { appointment },
+    }),
+    appointmentConfirmation: (appointment) => ({
         subject: 'Appointment Confirmation',
         template: 'appointment-confirmation',
-        context: { appointment: appointment },
-    }); },
+        context: { appointment },
+    }),
 };
 // Example .env file:
 /*

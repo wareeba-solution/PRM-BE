@@ -1,3 +1,5 @@
+/// <reference types="node" />
+/// <reference types="node" />
 import { ConfigService } from '@nestjs/config';
 interface UploadOptions {
     fileName: string;

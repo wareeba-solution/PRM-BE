@@ -8,5 +8,5 @@ var InvitationStatus;
     InvitationStatus["REJECTED"] = "rejected";
     InvitationStatus["CANCELLED"] = "CANCELLED";
     InvitationStatus["EXPIRED"] = "EXPIRED";
-})(InvitationStatus || (exports.InvitationStatus = InvitationStatus = {}));
+})(InvitationStatus = exports.InvitationStatus || (exports.InvitationStatus = {}));
 //# sourceMappingURL=invitation-status.enum.js.map

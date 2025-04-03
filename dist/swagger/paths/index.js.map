@@ -1,1 +1,1 @@
-{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../src/swagger/paths/index.ts"],"names":[],"mappings":";;;;;;;;;;;;;AAIA,kCAMC;AAVD,yCAAwC;AACxC,yCAAwC;AACxC,oCAAoC;AAEpC,SAAgB,WAAW;IACzB,6BACK,qBAAS,GACT,qBAAS,EAEZ;AACJ,CAAC"}
+{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../src/swagger/paths/index.ts"],"names":[],"mappings":";;;AAAA,2CAAwC;AACxC,2CAAwC;AACxC,oCAAoC;AAEpC,SAAgB,WAAW;IACzB,uCACK,qBAAS,GACT,qBAAS,EAEZ;AACJ,CAAC;AAND,kCAMC"}

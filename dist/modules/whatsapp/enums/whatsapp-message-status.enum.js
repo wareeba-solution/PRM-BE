@@ -1,6 +1,5 @@
 "use strict";
 // src/modules/whatsapp/enums/whatsapp-message-status.enum.ts
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MESSAGE_STATUS_PROPERTIES = exports.WhatsAppMessageStatus = void 0;
 var WhatsAppMessageStatus;
@@ -21,88 +20,88 @@ var WhatsAppMessageStatus;
     WhatsAppMessageStatus["UNKNOWN"] = "UNKNOWN";
     WhatsAppMessageStatus["PERMANENTLY_FAILED"] = "PERMANENTLY_FAILED";
     WhatsAppMessageStatus["RECEIVED"] = "RECEIVED";
-})(WhatsAppMessageStatus || (exports.WhatsAppMessageStatus = WhatsAppMessageStatus = {}));
+})(WhatsAppMessageStatus = exports.WhatsAppMessageStatus || (exports.WhatsAppMessageStatus = {}));
 // Create a record type that maps all enum values to their properties
-exports.MESSAGE_STATUS_PROPERTIES = (_a = {},
-    _a[WhatsAppMessageStatus.DRAFT] = {
+exports.MESSAGE_STATUS_PROPERTIES = {
+    [WhatsAppMessageStatus.DRAFT]: {
         final: false,
         retryable: true,
         description: 'Message is drafted but not yet queued for sending',
     },
-    _a[WhatsAppMessageStatus.QUEUED] = {
+    [WhatsAppMessageStatus.QUEUED]: {
         final: false,
         retryable: true,
         description: 'Message is queued for sending',
     },
-    _a[WhatsAppMessageStatus.SCHEDULED] = {
+    [WhatsAppMessageStatus.SCHEDULED]: {
         final: false,
         retryable: true,
         description: 'Message is scheduled to be sent at a later time',
     },
-    _a[WhatsAppMessageStatus.PENDING] = {
+    [WhatsAppMessageStatus.PENDING]: {
         final: false,
         retryable: true,
         description: 'Message is being processed for sending',
     },
-    _a[WhatsAppMessageStatus.SENT] = {
+    [WhatsAppMessageStatus.SENT]: {
         final: false,
         retryable: false,
         description: 'Message has been sent to WhatsApp servers',
     },
-    _a[WhatsAppMessageStatus.DELIVERED] = {
+    [WhatsAppMessageStatus.DELIVERED]: {
         final: false,
         retryable: false,
         description: 'Message has been delivered to the recipient',
     },
-    _a[WhatsAppMessageStatus.READ] = {
+    [WhatsAppMessageStatus.READ]: {
         final: true,
         retryable: false,
         description: 'Message has been read by the recipient',
     },
-    _a[WhatsAppMessageStatus.FAILED] = {
+    [WhatsAppMessageStatus.FAILED]: {
         final: false,
         retryable: true,
         description: 'Message failed to send but can be retried',
     },
-    _a[WhatsAppMessageStatus.CANCELED] = {
+    [WhatsAppMessageStatus.CANCELED]: {
         final: true,
         retryable: false,
         description: 'Message was canceled before it could be sent',
     },
-    _a[WhatsAppMessageStatus.BLOCKED] = {
+    [WhatsAppMessageStatus.BLOCKED]: {
         final: true,
         retryable: false,
         description: 'Message was blocked by WhatsApp',
     },
-    _a[WhatsAppMessageStatus.EXPIRED] = {
+    [WhatsAppMessageStatus.EXPIRED]: {
         final: true,
         retryable: false,
         description: 'Message expired before it could be delivered',
     },
-    _a[WhatsAppMessageStatus.DELETED] = {
+    [WhatsAppMessageStatus.DELETED]: {
         final: true,
         retryable: false,
         description: 'Message was deleted',
     },
-    _a[WhatsAppMessageStatus.UNDELIVERABLE] = {
+    [WhatsAppMessageStatus.UNDELIVERABLE]: {
         final: true,
         retryable: false,
         description: 'Message cannot be delivered to the recipient',
     },
-    _a[WhatsAppMessageStatus.UNKNOWN] = {
+    [WhatsAppMessageStatus.UNKNOWN]: {
         final: false,
         retryable: false,
         description: 'Message status is unknown',
     },
-    _a[WhatsAppMessageStatus.PERMANENTLY_FAILED] = {
+    [WhatsAppMessageStatus.PERMANENTLY_FAILED]: {
         final: true,
         retryable: false,
         description: 'Message has permanently failed to send after max retries',
     },
-    _a[WhatsAppMessageStatus.RECEIVED] = {
+    [WhatsAppMessageStatus.RECEIVED]: {
         final: false,
         retryable: false,
         description: 'Message has been received from a user',
     },
-    _a);
+};
 //# sourceMappingURL=whatsapp-message-status.enum.js.map

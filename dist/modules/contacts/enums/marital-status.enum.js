@@ -11,5 +11,5 @@ var MaritalStatus;
     MaritalStatus["SEPARATED"] = "SEPARATED";
     MaritalStatus["DOMESTIC_PARTNERSHIP"] = "DOMESTIC_PARTNERSHIP";
     MaritalStatus["OTHER"] = "OTHER";
-})(MaritalStatus || (exports.MaritalStatus = MaritalStatus = {}));
+})(MaritalStatus = exports.MaritalStatus || (exports.MaritalStatus = {}));
 //# sourceMappingURL=marital-status.enum.js.map

@@ -1,10 +1,6 @@
 "use strict";
-var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RolePermissions = exports.RoleHierarchy = exports.Role = void 0;
-exports.hasPermission = hasPermission;
-exports.hasHigherOrEqualRole = hasHigherOrEqualRole;
-exports.getRoleDisplayName = getRoleDisplayName;
+exports.getRoleDisplayName = exports.hasHigherOrEqualRole = exports.hasPermission = exports.RolePermissions = exports.RoleHierarchy = exports.Role = void 0;
 var Role;
 (function (Role) {
     Role["SUPER_ADMIN"] = "SUPER_ADMIN";
@@ -20,25 +16,25 @@ var Role;
     Role["SUPERVISOR"] = "SUPERVISOR";
     Role["CLIENT"] = "CLIENT";
     Role["GUEST"] = "GUEST";
-})(Role || (exports.Role = Role = {}));
-exports.RoleHierarchy = (_a = {},
-    _a[Role.SUPER_ADMIN] = 100,
-    _a[Role.ADMIN] = 90,
-    _a[Role.MANAGER] = 80,
-    _a[Role.DOCTOR] = 70,
-    _a[Role.NURSE] = 60,
-    _a[Role.RECEPTIONIST] = 50,
-    _a[Role.PATIENT] = 20,
-    _a[Role.USER] = 10,
-    _a[Role.STAFF] = 0,
-    _a[Role.AGENT] = 0,
-    _a[Role.SUPERVISOR] = 0,
-    _a[Role.CLIENT] = 0,
-    _a[Role.GUEST] = 0,
-    _a);
-exports.RolePermissions = (_b = {},
-    _b[Role.SUPER_ADMIN] = ['*'],
-    _b[Role.ADMIN] = [
+})(Role = exports.Role || (exports.Role = {}));
+exports.RoleHierarchy = {
+    [Role.SUPER_ADMIN]: 100,
+    [Role.ADMIN]: 90,
+    [Role.MANAGER]: 80,
+    [Role.DOCTOR]: 70,
+    [Role.NURSE]: 60,
+    [Role.RECEPTIONIST]: 50,
+    [Role.PATIENT]: 20,
+    [Role.USER]: 10,
+    [Role.STAFF]: 0,
+    [Role.AGENT]: 0,
+    [Role.SUPERVISOR]: 0,
+    [Role.CLIENT]: 0,
+    [Role.GUEST]: 0
+};
+exports.RolePermissions = {
+    [Role.SUPER_ADMIN]: ['*'],
+    [Role.ADMIN]: [
         'user:manage',
         'department:manage',
         'organization:manage',
@@ -46,7 +42,7 @@ exports.RolePermissions = (_b = {},
         'patient:manage',
         'report:view'
     ],
-    _b[Role.MANAGER] = [
+    [Role.MANAGER]: [
         'department:view',
         'department:edit',
         'user:view',
@@ -54,59 +50,62 @@ exports.RolePermissions = (_b = {},
         'patient:view',
         'report:view'
     ],
-    _b[Role.DOCTOR] = [
+    [Role.DOCTOR]: [
         'appointment:view',
         'appointment:edit',
         'patient:view',
         'patient:edit',
         'prescription:manage'
     ],
-    _b[Role.NURSE] = [
+    [Role.NURSE]: [
         'appointment:view',
         'patient:view',
         'patient:edit',
         'vitals:manage'
     ],
-    _b[Role.RECEPTIONIST] = [
+    [Role.RECEPTIONIST]: [
         'appointment:view',
         'appointment:schedule',
         'patient:view',
         'patient:register'
     ],
-    _b[Role.PATIENT] = [
+    [Role.PATIENT]: [
         'appointment:view',
         'appointment:schedule',
         'profile:edit'
     ],
-    _b[Role.USER] = [
+    [Role.USER]: [
         'profile:view',
         'profile:edit'
     ],
-    _b[Role.STAFF] = [],
-    _b[Role.AGENT] = [],
-    _b[Role.SUPERVISOR] = [],
-    _b[Role.CLIENT] = [],
-    _b[Role.GUEST] = [],
-    _b);
+    [Role.STAFF]: [],
+    [Role.AGENT]: [],
+    [Role.SUPERVISOR]: [],
+    [Role.CLIENT]: [],
+    [Role.GUEST]: []
+};
 /**
  * Check if role has permission
  */
 function hasPermission(role, permission) {
-    var permissions = exports.RolePermissions[role];
+    const permissions = exports.RolePermissions[role];
     return permissions.includes('*') || permissions.includes(permission);
 }
+exports.hasPermission = hasPermission;
 /**
  * Check if role has higher or equal hierarchy level
  */
 function hasHigherOrEqualRole(userRole, requiredRole) {
     return exports.RoleHierarchy[userRole] >= exports.RoleHierarchy[requiredRole];
 }
+exports.hasHigherOrEqualRole = hasHigherOrEqualRole;
 /**
  * Get role display name
  */
 function getRoleDisplayName(role) {
     return role.split('_')
-        .map(function (word) { return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(); })
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 }
+exports.getRoleDisplayName = getRoleDisplayName;
 //# sourceMappingURL=role.enum.js.map

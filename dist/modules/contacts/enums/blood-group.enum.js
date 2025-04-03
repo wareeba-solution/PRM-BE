@@ -13,5 +13,5 @@ var BloodGroup;
     BloodGroup["O_POSITIVE"] = "O+";
     BloodGroup["O_NEGATIVE"] = "O-";
     BloodGroup["UNKNOWN"] = "UNKNOWN";
-})(BloodGroup || (exports.BloodGroup = BloodGroup = {}));
+})(BloodGroup = exports.BloodGroup || (exports.BloodGroup = {}));
 //# sourceMappingURL=blood-group.enum.js.map

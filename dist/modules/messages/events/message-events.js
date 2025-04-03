@@ -7,13 +7,12 @@ var MessageEventType;
     MessageEventType["UPDATED"] = "message.updated";
     MessageEventType["SENT"] = "message.sent";
     MessageEventType["FAILED"] = "message.failed";
-})(MessageEventType || (exports.MessageEventType = MessageEventType = {}));
-var MessageEvent = /** @class */ (function () {
-    function MessageEvent(type, message) {
+})(MessageEventType = exports.MessageEventType || (exports.MessageEventType = {}));
+class MessageEvent {
+    constructor(type, message) {
         this.type = type;
         this.message = message;
     }
-    return MessageEvent;
-}());
+}
 exports.MessageEvent = MessageEvent;
 //# sourceMappingURL=message-events.js.map

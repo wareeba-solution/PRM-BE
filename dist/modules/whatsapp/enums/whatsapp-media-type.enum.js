@@ -1,11 +1,6 @@
 "use strict";
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MediaTypeProperties = exports.WhatsAppMediaType = void 0;
-exports.isAllowedMimeType = isAllowedMimeType;
-exports.isWithinSizeLimit = isWithinSizeLimit;
-exports.validateImageDimensions = validateImageDimensions;
-exports.validateLocationCoordinates = validateLocationCoordinates;
+exports.validateLocationCoordinates = exports.validateImageDimensions = exports.isWithinSizeLimit = exports.isAllowedMimeType = exports.MediaTypeProperties = exports.WhatsAppMediaType = void 0;
 var WhatsAppMediaType;
 (function (WhatsAppMediaType) {
     WhatsAppMediaType["IMAGE"] = "IMAGE";
@@ -16,11 +11,11 @@ var WhatsAppMediaType;
     WhatsAppMediaType["CONTACT_CARD"] = "CONTACT_CARD";
     WhatsAppMediaType["CONTACT_CARD_MULTI"] = "CONTACT_CARD_MULTI";
     WhatsAppMediaType["LOCATION"] = "LOCATION";
-})(WhatsAppMediaType || (exports.WhatsAppMediaType = WhatsAppMediaType = {}));
+})(WhatsAppMediaType = exports.WhatsAppMediaType || (exports.WhatsAppMediaType = {}));
 // Media type properties and constraints
-exports.MediaTypeProperties = (_a = {},
-    _a[WhatsAppMediaType.IMAGE] = {
-        maxSizeBytes: 5 * 1024 * 1024, // 5MB
+exports.MediaTypeProperties = {
+    [WhatsAppMediaType.IMAGE]: {
+        maxSizeBytes: 5 * 1024 * 1024,
         allowedMimeTypes: [
             'image/jpeg',
             'image/png',
@@ -31,16 +26,16 @@ exports.MediaTypeProperties = (_a = {},
             height: 5000
         }
     },
-    _a[WhatsAppMediaType.VIDEO] = {
-        maxSizeBytes: 16 * 1024 * 1024, // 16MB
+    [WhatsAppMediaType.VIDEO]: {
+        maxSizeBytes: 16 * 1024 * 1024,
         allowedMimeTypes: [
             'video/mp4',
             'video/3gpp'
         ],
         maxDuration: 60 // seconds
     },
-    _a[WhatsAppMediaType.AUDIO] = {
-        maxSizeBytes: 16 * 1024 * 1024, // 16MB
+    [WhatsAppMediaType.AUDIO]: {
+        maxSizeBytes: 16 * 1024 * 1024,
         allowedMimeTypes: [
             'audio/aac',
             'audio/mp4',
@@ -49,8 +44,8 @@ exports.MediaTypeProperties = (_a = {},
             'audio/ogg'
         ]
     },
-    _a[WhatsAppMediaType.DOCUMENT] = {
-        maxSizeBytes: 100 * 1024 * 1024, // 100MB
+    [WhatsAppMediaType.DOCUMENT]: {
+        maxSizeBytes: 100 * 1024 * 1024,
         allowedMimeTypes: [
             'application/pdf',
             'application/msword',
@@ -64,8 +59,8 @@ exports.MediaTypeProperties = (_a = {},
             'application/x-rar-compressed'
         ]
     },
-    _a[WhatsAppMediaType.STICKER] = {
-        maxSizeBytes: 100 * 1024, // 100KB
+    [WhatsAppMediaType.STICKER]: {
+        maxSizeBytes: 100 * 1024,
         allowedMimeTypes: [
             'image/webp'
         ],
@@ -74,34 +69,36 @@ exports.MediaTypeProperties = (_a = {},
             height: 512
         }
     },
-    _a[WhatsAppMediaType.LOCATION] = {
+    [WhatsAppMediaType.LOCATION]: {
         properties: {
             latitude: { min: -90, max: 90 },
             longitude: { min: -180, max: 180 }
         }
     },
-    _a[WhatsAppMediaType.CONTACT_CARD] = undefined,
-    _a[WhatsAppMediaType.CONTACT_CARD_MULTI] = undefined,
-    _a);
+    [WhatsAppMediaType.CONTACT_CARD]: undefined,
+    [WhatsAppMediaType.CONTACT_CARD_MULTI]: undefined
+};
 // Helper function to check if mime type is allowed for media type
 function isAllowedMimeType(mediaType, mimeType) {
-    var properties = exports.MediaTypeProperties[mediaType];
+    const properties = exports.MediaTypeProperties[mediaType];
     if (!properties || !properties.allowedMimeTypes) {
         return false;
     }
     return properties.allowedMimeTypes.includes(mimeType);
 }
+exports.isAllowedMimeType = isAllowedMimeType;
 // Helper function to check if file size is within limits
 function isWithinSizeLimit(mediaType, sizeInBytes) {
-    var properties = exports.MediaTypeProperties[mediaType];
+    const properties = exports.MediaTypeProperties[mediaType];
     if (!properties || !properties.maxSizeBytes) {
         return false;
     }
     return sizeInBytes <= properties.maxSizeBytes;
 }
+exports.isWithinSizeLimit = isWithinSizeLimit;
 // Helper function to validate image dimensions
 function validateImageDimensions(mediaType, width, height) {
-    var properties = exports.MediaTypeProperties[mediaType];
+    const properties = exports.MediaTypeProperties[mediaType];
     if (!properties || !properties.maxDimensions) {
         return true;
     }
@@ -110,12 +107,14 @@ function validateImageDimensions(mediaType, width, height) {
     }
     return width <= properties.maxDimensions.width && height <= properties.maxDimensions.height;
 }
+exports.validateImageDimensions = validateImageDimensions;
 // Helper function to validate location coordinates
 function validateLocationCoordinates(latitude, longitude) {
-    var properties = exports.MediaTypeProperties[WhatsAppMediaType.LOCATION].properties;
+    const properties = exports.MediaTypeProperties[WhatsAppMediaType.LOCATION].properties;
     return (latitude >= properties.latitude.min &&
         latitude <= properties.latitude.max &&
         longitude >= properties.longitude.min &&
         longitude <= properties.longitude.max);
 }
+exports.validateLocationCoordinates = validateLocationCoordinates;
 //# sourceMappingURL=whatsapp-media-type.enum.js.map

@@ -8,5 +8,5 @@ var Gender;
     Gender["FEMALE"] = "FEMALE";
     Gender["OTHER"] = "OTHER";
     Gender["PREFER_NOT_TO_SAY"] = "PREFER_NOT_TO_SAY";
-})(Gender || (exports.Gender = Gender = {}));
+})(Gender = exports.Gender || (exports.Gender = {}));
 //# sourceMappingURL=gender.enum.js.map

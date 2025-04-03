@@ -14,7 +14,7 @@ var WhatsappTemplateStatus;
     WhatsappTemplateStatus["ACTIVE"] = "active";
     WhatsappTemplateStatus["INACTIVE"] = "inactive";
     WhatsappTemplateStatus["DELETED"] = "deleted";
-})(WhatsappTemplateStatus || (exports.WhatsappTemplateStatus = WhatsappTemplateStatus = {}));
+})(WhatsappTemplateStatus = exports.WhatsappTemplateStatus || (exports.WhatsappTemplateStatus = {}));
 /**
  * Whatsapp template category enum
  */
@@ -35,7 +35,7 @@ var WhatsappTemplateCategory;
     WhatsappTemplateCategory["MARKETING"] = "marketing";
     WhatsappTemplateCategory["UTILITY"] = "utility";
     WhatsappTemplateCategory["AUTHENTICATION"] = "authentication";
-})(WhatsappTemplateCategory || (exports.WhatsappTemplateCategory = WhatsappTemplateCategory = {}));
+})(WhatsappTemplateCategory = exports.WhatsappTemplateCategory || (exports.WhatsappTemplateCategory = {}));
 /**
  * Whatsapp template component type enum
  */
@@ -45,7 +45,7 @@ var WhatsappTemplateComponentType;
     WhatsappTemplateComponentType["BODY"] = "body";
     WhatsappTemplateComponentType["FOOTER"] = "footer";
     WhatsappTemplateComponentType["BUTTONS"] = "buttons";
-})(WhatsappTemplateComponentType || (exports.WhatsappTemplateComponentType = WhatsappTemplateComponentType = {}));
+})(WhatsappTemplateComponentType = exports.WhatsappTemplateComponentType || (exports.WhatsappTemplateComponentType = {}));
 /**
  * Whatsapp template header type enum
  */
@@ -56,7 +56,7 @@ var WhatsappTemplateHeaderType;
     WhatsappTemplateHeaderType["VIDEO"] = "video";
     WhatsappTemplateHeaderType["DOCUMENT"] = "document";
     WhatsappTemplateHeaderType["LOCATION"] = "location";
-})(WhatsappTemplateHeaderType || (exports.WhatsappTemplateHeaderType = WhatsappTemplateHeaderType = {}));
+})(WhatsappTemplateHeaderType = exports.WhatsappTemplateHeaderType || (exports.WhatsappTemplateHeaderType = {}));
 /**
  * Whatsapp template button type enum
  */
@@ -65,5 +65,5 @@ var WhatsappTemplateButtonType;
     WhatsappTemplateButtonType["PHONE_NUMBER"] = "phone_number";
     WhatsappTemplateButtonType["URL"] = "url";
     WhatsappTemplateButtonType["QUICK_REPLY"] = "quick_reply";
-})(WhatsappTemplateButtonType || (exports.WhatsappTemplateButtonType = WhatsappTemplateButtonType = {}));
+})(WhatsappTemplateButtonType = exports.WhatsappTemplateButtonType || (exports.WhatsappTemplateButtonType = {}));
 //# sourceMappingURL=whatsapp-template.enums.js.map

@@ -1,15 +1,15 @@
 export declare enum AppointmentStatus {
-    REQUESTED = "REQUESTED",// Initial request made
-    PENDING = "PENDING",// Awaiting confirmation
+    REQUESTED = "REQUESTED",
+    PENDING = "PENDING",
     SCHEDULED = "SCHEDULED",
-    CONFIRMED = "CONFIRMED",// Appointment confirmed
-    CHECKED_IN = "CHECKED_IN",// Patient has arrived
-    IN_PROGRESS = "IN_PROGRESS",// Currently being seen
-    COMPLETED = "COMPLETED",// Appointment finished
-    CANCELLED = "CANCELLED",// Cancelled by either party
-    NO_SHOW = "NO_SHOW",// Patient didn't show up
-    RESCHEDULED = "RESCHEDULED",// Appointment was rescheduled
-    WAITING_LIST = "WAITING_LIST",// On waiting list for cancellation
+    CONFIRMED = "CONFIRMED",
+    CHECKED_IN = "CHECKED_IN",
+    IN_PROGRESS = "IN_PROGRESS",
+    COMPLETED = "COMPLETED",
+    CANCELLED = "CANCELLED",
+    NO_SHOW = "NO_SHOW",
+    RESCHEDULED = "RESCHEDULED",
+    WAITING_LIST = "WAITING_LIST",
     MISSED = "MISSED"
 }
 export type StatusMetadata = {

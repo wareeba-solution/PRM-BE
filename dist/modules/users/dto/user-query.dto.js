@@ -1,121 +1,101 @@
 "use strict";
-var __esDecorate = (this && this.__esDecorate) || function (ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
-    function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
-    var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
-    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
-    var _, done = false;
-    for (var i = decorators.length - 1; i >= 0; i--) {
-        var context = {};
-        for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
-        for (var p in contextIn.access) context.access[p] = contextIn.access[p];
-        context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
-        var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
-        if (kind === "accessor") {
-            if (result === void 0) continue;
-            if (result === null || typeof result !== "object") throw new TypeError("Object expected");
-            if (_ = accept(result.get)) descriptor.get = _;
-            if (_ = accept(result.set)) descriptor.set = _;
-            if (_ = accept(result.init)) initializers.unshift(_);
-        }
-        else if (_ = accept(result)) {
-            if (kind === "field") initializers.unshift(_);
-            else descriptor[key] = _;
-        }
-    }
-    if (target) Object.defineProperty(target, contextIn.name, descriptor);
-    done = true;
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __runInitializers = (this && this.__runInitializers) || function (thisArg, initializers, value) {
-    var useValue = arguments.length > 2;
-    for (var i = 0; i < initializers.length; i++) {
-        value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
-    }
-    return useValue ? value : void 0;
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserQueryDto = void 0;
-var openapi = require("@nestjs/swagger");
-var class_validator_1 = require("class-validator");
-var class_transformer_1 = require("class-transformer");
-var swagger_1 = require("@nestjs/swagger");
-var role_enum_1 = require("../enums/role.enum");
-var UserQueryDto = function () {
-    var _a;
-    var _search_decorators;
-    var _search_initializers = [];
-    var _search_extraInitializers = [];
-    var _roles_decorators;
-    var _roles_initializers = [];
-    var _roles_extraInitializers = [];
-    var _departmentIds_decorators;
-    var _departmentIds_initializers = [];
-    var _departmentIds_extraInitializers = [];
-    var _hasVerifiedEmail_decorators;
-    var _hasVerifiedEmail_initializers = [];
-    var _hasVerifiedEmail_extraInitializers = [];
-    var _relations_decorators;
-    var _relations_initializers = [];
-    var _relations_extraInitializers = [];
-    var _orderBy_decorators;
-    var _orderBy_initializers = [];
-    var _orderBy_extraInitializers = [];
-    var _orderDirection_decorators;
-    var _orderDirection_initializers = [];
-    var _orderDirection_extraInitializers = [];
-    var _skip_decorators;
-    var _skip_initializers = [];
-    var _skip_extraInitializers = [];
-    var _take_decorators;
-    var _take_initializers = [];
-    var _take_extraInitializers = [];
-    return _a = /** @class */ (function () {
-            function UserQueryDto() {
-                this.search = __runInitializers(this, _search_initializers, void 0);
-                this.role = __runInitializers(this, _search_extraInitializers);
-                this.roles = __runInitializers(this, _roles_initializers, void 0);
-                this.departmentIds = (__runInitializers(this, _roles_extraInitializers), __runInitializers(this, _departmentIds_initializers, void 0));
-                this.hasVerifiedEmail = (__runInitializers(this, _departmentIds_extraInitializers), __runInitializers(this, _hasVerifiedEmail_initializers, void 0));
-                this.relations = (__runInitializers(this, _hasVerifiedEmail_extraInitializers), __runInitializers(this, _relations_initializers, void 0));
-                this.orderBy = (__runInitializers(this, _relations_extraInitializers), __runInitializers(this, _orderBy_initializers, void 0));
-                this.orderDirection = (__runInitializers(this, _orderBy_extraInitializers), __runInitializers(this, _orderDirection_initializers, 'DESC'));
-                this.skip = (__runInitializers(this, _orderDirection_extraInitializers), __runInitializers(this, _skip_initializers, 0));
-                this.take = (__runInitializers(this, _skip_extraInitializers), __runInitializers(this, _take_initializers, 10));
-                __runInitializers(this, _take_extraInitializers);
-            }
-            UserQueryDto._OPENAPI_METADATA_FACTORY = function () {
-                return { search: { required: false, type: function () { return String; } }, role: { required: false, enum: require("../enums/role.enum").Role }, isActive: { required: false, type: function () { return Boolean; } }, department: { required: false, type: function () { return String; } }, page: { required: false, type: function () { return Number; } }, limit: { required: false, type: function () { return Number; } }, roles: { required: false, enum: require("../enums/role.enum").Role, isArray: true }, departmentIds: { required: false, type: function () { return [String]; } }, hasVerifiedEmail: { required: false, type: function () { return Boolean; } }, relations: { required: false, type: function () { return [String]; } }, orderBy: { required: false, type: function () { return String; } }, orderDirection: { required: false, type: function () { return Object; }, default: "DESC" }, skip: { required: false, type: function () { return Number; }, default: 0, minimum: 0 }, take: { required: false, type: function () { return Number; }, default: 10, minimum: 1, maximum: 100 } };
-            };
-            return UserQueryDto;
-        }()),
-        (function () {
-            var _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
-            _search_decorators = [(0, swagger_1.ApiPropertyOptional)(), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)()];
-            _roles_decorators = [(0, swagger_1.ApiPropertyOptional)({ enum: role_enum_1.Role, isArray: true }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsArray)(), (0, class_validator_1.IsEnum)(role_enum_1.Role, { each: true })];
-            _departmentIds_decorators = [(0, swagger_1.ApiPropertyOptional)(), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)({ each: true }), (0, class_validator_1.IsArray)()];
-            _hasVerifiedEmail_decorators = [(0, swagger_1.ApiPropertyOptional)(), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsBoolean)(), (0, class_transformer_1.Type)(function () { return Boolean; }), (0, swagger_1.ApiPropertyOptional)(), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsBoolean)(), (0, class_transformer_1.Type)(function () { return Boolean; })];
-            _relations_decorators = [(0, swagger_1.ApiPropertyOptional)(), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsArray)(), (0, class_validator_1.IsString)({ each: true })];
-            _orderBy_decorators = [(0, swagger_1.ApiPropertyOptional)({
-                    description: 'Order by field (e.g., "firstName", "lastName", "createdAt")'
-                }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)()];
-            _orderDirection_decorators = [(0, swagger_1.ApiPropertyOptional)({
-                    enum: ['ASC', 'DESC'],
-                    default: 'DESC'
-                }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)()];
-            _skip_decorators = [(0, swagger_1.ApiPropertyOptional)({ default: 0 }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsNumber)(), (0, class_transformer_1.Type)(function () { return Number; }), (0, class_validator_1.Min)(0)];
-            _take_decorators = [(0, swagger_1.ApiPropertyOptional)({ default: 10 }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsNumber)(), (0, class_transformer_1.Type)(function () { return Number; }), (0, class_validator_1.Min)(1), (0, class_validator_1.Max)(100)];
-            __esDecorate(null, null, _search_decorators, { kind: "field", name: "search", static: false, private: false, access: { has: function (obj) { return "search" in obj; }, get: function (obj) { return obj.search; }, set: function (obj, value) { obj.search = value; } }, metadata: _metadata }, _search_initializers, _search_extraInitializers);
-            __esDecorate(null, null, _roles_decorators, { kind: "field", name: "roles", static: false, private: false, access: { has: function (obj) { return "roles" in obj; }, get: function (obj) { return obj.roles; }, set: function (obj, value) { obj.roles = value; } }, metadata: _metadata }, _roles_initializers, _roles_extraInitializers);
-            __esDecorate(null, null, _departmentIds_decorators, { kind: "field", name: "departmentIds", static: false, private: false, access: { has: function (obj) { return "departmentIds" in obj; }, get: function (obj) { return obj.departmentIds; }, set: function (obj, value) { obj.departmentIds = value; } }, metadata: _metadata }, _departmentIds_initializers, _departmentIds_extraInitializers);
-            __esDecorate(null, null, _hasVerifiedEmail_decorators, { kind: "field", name: "hasVerifiedEmail", static: false, private: false, access: { has: function (obj) { return "hasVerifiedEmail" in obj; }, get: function (obj) { return obj.hasVerifiedEmail; }, set: function (obj, value) { obj.hasVerifiedEmail = value; } }, metadata: _metadata }, _hasVerifiedEmail_initializers, _hasVerifiedEmail_extraInitializers);
-            __esDecorate(null, null, _relations_decorators, { kind: "field", name: "relations", static: false, private: false, access: { has: function (obj) { return "relations" in obj; }, get: function (obj) { return obj.relations; }, set: function (obj, value) { obj.relations = value; } }, metadata: _metadata }, _relations_initializers, _relations_extraInitializers);
-            __esDecorate(null, null, _orderBy_decorators, { kind: "field", name: "orderBy", static: false, private: false, access: { has: function (obj) { return "orderBy" in obj; }, get: function (obj) { return obj.orderBy; }, set: function (obj, value) { obj.orderBy = value; } }, metadata: _metadata }, _orderBy_initializers, _orderBy_extraInitializers);
-            __esDecorate(null, null, _orderDirection_decorators, { kind: "field", name: "orderDirection", static: false, private: false, access: { has: function (obj) { return "orderDirection" in obj; }, get: function (obj) { return obj.orderDirection; }, set: function (obj, value) { obj.orderDirection = value; } }, metadata: _metadata }, _orderDirection_initializers, _orderDirection_extraInitializers);
-            __esDecorate(null, null, _skip_decorators, { kind: "field", name: "skip", static: false, private: false, access: { has: function (obj) { return "skip" in obj; }, get: function (obj) { return obj.skip; }, set: function (obj, value) { obj.skip = value; } }, metadata: _metadata }, _skip_initializers, _skip_extraInitializers);
-            __esDecorate(null, null, _take_decorators, { kind: "field", name: "take", static: false, private: false, access: { has: function (obj) { return "take" in obj; }, get: function (obj) { return obj.take; }, set: function (obj, value) { obj.take = value; } }, metadata: _metadata }, _take_initializers, _take_extraInitializers);
-            if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-        })(),
-        _a;
-}();
+const openapi = require("@nestjs/swagger");
+const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
+const swagger_1 = require("@nestjs/swagger");
+const role_enum_1 = require("../enums/role.enum");
+class UserQueryDto {
+    constructor() {
+        this.orderDirection = 'DESC';
+        this.skip = 0;
+        this.take = 10;
+    }
+    static _OPENAPI_METADATA_FACTORY() {
+        return { search: { required: false, type: () => String }, role: { required: false, enum: require("../enums/role.enum").Role }, isActive: { required: false, type: () => Boolean }, department: { required: false, type: () => String }, page: { required: false, type: () => Number }, limit: { required: false, type: () => Number }, roles: { required: false, enum: require("../enums/role.enum").Role, isArray: true }, departmentIds: { required: false, type: () => [String] }, hasVerifiedEmail: { required: false, type: () => Boolean }, relations: { required: false, type: () => [String] }, orderBy: { required: false, type: () => String }, orderDirection: { required: false, type: () => Object, default: "DESC" }, skip: { required: false, type: () => Number, default: 0, minimum: 0 }, take: { required: false, type: () => Number, default: 10, minimum: 1, maximum: 100 } };
+    }
+}
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UserQueryDto.prototype, "search", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ enum: role_enum_1.Role, isArray: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsEnum)(role_enum_1.Role, { each: true }),
+    __metadata("design:type", Array)
+], UserQueryDto.prototype, "roles", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.IsArray)(),
+    __metadata("design:type", Array)
+], UserQueryDto.prototype, "departmentIds", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    (0, class_transformer_1.Type)(() => Boolean),
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    (0, class_transformer_1.Type)(() => Boolean),
+    __metadata("design:type", Boolean)
+], UserQueryDto.prototype, "hasVerifiedEmail", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    __metadata("design:type", Array)
+], UserQueryDto.prototype, "relations", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Order by field (e.g., "firstName", "lastName", "createdAt")'
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UserQueryDto.prototype, "orderBy", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        enum: ['ASC', 'DESC'],
+        default: 'DESC'
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UserQueryDto.prototype, "orderDirection", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ default: 0 }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], UserQueryDto.prototype, "skip", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ default: 10 }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(100),
+    __metadata("design:type", Number)
+], UserQueryDto.prototype, "take", void 0);
 exports.UserQueryDto = UserQueryDto;
 //# sourceMappingURL=user-query.dto.js.map

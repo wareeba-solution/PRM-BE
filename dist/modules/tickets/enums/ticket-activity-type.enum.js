@@ -99,5 +99,5 @@ var TicketActivityType;
     TicketActivityType["AUDIT_LOG_CREATED"] = "audit_log_created";
     TicketActivityType["SECURITY_REVIEW"] = "security_review";
     TicketActivityType["GDPR_REQUEST"] = "gdpr_request";
-})(TicketActivityType || (exports.TicketActivityType = TicketActivityType = {}));
+})(TicketActivityType = exports.TicketActivityType || (exports.TicketActivityType = {}));
 //# sourceMappingURL=ticket-activity-type.enum.js.map

@@ -11,5 +11,5 @@ var NotificationStatus;
     NotificationStatus["FAILED"] = "FAILED";
     NotificationStatus["SCHEDULED"] = "SCHEDULED";
     NotificationStatus["CANCELLED"] = "CANCELLED";
-})(NotificationStatus || (exports.NotificationStatus = NotificationStatus = {}));
+})(NotificationStatus = exports.NotificationStatus || (exports.NotificationStatus = {}));
 //# sourceMappingURL=notification-status.enum.js.map

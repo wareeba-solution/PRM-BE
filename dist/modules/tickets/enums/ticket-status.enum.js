@@ -9,5 +9,5 @@ var TicketStatus;
     TicketStatus["IN_PROGRESS"] = "IN_PROGRESS";
     TicketStatus["RESOLVED"] = "RESOLVED";
     TicketStatus["CLOSED"] = "CLOSED";
-})(TicketStatus || (exports.TicketStatus = TicketStatus = {}));
+})(TicketStatus = exports.TicketStatus || (exports.TicketStatus = {}));
 //# sourceMappingURL=ticket-status.enum.js.map

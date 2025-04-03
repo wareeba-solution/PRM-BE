@@ -1,334 +1,283 @@
 "use strict";
-var __esDecorate = (this && this.__esDecorate) || function (ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
-    function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
-    var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
-    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
-    var _, done = false;
-    for (var i = decorators.length - 1; i >= 0; i--) {
-        var context = {};
-        for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
-        for (var p in contextIn.access) context.access[p] = contextIn.access[p];
-        context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
-        var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
-        if (kind === "accessor") {
-            if (result === void 0) continue;
-            if (result === null || typeof result !== "object") throw new TypeError("Object expected");
-            if (_ = accept(result.get)) descriptor.get = _;
-            if (_ = accept(result.set)) descriptor.set = _;
-            if (_ = accept(result.init)) initializers.unshift(_);
-        }
-        else if (_ = accept(result)) {
-            if (kind === "field") initializers.unshift(_);
-            else descriptor[key] = _;
-        }
-    }
-    if (target) Object.defineProperty(target, contextIn.name, descriptor);
-    done = true;
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __runInitializers = (this && this.__runInitializers) || function (thisArg, initializers, value) {
-    var useValue = arguments.length > 2;
-    for (var i = 0; i < initializers.length; i++) {
-        value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
-    }
-    return useValue ? value : void 0;
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateAppointmentMetadataDto = exports.UpdateAppointmentFormDataDto = exports.UpdateReminderPreferencesDto = exports.UpdateAppointmentDto = void 0;
-var openapi = require("@nestjs/swagger");
+const openapi = require("@nestjs/swagger");
 // src/modules/appointments/dto/update-appointment.dto.ts
-var swagger_1 = require("@nestjs/swagger");
-var class_validator_1 = require("class-validator");
-var class_transformer_1 = require("class-transformer");
-var appointment_type_enum_1 = require("../enums/appointment-type.enum");
-var appointment_priority_enum_1 = require("../enums/appointment-priority.enum");
-var appointment_status_enum_1 = require("../enums/appointment-status.enum");
-var UpdateAppointmentDto = function () {
-    var _a;
-    var _doctorId_decorators;
-    var _doctorId_initializers = [];
-    var _doctorId_extraInitializers = [];
-    var _startTime_decorators;
-    var _startTime_initializers = [];
-    var _startTime_extraInitializers = [];
-    var _endTime_decorators;
-    var _endTime_initializers = [];
-    var _endTime_extraInitializers = [];
-    var _type_decorators;
-    var _type_initializers = [];
-    var _type_extraInitializers = [];
-    var _priority_decorators;
-    var _priority_initializers = [];
-    var _priority_extraInitializers = [];
-    var _status_decorators;
-    var _status_initializers = [];
-    var _status_extraInitializers = [];
-    var _title_decorators;
-    var _title_initializers = [];
-    var _title_extraInitializers = [];
-    var _description_decorators;
-    var _description_initializers = [];
-    var _description_extraInitializers = [];
-    var _location_decorators;
-    var _location_initializers = [];
-    var _location_extraInitializers = [];
-    var _meetingLink_decorators;
-    var _meetingLink_initializers = [];
-    var _meetingLink_extraInitializers = [];
-    var _sendReminders_decorators;
-    var _sendReminders_initializers = [];
-    var _sendReminders_extraInitializers = [];
-    var _reminderPreferences_decorators;
-    var _reminderPreferences_initializers = [];
-    var _reminderPreferences_extraInitializers = [];
-    var _formData_decorators;
-    var _formData_initializers = [];
-    var _formData_extraInitializers = [];
-    var _metadata_decorators;
-    var _metadata_initializers = [];
-    var _metadata_extraInitializers = [];
-    var _cancellationReason_decorators;
-    var _cancellationReason_initializers = [];
-    var _cancellationReason_extraInitializers = [];
-    var _reschedulingReason_decorators;
-    var _reschedulingReason_initializers = [];
-    var _reschedulingReason_extraInitializers = [];
-    return _a = /** @class */ (function () {
-            function UpdateAppointmentDto() {
-                this.doctorId = __runInitializers(this, _doctorId_initializers, void 0);
-                this.startTime = (__runInitializers(this, _doctorId_extraInitializers), __runInitializers(this, _startTime_initializers, void 0));
-                this.endTime = (__runInitializers(this, _startTime_extraInitializers), __runInitializers(this, _endTime_initializers, void 0));
-                this.type = (__runInitializers(this, _endTime_extraInitializers), __runInitializers(this, _type_initializers, void 0));
-                this.priority = (__runInitializers(this, _type_extraInitializers), __runInitializers(this, _priority_initializers, void 0));
-                this.status = (__runInitializers(this, _priority_extraInitializers), __runInitializers(this, _status_initializers, void 0));
-                this.title = (__runInitializers(this, _status_extraInitializers), __runInitializers(this, _title_initializers, void 0));
-                this.description = (__runInitializers(this, _title_extraInitializers), __runInitializers(this, _description_initializers, void 0));
-                this.location = (__runInitializers(this, _description_extraInitializers), __runInitializers(this, _location_initializers, void 0));
-                this.meetingLink = (__runInitializers(this, _location_extraInitializers), __runInitializers(this, _meetingLink_initializers, void 0));
-                this.sendReminders = (__runInitializers(this, _meetingLink_extraInitializers), __runInitializers(this, _sendReminders_initializers, void 0));
-                this.reminderPreferences = (__runInitializers(this, _sendReminders_extraInitializers), __runInitializers(this, _reminderPreferences_initializers, void 0));
-                this.formData = (__runInitializers(this, _reminderPreferences_extraInitializers), __runInitializers(this, _formData_initializers, void 0));
-                this.metadata = (__runInitializers(this, _formData_extraInitializers), __runInitializers(this, _metadata_initializers, void 0));
-                this.cancellationReason = (__runInitializers(this, _metadata_extraInitializers), __runInitializers(this, _cancellationReason_initializers, void 0));
-                this.reschedulingReason = (__runInitializers(this, _cancellationReason_extraInitializers), __runInitializers(this, _reschedulingReason_initializers, void 0));
-                __runInitializers(this, _reschedulingReason_extraInitializers);
-            }
-            UpdateAppointmentDto._OPENAPI_METADATA_FACTORY = function () {
-                return { doctorId: { required: false, type: function () { return String; }, format: "uuid" }, startTime: { required: false, type: function () { return String; } }, endTime: { required: false, type: function () { return String; } }, type: { required: false, enum: require("../enums/appointment-type.enum").AppointmentType }, priority: { required: false, enum: require("../enums/appointment-priority.enum").AppointmentPriority }, status: { required: false, enum: require("../enums/appointment-status.enum").AppointmentStatus }, title: { required: false, type: function () { return String; }, minLength: 3, maxLength: 100 }, description: { required: false, type: function () { return String; }, maxLength: 1000 }, location: { required: false, type: function () { return String; }, maxLength: 200 }, meetingLink: { required: false, type: function () { return String; }, maxLength: 500 }, sendReminders: { required: false, type: function () { return Boolean; } }, reminderPreferences: { required: false, type: function () { return require("./update-appointment.dto").UpdateReminderPreferencesDto; } }, formData: { required: false, type: function () { return require("./update-appointment.dto").UpdateAppointmentFormDataDto; } }, metadata: { required: false, type: function () { return require("./update-appointment.dto").UpdateAppointmentMetadataDto; } }, cancellationReason: { required: false, type: function () { return String; }, minLength: 3, maxLength: 500 }, reschedulingReason: { required: false, type: function () { return String; }, minLength: 3, maxLength: 500 } };
-            };
-            return UpdateAppointmentDto;
-        }()),
-        (function () {
-            var _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
-            _doctorId_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Doctor ID' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsUUID)()];
-            _startTime_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Appointment start time' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsDateString)()];
-            _endTime_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Appointment end time' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsDateString)()];
-            _type_decorators = [(0, swagger_1.ApiPropertyOptional)({ enum: appointment_type_enum_1.AppointmentType, description: 'Type of appointment' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsEnum)(appointment_type_enum_1.AppointmentType)];
-            _priority_decorators = [(0, swagger_1.ApiPropertyOptional)({ enum: appointment_priority_enum_1.AppointmentPriority, description: 'Priority of appointment' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsEnum)(appointment_priority_enum_1.AppointmentPriority)];
-            _status_decorators = [(0, swagger_1.ApiPropertyOptional)({ enum: appointment_status_enum_1.AppointmentStatus, description: 'Status of appointment' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsEnum)(appointment_status_enum_1.AppointmentStatus)];
-            _title_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Title/Subject of appointment' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)(), (0, class_validator_1.MinLength)(3), (0, class_validator_1.MaxLength)(100)];
-            _description_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Detailed description of appointment' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)(), (0, class_validator_1.MaxLength)(1000)];
-            _location_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Location of appointment' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)(), (0, class_validator_1.MaxLength)(200)];
-            _meetingLink_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Meeting link for virtual appointments' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.ValidateIf)(function (o) { return o.type === appointment_type_enum_1.AppointmentType.VIRTUAL; }), (0, class_validator_1.IsString)(), (0, class_validator_1.MaxLength)(500)];
-            _sendReminders_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Whether to send reminders' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsBoolean)()];
-            _reminderPreferences_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Reminder preferences' }), (0, class_validator_1.IsOptional)(), (0, class_transformer_1.Type)(function () { return UpdateReminderPreferencesDto; })];
-            _formData_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Custom form data for appointment' }), (0, class_validator_1.IsOptional)(), (0, class_transformer_1.Type)(function () { return UpdateAppointmentFormDataDto; })];
-            _metadata_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Additional metadata for appointment' }), (0, class_validator_1.IsOptional)(), (0, class_transformer_1.Type)(function () { return UpdateAppointmentMetadataDto; })];
-            _cancellationReason_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Cancellation reason' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.ValidateIf)(function (o) { return o.status === appointment_status_enum_1.AppointmentStatus.CANCELLED; }), (0, class_validator_1.IsString)(), (0, class_validator_1.MinLength)(3), (0, class_validator_1.MaxLength)(500)];
-            _reschedulingReason_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Rescheduling reason' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.ValidateIf)(function (o) { return o.status === appointment_status_enum_1.AppointmentStatus.RESCHEDULED; }), (0, class_validator_1.IsString)(), (0, class_validator_1.MinLength)(3), (0, class_validator_1.MaxLength)(500)];
-            __esDecorate(null, null, _doctorId_decorators, { kind: "field", name: "doctorId", static: false, private: false, access: { has: function (obj) { return "doctorId" in obj; }, get: function (obj) { return obj.doctorId; }, set: function (obj, value) { obj.doctorId = value; } }, metadata: _metadata }, _doctorId_initializers, _doctorId_extraInitializers);
-            __esDecorate(null, null, _startTime_decorators, { kind: "field", name: "startTime", static: false, private: false, access: { has: function (obj) { return "startTime" in obj; }, get: function (obj) { return obj.startTime; }, set: function (obj, value) { obj.startTime = value; } }, metadata: _metadata }, _startTime_initializers, _startTime_extraInitializers);
-            __esDecorate(null, null, _endTime_decorators, { kind: "field", name: "endTime", static: false, private: false, access: { has: function (obj) { return "endTime" in obj; }, get: function (obj) { return obj.endTime; }, set: function (obj, value) { obj.endTime = value; } }, metadata: _metadata }, _endTime_initializers, _endTime_extraInitializers);
-            __esDecorate(null, null, _type_decorators, { kind: "field", name: "type", static: false, private: false, access: { has: function (obj) { return "type" in obj; }, get: function (obj) { return obj.type; }, set: function (obj, value) { obj.type = value; } }, metadata: _metadata }, _type_initializers, _type_extraInitializers);
-            __esDecorate(null, null, _priority_decorators, { kind: "field", name: "priority", static: false, private: false, access: { has: function (obj) { return "priority" in obj; }, get: function (obj) { return obj.priority; }, set: function (obj, value) { obj.priority = value; } }, metadata: _metadata }, _priority_initializers, _priority_extraInitializers);
-            __esDecorate(null, null, _status_decorators, { kind: "field", name: "status", static: false, private: false, access: { has: function (obj) { return "status" in obj; }, get: function (obj) { return obj.status; }, set: function (obj, value) { obj.status = value; } }, metadata: _metadata }, _status_initializers, _status_extraInitializers);
-            __esDecorate(null, null, _title_decorators, { kind: "field", name: "title", static: false, private: false, access: { has: function (obj) { return "title" in obj; }, get: function (obj) { return obj.title; }, set: function (obj, value) { obj.title = value; } }, metadata: _metadata }, _title_initializers, _title_extraInitializers);
-            __esDecorate(null, null, _description_decorators, { kind: "field", name: "description", static: false, private: false, access: { has: function (obj) { return "description" in obj; }, get: function (obj) { return obj.description; }, set: function (obj, value) { obj.description = value; } }, metadata: _metadata }, _description_initializers, _description_extraInitializers);
-            __esDecorate(null, null, _location_decorators, { kind: "field", name: "location", static: false, private: false, access: { has: function (obj) { return "location" in obj; }, get: function (obj) { return obj.location; }, set: function (obj, value) { obj.location = value; } }, metadata: _metadata }, _location_initializers, _location_extraInitializers);
-            __esDecorate(null, null, _meetingLink_decorators, { kind: "field", name: "meetingLink", static: false, private: false, access: { has: function (obj) { return "meetingLink" in obj; }, get: function (obj) { return obj.meetingLink; }, set: function (obj, value) { obj.meetingLink = value; } }, metadata: _metadata }, _meetingLink_initializers, _meetingLink_extraInitializers);
-            __esDecorate(null, null, _sendReminders_decorators, { kind: "field", name: "sendReminders", static: false, private: false, access: { has: function (obj) { return "sendReminders" in obj; }, get: function (obj) { return obj.sendReminders; }, set: function (obj, value) { obj.sendReminders = value; } }, metadata: _metadata }, _sendReminders_initializers, _sendReminders_extraInitializers);
-            __esDecorate(null, null, _reminderPreferences_decorators, { kind: "field", name: "reminderPreferences", static: false, private: false, access: { has: function (obj) { return "reminderPreferences" in obj; }, get: function (obj) { return obj.reminderPreferences; }, set: function (obj, value) { obj.reminderPreferences = value; } }, metadata: _metadata }, _reminderPreferences_initializers, _reminderPreferences_extraInitializers);
-            __esDecorate(null, null, _formData_decorators, { kind: "field", name: "formData", static: false, private: false, access: { has: function (obj) { return "formData" in obj; }, get: function (obj) { return obj.formData; }, set: function (obj, value) { obj.formData = value; } }, metadata: _metadata }, _formData_initializers, _formData_extraInitializers);
-            __esDecorate(null, null, _metadata_decorators, { kind: "field", name: "metadata", static: false, private: false, access: { has: function (obj) { return "metadata" in obj; }, get: function (obj) { return obj.metadata; }, set: function (obj, value) { obj.metadata = value; } }, metadata: _metadata }, _metadata_initializers, _metadata_extraInitializers);
-            __esDecorate(null, null, _cancellationReason_decorators, { kind: "field", name: "cancellationReason", static: false, private: false, access: { has: function (obj) { return "cancellationReason" in obj; }, get: function (obj) { return obj.cancellationReason; }, set: function (obj, value) { obj.cancellationReason = value; } }, metadata: _metadata }, _cancellationReason_initializers, _cancellationReason_extraInitializers);
-            __esDecorate(null, null, _reschedulingReason_decorators, { kind: "field", name: "reschedulingReason", static: false, private: false, access: { has: function (obj) { return "reschedulingReason" in obj; }, get: function (obj) { return obj.reschedulingReason; }, set: function (obj, value) { obj.reschedulingReason = value; } }, metadata: _metadata }, _reschedulingReason_initializers, _reschedulingReason_extraInitializers);
-            if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-        })(),
-        _a;
-}();
+const swagger_1 = require("@nestjs/swagger");
+const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
+const appointment_type_enum_1 = require("../enums/appointment-type.enum");
+const appointment_priority_enum_1 = require("../enums/appointment-priority.enum");
+const appointment_status_enum_1 = require("../enums/appointment-status.enum");
+class UpdateAppointmentDto {
+    static _OPENAPI_METADATA_FACTORY() {
+        return { doctorId: { required: false, type: () => String, format: "uuid" }, startTime: { required: false, type: () => String }, endTime: { required: false, type: () => String }, type: { required: false, enum: require("../enums/appointment-type.enum").AppointmentType }, priority: { required: false, enum: require("../enums/appointment-priority.enum").AppointmentPriority }, status: { required: false, enum: require("../enums/appointment-status.enum").AppointmentStatus }, title: { required: false, type: () => String, minLength: 3, maxLength: 100 }, description: { required: false, type: () => String, maxLength: 1000 }, location: { required: false, type: () => String, maxLength: 200 }, meetingLink: { required: false, type: () => String, maxLength: 500 }, sendReminders: { required: false, type: () => Boolean }, reminderPreferences: { required: false, type: () => require("./update-appointment.dto").UpdateReminderPreferencesDto }, formData: { required: false, type: () => require("./update-appointment.dto").UpdateAppointmentFormDataDto }, metadata: { required: false, type: () => require("./update-appointment.dto").UpdateAppointmentMetadataDto }, cancellationReason: { required: false, type: () => String, minLength: 3, maxLength: 500 }, reschedulingReason: { required: false, type: () => String, minLength: 3, maxLength: 500 } };
+    }
+}
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Doctor ID' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], UpdateAppointmentDto.prototype, "doctorId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Appointment start time' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], UpdateAppointmentDto.prototype, "startTime", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Appointment end time' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], UpdateAppointmentDto.prototype, "endTime", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ enum: appointment_type_enum_1.AppointmentType, description: 'Type of appointment' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(appointment_type_enum_1.AppointmentType),
+    __metadata("design:type", String)
+], UpdateAppointmentDto.prototype, "type", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ enum: appointment_priority_enum_1.AppointmentPriority, description: 'Priority of appointment' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(appointment_priority_enum_1.AppointmentPriority),
+    __metadata("design:type", String)
+], UpdateAppointmentDto.prototype, "priority", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ enum: appointment_status_enum_1.AppointmentStatus, description: 'Status of appointment' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(appointment_status_enum_1.AppointmentStatus),
+    __metadata("design:type", String)
+], UpdateAppointmentDto.prototype, "status", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Title/Subject of appointment' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(3),
+    (0, class_validator_1.MaxLength)(100),
+    __metadata("design:type", String)
+], UpdateAppointmentDto.prototype, "title", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Detailed description of appointment' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(1000),
+    __metadata("design:type", String)
+], UpdateAppointmentDto.prototype, "description", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Location of appointment' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(200),
+    __metadata("design:type", String)
+], UpdateAppointmentDto.prototype, "location", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Meeting link for virtual appointments' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateIf)(o => o.type === appointment_type_enum_1.AppointmentType.VIRTUAL),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(500),
+    __metadata("design:type", String)
+], UpdateAppointmentDto.prototype, "meetingLink", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Whether to send reminders' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateAppointmentDto.prototype, "sendReminders", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Reminder preferences' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => UpdateReminderPreferencesDto),
+    __metadata("design:type", UpdateReminderPreferencesDto)
+], UpdateAppointmentDto.prototype, "reminderPreferences", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Custom form data for appointment' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => UpdateAppointmentFormDataDto),
+    __metadata("design:type", UpdateAppointmentFormDataDto)
+], UpdateAppointmentDto.prototype, "formData", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Additional metadata for appointment' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => UpdateAppointmentMetadataDto),
+    __metadata("design:type", UpdateAppointmentMetadataDto)
+], UpdateAppointmentDto.prototype, "metadata", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Cancellation reason' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateIf)(o => o.status === appointment_status_enum_1.AppointmentStatus.CANCELLED),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(3),
+    (0, class_validator_1.MaxLength)(500),
+    __metadata("design:type", String)
+], UpdateAppointmentDto.prototype, "cancellationReason", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Rescheduling reason' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateIf)(o => o.status === appointment_status_enum_1.AppointmentStatus.RESCHEDULED),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(3),
+    (0, class_validator_1.MaxLength)(500),
+    __metadata("design:type", String)
+], UpdateAppointmentDto.prototype, "reschedulingReason", void 0);
 exports.UpdateAppointmentDto = UpdateAppointmentDto;
-var UpdateReminderPreferencesDto = function () {
-    var _a;
-    var _email_decorators;
-    var _email_initializers = [];
-    var _email_extraInitializers = [];
-    var _sms_decorators;
-    var _sms_initializers = [];
-    var _sms_extraInitializers = [];
-    var _whatsapp_decorators;
-    var _whatsapp_initializers = [];
-    var _whatsapp_extraInitializers = [];
-    var _reminderTimes_decorators;
-    var _reminderTimes_initializers = [];
-    var _reminderTimes_extraInitializers = [];
-    return _a = /** @class */ (function () {
-            function UpdateReminderPreferencesDto() {
-                this.email = __runInitializers(this, _email_initializers, void 0);
-                this.sms = (__runInitializers(this, _email_extraInitializers), __runInitializers(this, _sms_initializers, void 0));
-                this.whatsapp = (__runInitializers(this, _sms_extraInitializers), __runInitializers(this, _whatsapp_initializers, void 0));
-                this.reminderTimes = (__runInitializers(this, _whatsapp_extraInitializers), __runInitializers(this, _reminderTimes_initializers, void 0));
-                __runInitializers(this, _reminderTimes_extraInitializers);
-            }
-            UpdateReminderPreferencesDto._OPENAPI_METADATA_FACTORY = function () {
-                return { email: { required: false, type: function () { return Boolean; } }, sms: { required: false, type: function () { return Boolean; } }, whatsapp: { required: false, type: function () { return Boolean; } }, reminderTimes: { required: false, type: function () { return [Number]; } } };
-            };
-            return UpdateReminderPreferencesDto;
-        }()),
-        (function () {
-            var _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
-            _email_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Send email reminders' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsBoolean)()];
-            _sms_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Send SMS reminders' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsBoolean)()];
-            _whatsapp_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Send WhatsApp reminders' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsBoolean)()];
-            _reminderTimes_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Reminder times in minutes before appointment' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsArray)(), (0, class_transformer_1.Type)(function () { return Number; })];
-            __esDecorate(null, null, _email_decorators, { kind: "field", name: "email", static: false, private: false, access: { has: function (obj) { return "email" in obj; }, get: function (obj) { return obj.email; }, set: function (obj, value) { obj.email = value; } }, metadata: _metadata }, _email_initializers, _email_extraInitializers);
-            __esDecorate(null, null, _sms_decorators, { kind: "field", name: "sms", static: false, private: false, access: { has: function (obj) { return "sms" in obj; }, get: function (obj) { return obj.sms; }, set: function (obj, value) { obj.sms = value; } }, metadata: _metadata }, _sms_initializers, _sms_extraInitializers);
-            __esDecorate(null, null, _whatsapp_decorators, { kind: "field", name: "whatsapp", static: false, private: false, access: { has: function (obj) { return "whatsapp" in obj; }, get: function (obj) { return obj.whatsapp; }, set: function (obj, value) { obj.whatsapp = value; } }, metadata: _metadata }, _whatsapp_initializers, _whatsapp_extraInitializers);
-            __esDecorate(null, null, _reminderTimes_decorators, { kind: "field", name: "reminderTimes", static: false, private: false, access: { has: function (obj) { return "reminderTimes" in obj; }, get: function (obj) { return obj.reminderTimes; }, set: function (obj, value) { obj.reminderTimes = value; } }, metadata: _metadata }, _reminderTimes_initializers, _reminderTimes_extraInitializers);
-            if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-        })(),
-        _a;
-}();
+class UpdateReminderPreferencesDto {
+    static _OPENAPI_METADATA_FACTORY() {
+        return { email: { required: false, type: () => Boolean }, sms: { required: false, type: () => Boolean }, whatsapp: { required: false, type: () => Boolean }, reminderTimes: { required: false, type: () => [Number] } };
+    }
+}
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Send email reminders' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateReminderPreferencesDto.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Send SMS reminders' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateReminderPreferencesDto.prototype, "sms", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Send WhatsApp reminders' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateReminderPreferencesDto.prototype, "whatsapp", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Reminder times in minutes before appointment' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Array)
+], UpdateReminderPreferencesDto.prototype, "reminderTimes", void 0);
 exports.UpdateReminderPreferencesDto = UpdateReminderPreferencesDto;
-var UpdateAppointmentFormDataDto = function () {
-    var _a;
-    var _chiefComplaint_decorators;
-    var _chiefComplaint_initializers = [];
-    var _chiefComplaint_extraInitializers = [];
-    var _symptoms_decorators;
-    var _symptoms_initializers = [];
-    var _symptoms_extraInitializers = [];
-    var _duration_decorators;
-    var _duration_initializers = [];
-    var _duration_extraInitializers = [];
-    var _notes_decorators;
-    var _notes_initializers = [];
-    var _notes_extraInitializers = [];
-    var _diagnosis_decorators;
-    var _diagnosis_initializers = [];
-    var _diagnosis_extraInitializers = [];
-    var _treatmentPlan_decorators;
-    var _treatmentPlan_initializers = [];
-    var _treatmentPlan_extraInitializers = [];
-    var _prescriptions_decorators;
-    var _prescriptions_initializers = [];
-    var _prescriptions_extraInitializers = [];
-    var _followUpInstructions_decorators;
-    var _followUpInstructions_initializers = [];
-    var _followUpInstructions_extraInitializers = [];
-    return _a = /** @class */ (function () {
-            function UpdateAppointmentFormDataDto() {
-                this.chiefComplaint = __runInitializers(this, _chiefComplaint_initializers, void 0);
-                this.symptoms = (__runInitializers(this, _chiefComplaint_extraInitializers), __runInitializers(this, _symptoms_initializers, void 0));
-                this.duration = (__runInitializers(this, _symptoms_extraInitializers), __runInitializers(this, _duration_initializers, void 0));
-                this.notes = (__runInitializers(this, _duration_extraInitializers), __runInitializers(this, _notes_initializers, void 0));
-                this.diagnosis = (__runInitializers(this, _notes_extraInitializers), __runInitializers(this, _diagnosis_initializers, void 0));
-                this.treatmentPlan = (__runInitializers(this, _diagnosis_extraInitializers), __runInitializers(this, _treatmentPlan_initializers, void 0));
-                this.prescriptions = (__runInitializers(this, _treatmentPlan_extraInitializers), __runInitializers(this, _prescriptions_initializers, void 0));
-                this.followUpInstructions = (__runInitializers(this, _prescriptions_extraInitializers), __runInitializers(this, _followUpInstructions_initializers, void 0));
-                __runInitializers(this, _followUpInstructions_extraInitializers);
-            }
-            UpdateAppointmentFormDataDto._OPENAPI_METADATA_FACTORY = function () {
-                return { chiefComplaint: { required: false, type: function () { return String; }, maxLength: 500 }, symptoms: { required: false, type: function () { return [String]; } }, duration: { required: false, type: function () { return String; }, maxLength: 100 }, notes: { required: false, type: function () { return String; }, maxLength: 1000 }, diagnosis: { required: false, type: function () { return String; }, maxLength: 500 }, treatmentPlan: { required: false, type: function () { return String; }, maxLength: 1000 }, prescriptions: { required: false, type: function () { return [String]; } }, followUpInstructions: { required: false, type: function () { return String; }, maxLength: 1000 } };
-            };
-            return UpdateAppointmentFormDataDto;
-        }()),
-        (function () {
-            var _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
-            _chiefComplaint_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Chief complaint' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)(), (0, class_validator_1.MaxLength)(500)];
-            _symptoms_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Symptoms' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsArray)(), (0, class_validator_1.IsString)({ each: true })];
-            _duration_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Duration of symptoms' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)(), (0, class_validator_1.MaxLength)(100)];
-            _notes_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Additional notes' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)(), (0, class_validator_1.MaxLength)(1000)];
-            _diagnosis_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Diagnosis' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)(), (0, class_validator_1.MaxLength)(500)];
-            _treatmentPlan_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Treatment plan' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)(), (0, class_validator_1.MaxLength)(1000)];
-            _prescriptions_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Prescribed medications' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsArray)(), (0, class_validator_1.IsString)({ each: true })];
-            _followUpInstructions_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Follow-up instructions' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)(), (0, class_validator_1.MaxLength)(1000)];
-            __esDecorate(null, null, _chiefComplaint_decorators, { kind: "field", name: "chiefComplaint", static: false, private: false, access: { has: function (obj) { return "chiefComplaint" in obj; }, get: function (obj) { return obj.chiefComplaint; }, set: function (obj, value) { obj.chiefComplaint = value; } }, metadata: _metadata }, _chiefComplaint_initializers, _chiefComplaint_extraInitializers);
-            __esDecorate(null, null, _symptoms_decorators, { kind: "field", name: "symptoms", static: false, private: false, access: { has: function (obj) { return "symptoms" in obj; }, get: function (obj) { return obj.symptoms; }, set: function (obj, value) { obj.symptoms = value; } }, metadata: _metadata }, _symptoms_initializers, _symptoms_extraInitializers);
-            __esDecorate(null, null, _duration_decorators, { kind: "field", name: "duration", static: false, private: false, access: { has: function (obj) { return "duration" in obj; }, get: function (obj) { return obj.duration; }, set: function (obj, value) { obj.duration = value; } }, metadata: _metadata }, _duration_initializers, _duration_extraInitializers);
-            __esDecorate(null, null, _notes_decorators, { kind: "field", name: "notes", static: false, private: false, access: { has: function (obj) { return "notes" in obj; }, get: function (obj) { return obj.notes; }, set: function (obj, value) { obj.notes = value; } }, metadata: _metadata }, _notes_initializers, _notes_extraInitializers);
-            __esDecorate(null, null, _diagnosis_decorators, { kind: "field", name: "diagnosis", static: false, private: false, access: { has: function (obj) { return "diagnosis" in obj; }, get: function (obj) { return obj.diagnosis; }, set: function (obj, value) { obj.diagnosis = value; } }, metadata: _metadata }, _diagnosis_initializers, _diagnosis_extraInitializers);
-            __esDecorate(null, null, _treatmentPlan_decorators, { kind: "field", name: "treatmentPlan", static: false, private: false, access: { has: function (obj) { return "treatmentPlan" in obj; }, get: function (obj) { return obj.treatmentPlan; }, set: function (obj, value) { obj.treatmentPlan = value; } }, metadata: _metadata }, _treatmentPlan_initializers, _treatmentPlan_extraInitializers);
-            __esDecorate(null, null, _prescriptions_decorators, { kind: "field", name: "prescriptions", static: false, private: false, access: { has: function (obj) { return "prescriptions" in obj; }, get: function (obj) { return obj.prescriptions; }, set: function (obj, value) { obj.prescriptions = value; } }, metadata: _metadata }, _prescriptions_initializers, _prescriptions_extraInitializers);
-            __esDecorate(null, null, _followUpInstructions_decorators, { kind: "field", name: "followUpInstructions", static: false, private: false, access: { has: function (obj) { return "followUpInstructions" in obj; }, get: function (obj) { return obj.followUpInstructions; }, set: function (obj, value) { obj.followUpInstructions = value; } }, metadata: _metadata }, _followUpInstructions_initializers, _followUpInstructions_extraInitializers);
-            if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-        })(),
-        _a;
-}();
+class UpdateAppointmentFormDataDto {
+    static _OPENAPI_METADATA_FACTORY() {
+        return { chiefComplaint: { required: false, type: () => String, maxLength: 500 }, symptoms: { required: false, type: () => [String] }, duration: { required: false, type: () => String, maxLength: 100 }, notes: { required: false, type: () => String, maxLength: 1000 }, diagnosis: { required: false, type: () => String, maxLength: 500 }, treatmentPlan: { required: false, type: () => String, maxLength: 1000 }, prescriptions: { required: false, type: () => [String] }, followUpInstructions: { required: false, type: () => String, maxLength: 1000 } };
+    }
+}
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Chief complaint' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(500),
+    __metadata("design:type", String)
+], UpdateAppointmentFormDataDto.prototype, "chiefComplaint", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Symptoms' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    __metadata("design:type", Array)
+], UpdateAppointmentFormDataDto.prototype, "symptoms", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Duration of symptoms' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(100),
+    __metadata("design:type", String)
+], UpdateAppointmentFormDataDto.prototype, "duration", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Additional notes' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(1000),
+    __metadata("design:type", String)
+], UpdateAppointmentFormDataDto.prototype, "notes", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Diagnosis' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(500),
+    __metadata("design:type", String)
+], UpdateAppointmentFormDataDto.prototype, "diagnosis", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Treatment plan' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(1000),
+    __metadata("design:type", String)
+], UpdateAppointmentFormDataDto.prototype, "treatmentPlan", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Prescribed medications' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    __metadata("design:type", Array)
+], UpdateAppointmentFormDataDto.prototype, "prescriptions", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Follow-up instructions' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(1000),
+    __metadata("design:type", String)
+], UpdateAppointmentFormDataDto.prototype, "followUpInstructions", void 0);
 exports.UpdateAppointmentFormDataDto = UpdateAppointmentFormDataDto;
-var UpdateAppointmentMetadataDto = function () {
-    var _a;
-    var _referralSource_decorators;
-    var _referralSource_initializers = [];
-    var _referralSource_extraInitializers = [];
-    var _insurance_decorators;
-    var _insurance_initializers = [];
-    var _insurance_extraInitializers = [];
-    var _tags_decorators;
-    var _tags_initializers = [];
-    var _tags_extraInitializers = [];
-    var _externalId_decorators;
-    var _externalId_initializers = [];
-    var _externalId_extraInitializers = [];
-    var _followUpAppointmentId_decorators;
-    var _followUpAppointmentId_initializers = [];
-    var _followUpAppointmentId_extraInitializers = [];
-    var _previousAppointmentId_decorators;
-    var _previousAppointmentId_initializers = [];
-    var _previousAppointmentId_extraInitializers = [];
-    var _billingStatus_decorators;
-    var _billingStatus_initializers = [];
-    var _billingStatus_extraInitializers = [];
-    var _claimStatus_decorators;
-    var _claimStatus_initializers = [];
-    var _claimStatus_extraInitializers = [];
-    return _a = /** @class */ (function () {
-            function UpdateAppointmentMetadataDto() {
-                this.referralSource = __runInitializers(this, _referralSource_initializers, void 0);
-                this.insurance = (__runInitializers(this, _referralSource_extraInitializers), __runInitializers(this, _insurance_initializers, void 0));
-                this.tags = (__runInitializers(this, _insurance_extraInitializers), __runInitializers(this, _tags_initializers, void 0));
-                this.externalId = (__runInitializers(this, _tags_extraInitializers), __runInitializers(this, _externalId_initializers, void 0));
-                this.followUpAppointmentId = (__runInitializers(this, _externalId_extraInitializers), __runInitializers(this, _followUpAppointmentId_initializers, void 0));
-                this.previousAppointmentId = (__runInitializers(this, _followUpAppointmentId_extraInitializers), __runInitializers(this, _previousAppointmentId_initializers, void 0));
-                this.billingStatus = (__runInitializers(this, _previousAppointmentId_extraInitializers), __runInitializers(this, _billingStatus_initializers, void 0));
-                this.claimStatus = (__runInitializers(this, _billingStatus_extraInitializers), __runInitializers(this, _claimStatus_initializers, void 0));
-                __runInitializers(this, _claimStatus_extraInitializers);
-            }
-            UpdateAppointmentMetadataDto._OPENAPI_METADATA_FACTORY = function () {
-                return { referralSource: { required: false, type: function () { return String; } }, insurance: { required: false, type: function () { return String; } }, tags: { required: false, type: function () { return [String]; } }, externalId: { required: false, type: function () { return String; } }, followUpAppointmentId: { required: false, type: function () { return String; }, format: "uuid" }, previousAppointmentId: { required: false, type: function () { return String; }, format: "uuid" }, billingStatus: { required: false, type: function () { return String; } }, claimStatus: { required: false, type: function () { return String; } } };
-            };
-            return UpdateAppointmentMetadataDto;
-        }()),
-        (function () {
-            var _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
-            _referralSource_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Referral source' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)()];
-            _insurance_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Insurance information' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)()];
-            _tags_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Custom tags' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsArray)(), (0, class_validator_1.IsString)({ each: true })];
-            _externalId_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'External reference ID' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)()];
-            _followUpAppointmentId_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Follow-up appointment ID' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsUUID)()];
-            _previousAppointmentId_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Previous appointment ID' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsUUID)()];
-            _billingStatus_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Billing status' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)()];
-            _claimStatus_decorators = [(0, swagger_1.ApiPropertyOptional)({ description: 'Insurance claim status' }), (0, class_validator_1.IsOptional)(), (0, class_validator_1.IsString)()];
-            __esDecorate(null, null, _referralSource_decorators, { kind: "field", name: "referralSource", static: false, private: false, access: { has: function (obj) { return "referralSource" in obj; }, get: function (obj) { return obj.referralSource; }, set: function (obj, value) { obj.referralSource = value; } }, metadata: _metadata }, _referralSource_initializers, _referralSource_extraInitializers);
-            __esDecorate(null, null, _insurance_decorators, { kind: "field", name: "insurance", static: false, private: false, access: { has: function (obj) { return "insurance" in obj; }, get: function (obj) { return obj.insurance; }, set: function (obj, value) { obj.insurance = value; } }, metadata: _metadata }, _insurance_initializers, _insurance_extraInitializers);
-            __esDecorate(null, null, _tags_decorators, { kind: "field", name: "tags", static: false, private: false, access: { has: function (obj) { return "tags" in obj; }, get: function (obj) { return obj.tags; }, set: function (obj, value) { obj.tags = value; } }, metadata: _metadata }, _tags_initializers, _tags_extraInitializers);
-            __esDecorate(null, null, _externalId_decorators, { kind: "field", name: "externalId", static: false, private: false, access: { has: function (obj) { return "externalId" in obj; }, get: function (obj) { return obj.externalId; }, set: function (obj, value) { obj.externalId = value; } }, metadata: _metadata }, _externalId_initializers, _externalId_extraInitializers);
-            __esDecorate(null, null, _followUpAppointmentId_decorators, { kind: "field", name: "followUpAppointmentId", static: false, private: false, access: { has: function (obj) { return "followUpAppointmentId" in obj; }, get: function (obj) { return obj.followUpAppointmentId; }, set: function (obj, value) { obj.followUpAppointmentId = value; } }, metadata: _metadata }, _followUpAppointmentId_initializers, _followUpAppointmentId_extraInitializers);
-            __esDecorate(null, null, _previousAppointmentId_decorators, { kind: "field", name: "previousAppointmentId", static: false, private: false, access: { has: function (obj) { return "previousAppointmentId" in obj; }, get: function (obj) { return obj.previousAppointmentId; }, set: function (obj, value) { obj.previousAppointmentId = value; } }, metadata: _metadata }, _previousAppointmentId_initializers, _previousAppointmentId_extraInitializers);
-            __esDecorate(null, null, _billingStatus_decorators, { kind: "field", name: "billingStatus", static: false, private: false, access: { has: function (obj) { return "billingStatus" in obj; }, get: function (obj) { return obj.billingStatus; }, set: function (obj, value) { obj.billingStatus = value; } }, metadata: _metadata }, _billingStatus_initializers, _billingStatus_extraInitializers);
-            __esDecorate(null, null, _claimStatus_decorators, { kind: "field", name: "claimStatus", static: false, private: false, access: { has: function (obj) { return "claimStatus" in obj; }, get: function (obj) { return obj.claimStatus; }, set: function (obj, value) { obj.claimStatus = value; } }, metadata: _metadata }, _claimStatus_initializers, _claimStatus_extraInitializers);
-            if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-        })(),
-        _a;
-}();
+class UpdateAppointmentMetadataDto {
+    static _OPENAPI_METADATA_FACTORY() {
+        return { referralSource: { required: false, type: () => String }, insurance: { required: false, type: () => String }, tags: { required: false, type: () => [String] }, externalId: { required: false, type: () => String }, followUpAppointmentId: { required: false, type: () => String, format: "uuid" }, previousAppointmentId: { required: false, type: () => String, format: "uuid" }, billingStatus: { required: false, type: () => String }, claimStatus: { required: false, type: () => String } };
+    }
+}
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Referral source' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateAppointmentMetadataDto.prototype, "referralSource", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Insurance information' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateAppointmentMetadataDto.prototype, "insurance", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Custom tags' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    __metadata("design:type", Array)
+], UpdateAppointmentMetadataDto.prototype, "tags", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'External reference ID' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateAppointmentMetadataDto.prototype, "externalId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Follow-up appointment ID' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], UpdateAppointmentMetadataDto.prototype, "followUpAppointmentId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Previous appointment ID' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], UpdateAppointmentMetadataDto.prototype, "previousAppointmentId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Billing status' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateAppointmentMetadataDto.prototype, "billingStatus", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Insurance claim status' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateAppointmentMetadataDto.prototype, "claimStatus", void 0);
 exports.UpdateAppointmentMetadataDto = UpdateAppointmentMetadataDto;
 //# sourceMappingURL=update-appointment.dto.js.map

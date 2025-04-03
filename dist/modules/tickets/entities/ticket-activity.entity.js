@@ -1,286 +1,182 @@
 "use strict";
-var __esDecorate = (this && this.__esDecorate) || function (ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
-    function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
-    var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
-    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
-    var _, done = false;
-    for (var i = decorators.length - 1; i >= 0; i--) {
-        var context = {};
-        for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
-        for (var p in contextIn.access) context.access[p] = contextIn.access[p];
-        context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
-        var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
-        if (kind === "accessor") {
-            if (result === void 0) continue;
-            if (result === null || typeof result !== "object") throw new TypeError("Object expected");
-            if (_ = accept(result.get)) descriptor.get = _;
-            if (_ = accept(result.set)) descriptor.set = _;
-            if (_ = accept(result.init)) initializers.unshift(_);
-        }
-        else if (_ = accept(result)) {
-            if (kind === "field") initializers.unshift(_);
-            else descriptor[key] = _;
-        }
-    }
-    if (target) Object.defineProperty(target, contextIn.name, descriptor);
-    done = true;
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __runInitializers = (this && this.__runInitializers) || function (thisArg, initializers, value) {
-    var useValue = arguments.length > 2;
-    for (var i = 0; i < initializers.length; i++) {
-        value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
-    }
-    return useValue ? value : void 0;
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __setFunctionName = (this && this.__setFunctionName) || function (f, name, prefix) {
-    if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
-    return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
-};
+var TicketActivity_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TicketActivity = void 0;
-var openapi = require("@nestjs/swagger");
-var typeorm_1 = require("typeorm");
-var ticket_entity_1 = require("./ticket.entity");
-var user_entity_1 = require("../../users/entities/user.entity");
-var ticket_activity_type_enum_1 = require("../enums/ticket-activity-type.enum");
-var TicketActivity = function () {
-    var _classDecorators = [(0, typeorm_1.Entity)('ticket_activities'), (0, typeorm_1.Index)(['ticketId', 'timestamp']), (0, typeorm_1.Index)(['performedById', 'timestamp'])];
-    var _classDescriptor;
-    var _classExtraInitializers = [];
-    var _classThis;
-    var _id_decorators;
-    var _id_initializers = [];
-    var _id_extraInitializers = [];
-    var _ticketId_decorators;
-    var _ticketId_initializers = [];
-    var _ticketId_extraInitializers = [];
-    var _ticket_decorators;
-    var _ticket_initializers = [];
-    var _ticket_extraInitializers = [];
-    var _performedById_decorators;
-    var _performedById_initializers = [];
-    var _performedById_extraInitializers = [];
-    var _performedBy_decorators;
-    var _performedBy_initializers = [];
-    var _performedBy_extraInitializers = [];
-    var _type_decorators;
-    var _type_initializers = [];
-    var _type_extraInitializers = [];
-    var _data_decorators;
-    var _data_initializers = [];
-    var _data_extraInitializers = [];
-    var _metadata_decorators;
-    var _metadata_initializers = [];
-    var _metadata_extraInitializers = [];
-    var _timestamp_decorators;
-    var _timestamp_initializers = [];
-    var _timestamp_extraInitializers = [];
-    var _ipAddress_decorators;
-    var _ipAddress_initializers = [];
-    var _ipAddress_extraInitializers = [];
-    var _userAgent_decorators;
-    var _userAgent_initializers = [];
-    var _userAgent_extraInitializers = [];
-    var _changes_decorators;
-    var _changes_initializers = [];
-    var _changes_extraInitializers = [];
-    var _tags_decorators;
-    var _tags_initializers = [];
-    var _tags_extraInitializers = [];
-    var _parentActivityId_decorators;
-    var _parentActivityId_initializers = [];
-    var _parentActivityId_extraInitializers = [];
-    var _parentActivity_decorators;
-    var _parentActivity_initializers = [];
-    var _parentActivity_extraInitializers = [];
-    var _context_decorators;
-    var _context_initializers = [];
-    var _context_extraInitializers = [];
-    var _isSystem_decorators;
-    var _isSystem_initializers = [];
-    var _isSystem_extraInitializers = [];
-    var _isAutomated_decorators;
-    var _isAutomated_initializers = [];
-    var _isAutomated_extraInitializers = [];
-    var _requiresAttention_decorators;
-    var _requiresAttention_initializers = [];
-    var _requiresAttention_extraInitializers = [];
-    var _expiresAt_decorators;
-    var _expiresAt_initializers = [];
-    var _expiresAt_extraInitializers = [];
-    var _relatedEntities_decorators;
-    var _relatedEntities_initializers = [];
-    var _relatedEntities_extraInitializers = [];
-    var _duration_decorators;
-    var _duration_initializers = [];
-    var _duration_extraInitializers = [];
-    var _status_decorators;
-    var _status_initializers = [];
-    var _status_extraInitializers = [];
-    var _importance_decorators;
-    var _importance_initializers = [];
-    var _importance_extraInitializers = [];
-    var _isHidden_decorators;
-    var _isHidden_initializers = [];
-    var _isHidden_extraInitializers = [];
-    var _customFields_decorators;
-    var _customFields_initializers = [];
-    var _customFields_extraInitializers = [];
-    var _createdAt_decorators;
-    var _createdAt_initializers = [];
-    var _createdAt_extraInitializers = [];
-    var _updatedAt_decorators;
-    var _updatedAt_initializers = [];
-    var _updatedAt_extraInitializers = [];
-    var _processedAt_decorators;
-    var _processedAt_initializers = [];
-    var _processedAt_extraInitializers = [];
-    var _categories_decorators;
-    var _categories_initializers = [];
-    var _categories_extraInitializers = [];
-    var _validationResults_decorators;
-    var _validationResults_initializers = [];
-    var _validationResults_extraInitializers = [];
-    var _metrics_decorators;
-    var _metrics_initializers = [];
-    var _metrics_extraInitializers = [];
-    var _securityContext_decorators;
-    var _securityContext_initializers = [];
-    var _securityContext_extraInitializers = [];
-    var _businessContext_decorators;
-    var _businessContext_initializers = [];
-    var _businessContext_extraInitializers = [];
-    var _audit_decorators;
-    var _audit_initializers = [];
-    var _audit_extraInitializers = [];
-    var TicketActivity = _classThis = /** @class */ (function () {
-        function TicketActivity_1() {
-            this.id = __runInitializers(this, _id_initializers, void 0);
-            this.organizationId = __runInitializers(this, _id_extraInitializers); // Add this line
-            this.ticketId = __runInitializers(this, _ticketId_initializers, void 0);
-            this.ticket = (__runInitializers(this, _ticketId_extraInitializers), __runInitializers(this, _ticket_initializers, void 0));
-            this.performedById = (__runInitializers(this, _ticket_extraInitializers), __runInitializers(this, _performedById_initializers, void 0));
-            this.performedBy = (__runInitializers(this, _performedById_extraInitializers), __runInitializers(this, _performedBy_initializers, void 0));
-            this.type = (__runInitializers(this, _performedBy_extraInitializers), __runInitializers(this, _type_initializers, void 0));
-            this.data = (__runInitializers(this, _type_extraInitializers), __runInitializers(this, _data_initializers, void 0));
-            this.metadata = (__runInitializers(this, _data_extraInitializers), __runInitializers(this, _metadata_initializers, void 0));
-            this.timestamp = (__runInitializers(this, _metadata_extraInitializers), __runInitializers(this, _timestamp_initializers, void 0));
-            this.ipAddress = (__runInitializers(this, _timestamp_extraInitializers), __runInitializers(this, _ipAddress_initializers, void 0));
-            this.userAgent = (__runInitializers(this, _ipAddress_extraInitializers), __runInitializers(this, _userAgent_initializers, void 0));
-            this.changes = (__runInitializers(this, _userAgent_extraInitializers), __runInitializers(this, _changes_initializers, void 0));
-            this.tags = (__runInitializers(this, _changes_extraInitializers), __runInitializers(this, _tags_initializers, void 0));
-            this.parentActivityId = (__runInitializers(this, _tags_extraInitializers), __runInitializers(this, _parentActivityId_initializers, void 0));
-            this.parentActivity = (__runInitializers(this, _parentActivityId_extraInitializers), __runInitializers(this, _parentActivity_initializers, void 0));
-            this.context = (__runInitializers(this, _parentActivity_extraInitializers), __runInitializers(this, _context_initializers, void 0));
-            this.isSystem = (__runInitializers(this, _context_extraInitializers), __runInitializers(this, _isSystem_initializers, void 0));
-            this.isAutomated = (__runInitializers(this, _isSystem_extraInitializers), __runInitializers(this, _isAutomated_initializers, void 0));
-            this.requiresAttention = (__runInitializers(this, _isAutomated_extraInitializers), __runInitializers(this, _requiresAttention_initializers, void 0));
-            this.expiresAt = (__runInitializers(this, _requiresAttention_extraInitializers), __runInitializers(this, _expiresAt_initializers, void 0));
-            this.relatedEntities = (__runInitializers(this, _expiresAt_extraInitializers), __runInitializers(this, _relatedEntities_initializers, void 0));
-            this.duration = (__runInitializers(this, _relatedEntities_extraInitializers), __runInitializers(this, _duration_initializers, void 0));
-            this.status = (__runInitializers(this, _duration_extraInitializers), __runInitializers(this, _status_initializers, void 0));
-            this.importance = (__runInitializers(this, _status_extraInitializers), __runInitializers(this, _importance_initializers, void 0));
-            this.isHidden = (__runInitializers(this, _importance_extraInitializers), __runInitializers(this, _isHidden_initializers, void 0));
-            this.customFields = (__runInitializers(this, _isHidden_extraInitializers), __runInitializers(this, _customFields_initializers, void 0));
-            this.createdAt = (__runInitializers(this, _customFields_extraInitializers), __runInitializers(this, _createdAt_initializers, void 0));
-            this.updatedAt = (__runInitializers(this, _createdAt_extraInitializers), __runInitializers(this, _updatedAt_initializers, void 0));
-            this.processedAt = (__runInitializers(this, _updatedAt_extraInitializers), __runInitializers(this, _processedAt_initializers, void 0));
-            this.categories = (__runInitializers(this, _processedAt_extraInitializers), __runInitializers(this, _categories_initializers, void 0));
-            this.validationResults = (__runInitializers(this, _categories_extraInitializers), __runInitializers(this, _validationResults_initializers, void 0));
-            this.metrics = (__runInitializers(this, _validationResults_extraInitializers), __runInitializers(this, _metrics_initializers, void 0));
-            this.securityContext = (__runInitializers(this, _metrics_extraInitializers), __runInitializers(this, _securityContext_initializers, void 0));
-            this.businessContext = (__runInitializers(this, _securityContext_extraInitializers), __runInitializers(this, _businessContext_initializers, void 0));
-            this.audit = (__runInitializers(this, _businessContext_extraInitializers), __runInitializers(this, _audit_initializers, void 0));
-            __runInitializers(this, _audit_extraInitializers);
-        }
-        TicketActivity_1._OPENAPI_METADATA_FACTORY = function () {
-            return { id: { required: true, type: function () { return String; } }, organizationId: { required: true, type: function () { return String; } }, userId: { required: true, type: function () { return String; } }, action: { required: true, type: function () { return String; } }, details: { required: true, type: function () { return Object; } }, ticketId: { required: true, type: function () { return String; } }, ticket: { required: true, type: function () { return require("./ticket.entity").Ticket; } }, performedById: { required: true, type: function () { return String; } }, performedBy: { required: true, type: function () { return require("../../users/entities/user.entity").User; } }, type: { required: true, enum: require("../enums/ticket-activity-type.enum").TicketActivityType }, data: { required: true, type: function () { return Object; } }, metadata: { required: false, type: function () { return Object; } }, timestamp: { required: true, type: function () { return Date; } }, ipAddress: { required: false, type: function () { return String; } }, userAgent: { required: false, type: function () { return String; } }, changes: { required: false }, tags: { required: false, type: function () { return [String]; } }, parentActivityId: { required: false, type: function () { return String; } }, parentActivity: { required: false, type: function () { return require("./ticket-activity.entity").TicketActivity; } }, context: { required: false, type: function () { return ({ location: { required: false, type: function () { return String; } }, deviceInfo: { required: false, type: function () { return String; } }, sessionId: { required: false, type: function () { return String; } }, referrer: { required: false, type: function () { return String; } } }); } }, isSystem: { required: true, type: function () { return Boolean; } }, isAutomated: { required: true, type: function () { return Boolean; } }, requiresAttention: { required: true, type: function () { return Boolean; } }, expiresAt: { required: false, type: function () { return Date; } }, relatedEntities: { required: false }, duration: { required: false, type: function () { return Number; } }, status: { required: false, type: function () { return String; } }, importance: { required: true, type: function () { return Number; } }, isHidden: { required: true, type: function () { return Boolean; } }, customFields: { required: false, type: function () { return Object; } }, createdAt: { required: true, type: function () { return Date; } }, updatedAt: { required: true, type: function () { return Date; } }, processedAt: { required: false, type: function () { return Date; } }, categories: { required: false, type: function () { return [String]; } }, validationResults: { required: false, type: function () { return ({ isValid: { required: true, type: function () { return Boolean; } }, errors: { required: false, type: function () { return [String]; } }, warnings: { required: false, type: function () { return [String]; } } }); } }, metrics: { required: false, type: function () { return ({ responseTime: { required: false, type: function () { return Number; } }, resourceUsage: { required: false, type: function () { return Object; } }, performance: { required: false, type: function () { return Object; } } }); } }, securityContext: { required: false, type: function () { return ({ permissions: { required: false, type: function () { return [String]; } }, roles: { required: false, type: function () { return [String]; } }, accessLevel: { required: false, type: function () { return String; } }, authenticationType: { required: false, type: function () { return String; } } }); } }, businessContext: { required: false, type: function () { return ({ department: { required: false, type: function () { return String; } }, costCenter: { required: false, type: function () { return String; } }, projectCode: { required: false, type: function () { return String; } }, priority: { required: false, type: function () { return String; } } }); } }, audit: { required: false, type: function () { return ({ version: { required: true, type: function () { return Number; } }, changedBy: { required: true, type: function () { return String; } }, changedAt: { required: true, type: function () { return Date; } }, reason: { required: false, type: function () { return String; } } }); } } };
-        };
-        return TicketActivity_1;
-    }());
-    __setFunctionName(_classThis, "TicketActivity");
-    (function () {
-        var _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
-        _id_decorators = [(0, typeorm_1.PrimaryGeneratedColumn)('uuid')];
-        _ticketId_decorators = [(0, typeorm_1.Column)('uuid'), (0, typeorm_1.Index)()];
-        _ticket_decorators = [(0, typeorm_1.ManyToOne)(function () { return ticket_entity_1.Ticket; }, function (ticket) { return ticket.activities; }, { onDelete: 'CASCADE' }), (0, typeorm_1.JoinColumn)({ name: 'ticketId' })];
-        _performedById_decorators = [(0, typeorm_1.Column)('uuid'), (0, typeorm_1.Index)()];
-        _performedBy_decorators = [(0, typeorm_1.ManyToOne)(function () { return user_entity_1.User; }), (0, typeorm_1.JoinColumn)({ name: 'performedById' })];
-        _type_decorators = [(0, typeorm_1.Column)({
-                type: 'enum',
-                enum: ticket_activity_type_enum_1.TicketActivityType
-            }), (0, typeorm_1.Index)()];
-        _data_decorators = [(0, typeorm_1.Column)('jsonb')];
-        _metadata_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _timestamp_decorators = [(0, typeorm_1.CreateDateColumn)(), (0, typeorm_1.Index)()];
-        _ipAddress_decorators = [(0, typeorm_1.Column)({ nullable: true })];
-        _userAgent_decorators = [(0, typeorm_1.Column)({ nullable: true })];
-        _changes_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _tags_decorators = [(0, typeorm_1.Column)('text', { array: true, nullable: true })];
-        _parentActivityId_decorators = [(0, typeorm_1.Column)({ nullable: true })];
-        _parentActivity_decorators = [(0, typeorm_1.ManyToOne)(function () { return TicketActivity; }, { nullable: true }), (0, typeorm_1.JoinColumn)({ name: 'parentActivityId' })];
-        _context_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _isSystem_decorators = [(0, typeorm_1.Column)('boolean', { default: false })];
-        _isAutomated_decorators = [(0, typeorm_1.Column)('boolean', { default: false })];
-        _requiresAttention_decorators = [(0, typeorm_1.Column)('boolean', { default: false })];
-        _expiresAt_decorators = [(0, typeorm_1.Column)({ nullable: true })];
-        _relatedEntities_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _duration_decorators = [(0, typeorm_1.Column)('int', { nullable: true })];
-        _status_decorators = [(0, typeorm_1.Column)('varchar', { length: 50, nullable: true }), (0, typeorm_1.Index)()];
-        _importance_decorators = [(0, typeorm_1.Column)('int', { default: 0 })];
-        _isHidden_decorators = [(0, typeorm_1.Column)('boolean', { default: false })];
-        _customFields_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _createdAt_decorators = [(0, typeorm_1.CreateDateColumn)()];
-        _updatedAt_decorators = [(0, typeorm_1.UpdateDateColumn)()];
-        _processedAt_decorators = [(0, typeorm_1.Column)({ nullable: true })];
-        _categories_decorators = [(0, typeorm_1.Column)({ type: 'text', array: true, nullable: true }), (0, typeorm_1.Index)()];
-        _validationResults_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _metrics_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _securityContext_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _businessContext_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _audit_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        __esDecorate(null, null, _id_decorators, { kind: "field", name: "id", static: false, private: false, access: { has: function (obj) { return "id" in obj; }, get: function (obj) { return obj.id; }, set: function (obj, value) { obj.id = value; } }, metadata: _metadata }, _id_initializers, _id_extraInitializers);
-        __esDecorate(null, null, _ticketId_decorators, { kind: "field", name: "ticketId", static: false, private: false, access: { has: function (obj) { return "ticketId" in obj; }, get: function (obj) { return obj.ticketId; }, set: function (obj, value) { obj.ticketId = value; } }, metadata: _metadata }, _ticketId_initializers, _ticketId_extraInitializers);
-        __esDecorate(null, null, _ticket_decorators, { kind: "field", name: "ticket", static: false, private: false, access: { has: function (obj) { return "ticket" in obj; }, get: function (obj) { return obj.ticket; }, set: function (obj, value) { obj.ticket = value; } }, metadata: _metadata }, _ticket_initializers, _ticket_extraInitializers);
-        __esDecorate(null, null, _performedById_decorators, { kind: "field", name: "performedById", static: false, private: false, access: { has: function (obj) { return "performedById" in obj; }, get: function (obj) { return obj.performedById; }, set: function (obj, value) { obj.performedById = value; } }, metadata: _metadata }, _performedById_initializers, _performedById_extraInitializers);
-        __esDecorate(null, null, _performedBy_decorators, { kind: "field", name: "performedBy", static: false, private: false, access: { has: function (obj) { return "performedBy" in obj; }, get: function (obj) { return obj.performedBy; }, set: function (obj, value) { obj.performedBy = value; } }, metadata: _metadata }, _performedBy_initializers, _performedBy_extraInitializers);
-        __esDecorate(null, null, _type_decorators, { kind: "field", name: "type", static: false, private: false, access: { has: function (obj) { return "type" in obj; }, get: function (obj) { return obj.type; }, set: function (obj, value) { obj.type = value; } }, metadata: _metadata }, _type_initializers, _type_extraInitializers);
-        __esDecorate(null, null, _data_decorators, { kind: "field", name: "data", static: false, private: false, access: { has: function (obj) { return "data" in obj; }, get: function (obj) { return obj.data; }, set: function (obj, value) { obj.data = value; } }, metadata: _metadata }, _data_initializers, _data_extraInitializers);
-        __esDecorate(null, null, _metadata_decorators, { kind: "field", name: "metadata", static: false, private: false, access: { has: function (obj) { return "metadata" in obj; }, get: function (obj) { return obj.metadata; }, set: function (obj, value) { obj.metadata = value; } }, metadata: _metadata }, _metadata_initializers, _metadata_extraInitializers);
-        __esDecorate(null, null, _timestamp_decorators, { kind: "field", name: "timestamp", static: false, private: false, access: { has: function (obj) { return "timestamp" in obj; }, get: function (obj) { return obj.timestamp; }, set: function (obj, value) { obj.timestamp = value; } }, metadata: _metadata }, _timestamp_initializers, _timestamp_extraInitializers);
-        __esDecorate(null, null, _ipAddress_decorators, { kind: "field", name: "ipAddress", static: false, private: false, access: { has: function (obj) { return "ipAddress" in obj; }, get: function (obj) { return obj.ipAddress; }, set: function (obj, value) { obj.ipAddress = value; } }, metadata: _metadata }, _ipAddress_initializers, _ipAddress_extraInitializers);
-        __esDecorate(null, null, _userAgent_decorators, { kind: "field", name: "userAgent", static: false, private: false, access: { has: function (obj) { return "userAgent" in obj; }, get: function (obj) { return obj.userAgent; }, set: function (obj, value) { obj.userAgent = value; } }, metadata: _metadata }, _userAgent_initializers, _userAgent_extraInitializers);
-        __esDecorate(null, null, _changes_decorators, { kind: "field", name: "changes", static: false, private: false, access: { has: function (obj) { return "changes" in obj; }, get: function (obj) { return obj.changes; }, set: function (obj, value) { obj.changes = value; } }, metadata: _metadata }, _changes_initializers, _changes_extraInitializers);
-        __esDecorate(null, null, _tags_decorators, { kind: "field", name: "tags", static: false, private: false, access: { has: function (obj) { return "tags" in obj; }, get: function (obj) { return obj.tags; }, set: function (obj, value) { obj.tags = value; } }, metadata: _metadata }, _tags_initializers, _tags_extraInitializers);
-        __esDecorate(null, null, _parentActivityId_decorators, { kind: "field", name: "parentActivityId", static: false, private: false, access: { has: function (obj) { return "parentActivityId" in obj; }, get: function (obj) { return obj.parentActivityId; }, set: function (obj, value) { obj.parentActivityId = value; } }, metadata: _metadata }, _parentActivityId_initializers, _parentActivityId_extraInitializers);
-        __esDecorate(null, null, _parentActivity_decorators, { kind: "field", name: "parentActivity", static: false, private: false, access: { has: function (obj) { return "parentActivity" in obj; }, get: function (obj) { return obj.parentActivity; }, set: function (obj, value) { obj.parentActivity = value; } }, metadata: _metadata }, _parentActivity_initializers, _parentActivity_extraInitializers);
-        __esDecorate(null, null, _context_decorators, { kind: "field", name: "context", static: false, private: false, access: { has: function (obj) { return "context" in obj; }, get: function (obj) { return obj.context; }, set: function (obj, value) { obj.context = value; } }, metadata: _metadata }, _context_initializers, _context_extraInitializers);
-        __esDecorate(null, null, _isSystem_decorators, { kind: "field", name: "isSystem", static: false, private: false, access: { has: function (obj) { return "isSystem" in obj; }, get: function (obj) { return obj.isSystem; }, set: function (obj, value) { obj.isSystem = value; } }, metadata: _metadata }, _isSystem_initializers, _isSystem_extraInitializers);
-        __esDecorate(null, null, _isAutomated_decorators, { kind: "field", name: "isAutomated", static: false, private: false, access: { has: function (obj) { return "isAutomated" in obj; }, get: function (obj) { return obj.isAutomated; }, set: function (obj, value) { obj.isAutomated = value; } }, metadata: _metadata }, _isAutomated_initializers, _isAutomated_extraInitializers);
-        __esDecorate(null, null, _requiresAttention_decorators, { kind: "field", name: "requiresAttention", static: false, private: false, access: { has: function (obj) { return "requiresAttention" in obj; }, get: function (obj) { return obj.requiresAttention; }, set: function (obj, value) { obj.requiresAttention = value; } }, metadata: _metadata }, _requiresAttention_initializers, _requiresAttention_extraInitializers);
-        __esDecorate(null, null, _expiresAt_decorators, { kind: "field", name: "expiresAt", static: false, private: false, access: { has: function (obj) { return "expiresAt" in obj; }, get: function (obj) { return obj.expiresAt; }, set: function (obj, value) { obj.expiresAt = value; } }, metadata: _metadata }, _expiresAt_initializers, _expiresAt_extraInitializers);
-        __esDecorate(null, null, _relatedEntities_decorators, { kind: "field", name: "relatedEntities", static: false, private: false, access: { has: function (obj) { return "relatedEntities" in obj; }, get: function (obj) { return obj.relatedEntities; }, set: function (obj, value) { obj.relatedEntities = value; } }, metadata: _metadata }, _relatedEntities_initializers, _relatedEntities_extraInitializers);
-        __esDecorate(null, null, _duration_decorators, { kind: "field", name: "duration", static: false, private: false, access: { has: function (obj) { return "duration" in obj; }, get: function (obj) { return obj.duration; }, set: function (obj, value) { obj.duration = value; } }, metadata: _metadata }, _duration_initializers, _duration_extraInitializers);
-        __esDecorate(null, null, _status_decorators, { kind: "field", name: "status", static: false, private: false, access: { has: function (obj) { return "status" in obj; }, get: function (obj) { return obj.status; }, set: function (obj, value) { obj.status = value; } }, metadata: _metadata }, _status_initializers, _status_extraInitializers);
-        __esDecorate(null, null, _importance_decorators, { kind: "field", name: "importance", static: false, private: false, access: { has: function (obj) { return "importance" in obj; }, get: function (obj) { return obj.importance; }, set: function (obj, value) { obj.importance = value; } }, metadata: _metadata }, _importance_initializers, _importance_extraInitializers);
-        __esDecorate(null, null, _isHidden_decorators, { kind: "field", name: "isHidden", static: false, private: false, access: { has: function (obj) { return "isHidden" in obj; }, get: function (obj) { return obj.isHidden; }, set: function (obj, value) { obj.isHidden = value; } }, metadata: _metadata }, _isHidden_initializers, _isHidden_extraInitializers);
-        __esDecorate(null, null, _customFields_decorators, { kind: "field", name: "customFields", static: false, private: false, access: { has: function (obj) { return "customFields" in obj; }, get: function (obj) { return obj.customFields; }, set: function (obj, value) { obj.customFields = value; } }, metadata: _metadata }, _customFields_initializers, _customFields_extraInitializers);
-        __esDecorate(null, null, _createdAt_decorators, { kind: "field", name: "createdAt", static: false, private: false, access: { has: function (obj) { return "createdAt" in obj; }, get: function (obj) { return obj.createdAt; }, set: function (obj, value) { obj.createdAt = value; } }, metadata: _metadata }, _createdAt_initializers, _createdAt_extraInitializers);
-        __esDecorate(null, null, _updatedAt_decorators, { kind: "field", name: "updatedAt", static: false, private: false, access: { has: function (obj) { return "updatedAt" in obj; }, get: function (obj) { return obj.updatedAt; }, set: function (obj, value) { obj.updatedAt = value; } }, metadata: _metadata }, _updatedAt_initializers, _updatedAt_extraInitializers);
-        __esDecorate(null, null, _processedAt_decorators, { kind: "field", name: "processedAt", static: false, private: false, access: { has: function (obj) { return "processedAt" in obj; }, get: function (obj) { return obj.processedAt; }, set: function (obj, value) { obj.processedAt = value; } }, metadata: _metadata }, _processedAt_initializers, _processedAt_extraInitializers);
-        __esDecorate(null, null, _categories_decorators, { kind: "field", name: "categories", static: false, private: false, access: { has: function (obj) { return "categories" in obj; }, get: function (obj) { return obj.categories; }, set: function (obj, value) { obj.categories = value; } }, metadata: _metadata }, _categories_initializers, _categories_extraInitializers);
-        __esDecorate(null, null, _validationResults_decorators, { kind: "field", name: "validationResults", static: false, private: false, access: { has: function (obj) { return "validationResults" in obj; }, get: function (obj) { return obj.validationResults; }, set: function (obj, value) { obj.validationResults = value; } }, metadata: _metadata }, _validationResults_initializers, _validationResults_extraInitializers);
-        __esDecorate(null, null, _metrics_decorators, { kind: "field", name: "metrics", static: false, private: false, access: { has: function (obj) { return "metrics" in obj; }, get: function (obj) { return obj.metrics; }, set: function (obj, value) { obj.metrics = value; } }, metadata: _metadata }, _metrics_initializers, _metrics_extraInitializers);
-        __esDecorate(null, null, _securityContext_decorators, { kind: "field", name: "securityContext", static: false, private: false, access: { has: function (obj) { return "securityContext" in obj; }, get: function (obj) { return obj.securityContext; }, set: function (obj, value) { obj.securityContext = value; } }, metadata: _metadata }, _securityContext_initializers, _securityContext_extraInitializers);
-        __esDecorate(null, null, _businessContext_decorators, { kind: "field", name: "businessContext", static: false, private: false, access: { has: function (obj) { return "businessContext" in obj; }, get: function (obj) { return obj.businessContext; }, set: function (obj, value) { obj.businessContext = value; } }, metadata: _metadata }, _businessContext_initializers, _businessContext_extraInitializers);
-        __esDecorate(null, null, _audit_decorators, { kind: "field", name: "audit", static: false, private: false, access: { has: function (obj) { return "audit" in obj; }, get: function (obj) { return obj.audit; }, set: function (obj, value) { obj.audit = value; } }, metadata: _metadata }, _audit_initializers, _audit_extraInitializers);
-        __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
-        TicketActivity = _classThis = _classDescriptor.value;
-        if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-        __runInitializers(_classThis, _classExtraInitializers);
-    })();
-    return TicketActivity = _classThis;
-}();
+const openapi = require("@nestjs/swagger");
+const typeorm_1 = require("typeorm");
+const ticket_entity_1 = require("./ticket.entity");
+const user_entity_1 = require("../../users/entities/user.entity");
+const ticket_activity_type_enum_1 = require("../enums/ticket-activity-type.enum");
+let TicketActivity = TicketActivity_1 = class TicketActivity {
+    static _OPENAPI_METADATA_FACTORY() {
+        return { id: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, userId: { required: true, type: () => String }, action: { required: true, type: () => String }, details: { required: true, type: () => Object }, ticketId: { required: true, type: () => String }, ticket: { required: true, type: () => require("./ticket.entity").Ticket }, performedById: { required: true, type: () => String }, performedBy: { required: true, type: () => require("../../users/entities/user.entity").User }, type: { required: true, enum: require("../enums/ticket-activity-type.enum").TicketActivityType }, data: { required: true, type: () => Object }, metadata: { required: false, type: () => Object }, timestamp: { required: true, type: () => Date }, ipAddress: { required: false, type: () => String }, userAgent: { required: false, type: () => String }, changes: { required: false }, tags: { required: false, type: () => [String] }, parentActivityId: { required: false, type: () => String }, parentActivity: { required: false, type: () => require("./ticket-activity.entity").TicketActivity }, context: { required: false, type: () => ({ location: { required: false, type: () => String }, deviceInfo: { required: false, type: () => String }, sessionId: { required: false, type: () => String }, referrer: { required: false, type: () => String } }) }, isSystem: { required: true, type: () => Boolean }, isAutomated: { required: true, type: () => Boolean }, requiresAttention: { required: true, type: () => Boolean }, expiresAt: { required: false, type: () => Date }, relatedEntities: { required: false }, duration: { required: false, type: () => Number }, status: { required: false, type: () => String }, importance: { required: true, type: () => Number }, isHidden: { required: true, type: () => Boolean }, customFields: { required: false, type: () => Object }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, processedAt: { required: false, type: () => Date }, categories: { required: false, type: () => [String] }, validationResults: { required: false, type: () => ({ isValid: { required: true, type: () => Boolean }, errors: { required: false, type: () => [String] }, warnings: { required: false, type: () => [String] } }) }, metrics: { required: false, type: () => ({ responseTime: { required: false, type: () => Number }, resourceUsage: { required: false, type: () => Object }, performance: { required: false, type: () => Object } }) }, securityContext: { required: false, type: () => ({ permissions: { required: false, type: () => [String] }, roles: { required: false, type: () => [String] }, accessLevel: { required: false, type: () => String }, authenticationType: { required: false, type: () => String } }) }, businessContext: { required: false, type: () => ({ department: { required: false, type: () => String }, costCenter: { required: false, type: () => String }, projectCode: { required: false, type: () => String }, priority: { required: false, type: () => String } }) }, audit: { required: false, type: () => ({ version: { required: true, type: () => Number }, changedBy: { required: true, type: () => String }, changedAt: { required: true, type: () => Date }, reason: { required: false, type: () => String } }) } };
+    }
+};
+__decorate([
+    (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
+    __metadata("design:type", String)
+], TicketActivity.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.Column)('uuid'),
+    (0, typeorm_1.Index)(),
+    __metadata("design:type", String)
+], TicketActivity.prototype, "ticketId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => ticket_entity_1.Ticket, ticket => ticket.activities, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'ticketId' }),
+    __metadata("design:type", ticket_entity_1.Ticket)
+], TicketActivity.prototype, "ticket", void 0);
+__decorate([
+    (0, typeorm_1.Column)('uuid'),
+    (0, typeorm_1.Index)(),
+    __metadata("design:type", String)
+], TicketActivity.prototype, "performedById", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
+    (0, typeorm_1.JoinColumn)({ name: 'performedById' }),
+    __metadata("design:type", user_entity_1.User)
+], TicketActivity.prototype, "performedBy", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: 'enum',
+        enum: ticket_activity_type_enum_1.TicketActivityType
+    }),
+    (0, typeorm_1.Index)(),
+    __metadata("design:type", String)
+], TicketActivity.prototype, "type", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb'),
+    __metadata("design:type", Object)
+], TicketActivity.prototype, "data", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], TicketActivity.prototype, "metadata", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)(),
+    (0, typeorm_1.Index)(),
+    __metadata("design:type", Date)
+], TicketActivity.prototype, "timestamp", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], TicketActivity.prototype, "ipAddress", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], TicketActivity.prototype, "userAgent", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Array)
+], TicketActivity.prototype, "changes", void 0);
+__decorate([
+    (0, typeorm_1.Column)('text', { array: true, nullable: true }),
+    __metadata("design:type", Array)
+], TicketActivity.prototype, "tags", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], TicketActivity.prototype, "parentActivityId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => TicketActivity_1, { nullable: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'parentActivityId' }),
+    __metadata("design:type", TicketActivity)
+], TicketActivity.prototype, "parentActivity", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], TicketActivity.prototype, "context", void 0);
+__decorate([
+    (0, typeorm_1.Column)('boolean', { default: false }),
+    __metadata("design:type", Boolean)
+], TicketActivity.prototype, "isSystem", void 0);
+__decorate([
+    (0, typeorm_1.Column)('boolean', { default: false }),
+    __metadata("design:type", Boolean)
+], TicketActivity.prototype, "isAutomated", void 0);
+__decorate([
+    (0, typeorm_1.Column)('boolean', { default: false }),
+    __metadata("design:type", Boolean)
+], TicketActivity.prototype, "requiresAttention", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Date)
+], TicketActivity.prototype, "expiresAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Array)
+], TicketActivity.prototype, "relatedEntities", void 0);
+__decorate([
+    (0, typeorm_1.Column)('int', { nullable: true }),
+    __metadata("design:type", Number)
+], TicketActivity.prototype, "duration", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { length: 50, nullable: true }),
+    (0, typeorm_1.Index)(),
+    __metadata("design:type", String)
+], TicketActivity.prototype, "status", void 0);
+__decorate([
+    (0, typeorm_1.Column)('int', { default: 0 }),
+    __metadata("design:type", Number)
+], TicketActivity.prototype, "importance", void 0);
+__decorate([
+    (0, typeorm_1.Column)('boolean', { default: false }),
+    __metadata("design:type", Boolean)
+], TicketActivity.prototype, "isHidden", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], TicketActivity.prototype, "customFields", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)(),
+    __metadata("design:type", Date)
+], TicketActivity.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.UpdateDateColumn)(),
+    __metadata("design:type", Date)
+], TicketActivity.prototype, "updatedAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Date)
+], TicketActivity.prototype, "processedAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', array: true, nullable: true }),
+    (0, typeorm_1.Index)(),
+    __metadata("design:type", Array)
+], TicketActivity.prototype, "categories", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], TicketActivity.prototype, "validationResults", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], TicketActivity.prototype, "metrics", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], TicketActivity.prototype, "securityContext", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], TicketActivity.prototype, "businessContext", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], TicketActivity.prototype, "audit", void 0);
+TicketActivity = TicketActivity_1 = __decorate([
+    (0, typeorm_1.Entity)('ticket_activities'),
+    (0, typeorm_1.Index)(['ticketId', 'timestamp']),
+    (0, typeorm_1.Index)(['performedById', 'timestamp'])
+], TicketActivity);
 exports.TicketActivity = TicketActivity;
 //# sourceMappingURL=ticket-activity.entity.js.map

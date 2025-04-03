@@ -1,317 +1,190 @@
 "use strict";
-var __esDecorate = (this && this.__esDecorate) || function (ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
-    function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
-    var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
-    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
-    var _, done = false;
-    for (var i = decorators.length - 1; i >= 0; i--) {
-        var context = {};
-        for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
-        for (var p in contextIn.access) context.access[p] = contextIn.access[p];
-        context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
-        var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
-        if (kind === "accessor") {
-            if (result === void 0) continue;
-            if (result === null || typeof result !== "object") throw new TypeError("Object expected");
-            if (_ = accept(result.get)) descriptor.get = _;
-            if (_ = accept(result.set)) descriptor.set = _;
-            if (_ = accept(result.init)) initializers.unshift(_);
-        }
-        else if (_ = accept(result)) {
-            if (kind === "field") initializers.unshift(_);
-            else descriptor[key] = _;
-        }
-    }
-    if (target) Object.defineProperty(target, contextIn.name, descriptor);
-    done = true;
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __runInitializers = (this && this.__runInitializers) || function (thisArg, initializers, value) {
-    var useValue = arguments.length > 2;
-    for (var i = 0; i < initializers.length; i++) {
-        value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
-    }
-    return useValue ? value : void 0;
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-var __setFunctionName = (this && this.__setFunctionName) || function (f, name, prefix) {
-    if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
-    return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
-};
+var SlackService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SlackService = void 0;
 // src/modules/integrations/slack/services/slack.service.ts
-var common_1 = require("@nestjs/common");
-var SlackService = function () {
-    var _classDecorators = [(0, common_1.Injectable)()];
-    var _classDescriptor;
-    var _classExtraInitializers = [];
-    var _classThis;
-    var SlackService = _classThis = /** @class */ (function () {
-        function SlackService_1(configService, eventEmitter) {
-            var _this = this;
-            this.configService = configService;
-            this.eventEmitter = eventEmitter;
-            this.logger = new common_1.Logger(SlackService.name);
-            var token = this.configService.get('SLACK_BOT_TOKEN');
-            // Mock client
-            this.client = {
-                chat: {
-                    postMessage: function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
-                        return [2 /*return*/, ({ ok: true, ts: String(Date.now()) })];
-                    }); }); },
-                    update: function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
-                        return [2 /*return*/, ({ ok: true })];
-                    }); }); },
-                    delete: function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
-                        return [2 /*return*/, ({ ok: true })];
-                    }); }); },
-                },
-                conversations: {
-                    info: function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
-                        return [2 /*return*/, ({ channel: { id: 'mock-channel', name: 'mock-channel-name' } })];
-                    }); }); },
-                    join: function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
-                        return [2 /*return*/, ({ ok: true })];
-                    }); }); },
-                    history: function () { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
-                        return [2 /*return*/, ({ messages: [] })];
-                    }); }); },
-                }
-            };
+const common_1 = require("@nestjs/common");
+const config_1 = require("@nestjs/config");
+const event_emitter_1 = require("@nestjs/event-emitter");
+let SlackService = SlackService_1 = class SlackService {
+    constructor(configService, eventEmitter) {
+        this.configService = configService;
+        this.eventEmitter = eventEmitter;
+        this.logger = new common_1.Logger(SlackService_1.name);
+        const token = this.configService.get('SLACK_BOT_TOKEN');
+        // Mock client
+        this.client = {
+            chat: {
+                postMessage: async () => ({ ok: true, ts: String(Date.now()) }),
+                update: async () => ({ ok: true }),
+                delete: async () => ({ ok: true }),
+            },
+            conversations: {
+                info: async () => ({ channel: { id: 'mock-channel', name: 'mock-channel-name' } }),
+                join: async () => ({ ok: true }),
+                history: async () => ({ messages: [] }),
+            }
+        };
+    }
+    /**
+     * Send a simple text message to a Slack channel
+     */
+    async sendMessage(channel, text, threadTs) {
+        try {
+            this.logger.log(`[MOCK] Sending Slack message to channel ${channel}: ${text}`);
+            const response = { ok: true, ts: String(Date.now()) };
+            this.eventEmitter.emit('slack.message.sent', {
+                channel,
+                messageTs: response.ts,
+                text,
+            });
+            return response;
         }
-        /**
-         * Send a simple text message to a Slack channel
-         */
-        SlackService_1.prototype.sendMessage = function (channel, text, threadTs) {
-            return __awaiter(this, void 0, void 0, function () {
-                var response;
-                return __generator(this, function (_a) {
-                    try {
-                        this.logger.log("[MOCK] Sending Slack message to channel ".concat(channel, ": ").concat(text));
-                        response = { ok: true, ts: String(Date.now()) };
-                        this.eventEmitter.emit('slack.message.sent', {
-                            channel: channel,
-                            messageTs: response.ts,
-                            text: text,
-                        });
-                        return [2 /*return*/, response];
-                    }
-                    catch (error) {
-                        this.logger.error('Failed to send Slack message', error);
-                        this.eventEmitter.emit('slack.message.failed', {
-                            channel: channel,
-                            text: text,
-                            error: error.message,
-                        });
-                        throw error;
-                    }
-                    return [2 /*return*/];
-                });
+        catch (error) {
+            this.logger.error('Failed to send Slack message', error);
+            this.eventEmitter.emit('slack.message.failed', {
+                channel,
+                text,
+                error: error.message,
             });
-        };
-        SlackService_1.prototype.sendDirectMessage = function (arg0) {
-            this.logger.log("[MOCK] Sending direct message to user ".concat(arg0.userId, ": ").concat(arg0.message.text));
-            return Promise.resolve({ ok: true, ts: String(Date.now()) });
-        };
-        /**
-         * Send a message with block components
-         */
-        SlackService_1.prototype.sendBlockMessage = function (channel, blocks, text) {
-            return __awaiter(this, void 0, void 0, function () {
-                var response;
-                return __generator(this, function (_a) {
-                    try {
-                        this.logger.log("[MOCK] Sending Slack block message to channel ".concat(channel));
-                        response = { ok: true, ts: String(Date.now()) };
-                        this.eventEmitter.emit('slack.message.sent', {
-                            channel: channel,
-                            messageTs: response.ts,
-                            blocks: blocks,
-                        });
-                        return [2 /*return*/, response];
-                    }
-                    catch (error) {
-                        this.logger.error('Failed to send Slack block message', error);
-                        this.eventEmitter.emit('slack.message.failed', {
-                            channel: channel,
-                            blocks: blocks,
-                            error: error.message,
-                        });
-                        throw error;
-                    }
-                    return [2 /*return*/];
-                });
+            throw error;
+        }
+    }
+    sendDirectMessage(arg0) {
+        this.logger.log(`[MOCK] Sending direct message to user ${arg0.userId}: ${arg0.message.text}`);
+        return Promise.resolve({ ok: true, ts: String(Date.now()) });
+    }
+    /**
+     * Send a message with block components
+     */
+    async sendBlockMessage(channel, blocks, text) {
+        try {
+            this.logger.log(`[MOCK] Sending Slack block message to channel ${channel}`);
+            const response = { ok: true, ts: String(Date.now()) };
+            this.eventEmitter.emit('slack.message.sent', {
+                channel,
+                messageTs: response.ts,
+                blocks,
             });
-        };
-        /**
-         * Send a message with attachments
-         */
-        SlackService_1.prototype.sendAttachmentMessage = function (channel, attachments, text) {
-            return __awaiter(this, void 0, void 0, function () {
-                var response;
-                return __generator(this, function (_a) {
-                    try {
-                        this.logger.log("[MOCK] Sending Slack attachment message to channel ".concat(channel));
-                        response = { ok: true, ts: String(Date.now()) };
-                        this.eventEmitter.emit('slack.message.sent', {
-                            channel: channel,
-                            messageTs: response.ts,
-                            attachments: attachments,
-                        });
-                        return [2 /*return*/, response];
-                    }
-                    catch (error) {
-                        this.logger.error('Failed to send Slack attachment message', error);
-                        this.eventEmitter.emit('slack.message.failed', {
-                            channel: channel,
-                            attachments: attachments,
-                            error: error.message,
-                        });
-                        throw error;
-                    }
-                    return [2 /*return*/];
-                });
+            return response;
+        }
+        catch (error) {
+            this.logger.error('Failed to send Slack block message', error);
+            this.eventEmitter.emit('slack.message.failed', {
+                channel,
+                blocks,
+                error: error.message,
             });
-        };
-        /**
-         * Update an existing message
-         */
-        SlackService_1.prototype.updateMessage = function (channel, ts, text, blocks) {
-            return __awaiter(this, void 0, void 0, function () {
-                return __generator(this, function (_a) {
-                    try {
-                        this.logger.log("[MOCK] Updating Slack message in channel ".concat(channel, ", ts: ").concat(ts, ", text: ").concat(text));
-                        this.eventEmitter.emit('slack.message.updated', {
-                            channel: channel,
-                            messageTs: ts,
-                            text: text,
-                            blocks: blocks,
-                        });
-                    }
-                    catch (error) {
-                        this.logger.error('Failed to update Slack message', error);
-                        this.eventEmitter.emit('slack.message.update.failed', {
-                            channel: channel,
-                            ts: ts,
-                            error: error.message,
-                        });
-                        throw error;
-                    }
-                    return [2 /*return*/];
-                });
+            throw error;
+        }
+    }
+    /**
+     * Send a message with attachments
+     */
+    async sendAttachmentMessage(channel, attachments, text) {
+        try {
+            this.logger.log(`[MOCK] Sending Slack attachment message to channel ${channel}`);
+            const response = { ok: true, ts: String(Date.now()) };
+            this.eventEmitter.emit('slack.message.sent', {
+                channel,
+                messageTs: response.ts,
+                attachments,
             });
-        };
-        /**
-         * Delete a message
-         */
-        SlackService_1.prototype.deleteMessage = function (channel, ts) {
-            return __awaiter(this, void 0, void 0, function () {
-                return __generator(this, function (_a) {
-                    try {
-                        this.logger.log("[MOCK] Deleting Slack message from channel ".concat(channel, ", ts: ").concat(ts));
-                        this.eventEmitter.emit('slack.message.deleted', {
-                            channel: channel,
-                            messageTs: ts,
-                        });
-                    }
-                    catch (error) {
-                        this.logger.error('Failed to delete Slack message', error);
-                        this.eventEmitter.emit('slack.message.delete.failed', {
-                            channel: channel,
-                            ts: ts,
-                            error: error.message,
-                        });
-                        throw error;
-                    }
-                    return [2 /*return*/];
-                });
+            return response;
+        }
+        catch (error) {
+            this.logger.error('Failed to send Slack attachment message', error);
+            this.eventEmitter.emit('slack.message.failed', {
+                channel,
+                attachments,
+                error: error.message,
             });
-        };
-        /**
-         * Get channel information
-         */
-        SlackService_1.prototype.getChannelInfo = function (channelId) {
-            return __awaiter(this, void 0, void 0, function () {
-                return __generator(this, function (_a) {
-                    this.logger.log("[MOCK] Getting info for channel ".concat(channelId));
-                    return [2 /*return*/, { id: channelId, name: "mock-channel-".concat(channelId) }];
-                });
+            throw error;
+        }
+    }
+    /**
+     * Update an existing message
+     */
+    async updateMessage(channel, ts, text, blocks) {
+        try {
+            this.logger.log(`[MOCK] Updating Slack message in channel ${channel}, ts: ${ts}, text: ${text}`);
+            this.eventEmitter.emit('slack.message.updated', {
+                channel,
+                messageTs: ts,
+                text,
+                blocks,
             });
-        };
-        /**
-         * Join a channel
-         */
-        SlackService_1.prototype.joinChannel = function (channelId) {
-            return __awaiter(this, void 0, void 0, function () {
-                return __generator(this, function (_a) {
-                    this.logger.log("[MOCK] Joining channel ".concat(channelId));
-                    return [2 /*return*/, { ok: true }];
-                });
+        }
+        catch (error) {
+            this.logger.error('Failed to update Slack message', error);
+            this.eventEmitter.emit('slack.message.update.failed', {
+                channel,
+                ts,
+                error: error.message,
             });
-        };
-        /**
-         * Get message history from a channel
-         */
-        SlackService_1.prototype.getChannelHistory = function (channel_1) {
-            return __awaiter(this, arguments, void 0, function (channel, limit) {
-                if (limit === void 0) { limit = 100; }
-                return __generator(this, function (_a) {
-                    this.logger.log("[MOCK] Getting history for channel ".concat(channel, ", limit: ").concat(limit));
-                    return [2 /*return*/, Array(Math.min(limit, 10)).fill(null).map(function (_, i) { return ({
-                            ts: String(Date.now() - i * 60000),
-                            text: "Mock message ".concat(i + 1),
-                            user: "U".concat(Math.random().toString(36).substring(2, 8).toUpperCase())
-                        }); })];
-                });
+            throw error;
+        }
+    }
+    /**
+     * Delete a message
+     */
+    async deleteMessage(channel, ts) {
+        try {
+            this.logger.log(`[MOCK] Deleting Slack message from channel ${channel}, ts: ${ts}`);
+            this.eventEmitter.emit('slack.message.deleted', {
+                channel,
+                messageTs: ts,
             });
-        };
-        return SlackService_1;
-    }());
-    __setFunctionName(_classThis, "SlackService");
-    (function () {
-        var _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
-        __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
-        SlackService = _classThis = _classDescriptor.value;
-        if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-        __runInitializers(_classThis, _classExtraInitializers);
-    })();
-    return SlackService = _classThis;
-}();
+        }
+        catch (error) {
+            this.logger.error('Failed to delete Slack message', error);
+            this.eventEmitter.emit('slack.message.delete.failed', {
+                channel,
+                ts,
+                error: error.message,
+            });
+            throw error;
+        }
+    }
+    /**
+     * Get channel information
+     */
+    async getChannelInfo(channelId) {
+        this.logger.log(`[MOCK] Getting info for channel ${channelId}`);
+        return { id: channelId, name: `mock-channel-${channelId}` };
+    }
+    /**
+     * Join a channel
+     */
+    async joinChannel(channelId) {
+        this.logger.log(`[MOCK] Joining channel ${channelId}`);
+        return { ok: true };
+    }
+    /**
+     * Get message history from a channel
+     */
+    async getChannelHistory(channel, limit = 100) {
+        this.logger.log(`[MOCK] Getting history for channel ${channel}, limit: ${limit}`);
+        return Array(Math.min(limit, 10)).fill(null).map((_, i) => ({
+            ts: String(Date.now() - i * 60000),
+            text: `Mock message ${i + 1}`,
+            user: `U${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+        }));
+    }
+};
+SlackService = SlackService_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [config_1.ConfigService,
+        event_emitter_1.EventEmitter2])
+], SlackService);
 exports.SlackService = SlackService;
 //# sourceMappingURL=slack.service.js.map

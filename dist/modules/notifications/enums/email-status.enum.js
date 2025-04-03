@@ -14,12 +14,12 @@ var EmailStatus;
     EmailStatus["SPAM"] = "SPAM";
     EmailStatus["UNSUBSCRIBED"] = "UNSUBSCRIBED";
     EmailStatus["QUEUED"] = "QUEUED";
-})(EmailStatus || (exports.EmailStatus = EmailStatus = {}));
+})(EmailStatus = exports.EmailStatus || (exports.EmailStatus = {}));
 var DomainVerificationStatus;
 (function (DomainVerificationStatus) {
     DomainVerificationStatus["PENDING"] = "PENDING";
     DomainVerificationStatus["VERIFIED"] = "VERIFIED";
     DomainVerificationStatus["FAILED"] = "FAILED";
     DomainVerificationStatus["EXPIRED"] = "EXPIRED";
-})(DomainVerificationStatus || (exports.DomainVerificationStatus = DomainVerificationStatus = {}));
+})(DomainVerificationStatus = exports.DomainVerificationStatus || (exports.DomainVerificationStatus = {}));
 //# sourceMappingURL=email-status.enum.js.map

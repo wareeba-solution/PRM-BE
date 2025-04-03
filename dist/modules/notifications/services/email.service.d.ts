@@ -1,3 +1,5 @@
+/// <reference types="node" />
+/// <reference types="node" />
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { EmailTemplate } from '../entities/email-template.entity';

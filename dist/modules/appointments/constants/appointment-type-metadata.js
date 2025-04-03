@@ -1,11 +1,10 @@
 "use strict";
 // src/modules/appointments/constants/appointment-type-metadata.ts
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.APPOINTMENT_TYPE_METADATA = void 0;
-var appointment_type_enum_1 = require("../enums/appointment-type.enum");
-exports.APPOINTMENT_TYPE_METADATA = (_a = {},
-    _a[appointment_type_enum_1.AppointmentType.INITIAL_CONSULTATION] = {
+const appointment_type_enum_1 = require("../enums/appointment-type.enum");
+exports.APPOINTMENT_TYPE_METADATA = {
+    [appointment_type_enum_1.AppointmentType.INITIAL_CONSULTATION]: {
         value: appointment_type_enum_1.AppointmentType.INITIAL_CONSULTATION,
         label: 'Initial Consultation',
         description: 'First visit with a doctor to discuss health concerns',
@@ -15,7 +14,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'PRIMARY',
         virtualEnabled: true
     },
-    _a[appointment_type_enum_1.AppointmentType.IN_PERSON] = {
+    [appointment_type_enum_1.AppointmentType.IN_PERSON]: {
         value: appointment_type_enum_1.AppointmentType.IN_PERSON,
         label: 'In-Person Visit',
         description: 'Face-to-face appointment at the clinic',
@@ -24,7 +23,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'PRIMARY',
         virtualEnabled: false
     },
-    _a[appointment_type_enum_1.AppointmentType.VIRTUAL] = {
+    [appointment_type_enum_1.AppointmentType.VIRTUAL]: {
         value: appointment_type_enum_1.AppointmentType.VIRTUAL,
         label: 'Virtual Appointment',
         description: 'Remote consultation via video call',
@@ -34,7 +33,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'PRIMARY',
         virtualEnabled: true
     },
-    _a[appointment_type_enum_1.AppointmentType.PHONE] = {
+    [appointment_type_enum_1.AppointmentType.PHONE]: {
         value: appointment_type_enum_1.AppointmentType.PHONE,
         label: 'Phone Consultation',
         description: 'Consultation over the phone',
@@ -43,7 +42,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'PRIMARY',
         virtualEnabled: false
     },
-    _a[appointment_type_enum_1.AppointmentType.HOME_VISIT] = {
+    [appointment_type_enum_1.AppointmentType.HOME_VISIT]: {
         value: appointment_type_enum_1.AppointmentType.HOME_VISIT,
         label: 'Home Visit',
         description: 'Doctor visits patient at their residence',
@@ -53,7 +52,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'SPECIALIZED',
         virtualEnabled: false
     },
-    _a[appointment_type_enum_1.AppointmentType.EMERGENCY] = {
+    [appointment_type_enum_1.AppointmentType.EMERGENCY]: {
         value: appointment_type_enum_1.AppointmentType.EMERGENCY,
         label: 'Emergency',
         description: 'Urgent care appointment',
@@ -62,7 +61,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'PRIMARY',
         virtualEnabled: false
     },
-    _a[appointment_type_enum_1.AppointmentType.FOLLOW_UP] = {
+    [appointment_type_enum_1.AppointmentType.FOLLOW_UP]: {
         value: appointment_type_enum_1.AppointmentType.FOLLOW_UP,
         label: 'Follow-Up',
         description: 'Review progress since previous appointment',
@@ -71,7 +70,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'SECONDARY',
         virtualEnabled: true
     },
-    _a[appointment_type_enum_1.AppointmentType.CONSULTATION] = {
+    [appointment_type_enum_1.AppointmentType.CONSULTATION]: {
         value: appointment_type_enum_1.AppointmentType.CONSULTATION,
         label: 'General Consultation',
         description: 'General health consultation',
@@ -80,7 +79,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'PRIMARY',
         virtualEnabled: true
     },
-    _a[appointment_type_enum_1.AppointmentType.ROUTINE_CHECKUP] = {
+    [appointment_type_enum_1.AppointmentType.ROUTINE_CHECKUP]: {
         value: appointment_type_enum_1.AppointmentType.ROUTINE_CHECKUP,
         label: 'Routine Checkup',
         description: 'Regular health assessment',
@@ -89,7 +88,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'PRIMARY',
         virtualEnabled: true
     },
-    _a[appointment_type_enum_1.AppointmentType.SPECIALIZED] = {
+    [appointment_type_enum_1.AppointmentType.SPECIALIZED]: {
         value: appointment_type_enum_1.AppointmentType.SPECIALIZED,
         label: 'Specialized Consultation',
         description: 'Consultation with a specialist',
@@ -99,7 +98,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'SPECIALIZED',
         virtualEnabled: true
     },
-    _a[appointment_type_enum_1.AppointmentType.DIAGNOSTIC] = {
+    [appointment_type_enum_1.AppointmentType.DIAGNOSTIC]: {
         value: appointment_type_enum_1.AppointmentType.DIAGNOSTIC,
         label: 'Diagnostic Procedure',
         description: 'Tests and procedures to diagnose health conditions',
@@ -109,7 +108,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'SPECIALIZED',
         virtualEnabled: false
     },
-    _a[appointment_type_enum_1.AppointmentType.THERAPY] = {
+    [appointment_type_enum_1.AppointmentType.THERAPY]: {
         value: appointment_type_enum_1.AppointmentType.THERAPY,
         label: 'Therapy Session',
         description: 'Therapeutic intervention or treatment',
@@ -118,7 +117,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'SPECIALIZED',
         virtualEnabled: true
     },
-    _a[appointment_type_enum_1.AppointmentType.VACCINATION] = {
+    [appointment_type_enum_1.AppointmentType.VACCINATION]: {
         value: appointment_type_enum_1.AppointmentType.VACCINATION,
         label: 'Vaccination',
         description: 'Immunization or vaccine administration',
@@ -128,7 +127,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'PRIMARY',
         virtualEnabled: false
     },
-    _a[appointment_type_enum_1.AppointmentType.SCREENING] = {
+    [appointment_type_enum_1.AppointmentType.SCREENING]: {
         value: appointment_type_enum_1.AppointmentType.SCREENING,
         label: 'Health Screening',
         description: 'Preventive screening for various health conditions',
@@ -138,7 +137,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'PRIMARY',
         virtualEnabled: false
     },
-    _a[appointment_type_enum_1.AppointmentType.SURGERY] = {
+    [appointment_type_enum_1.AppointmentType.SURGERY]: {
         value: appointment_type_enum_1.AppointmentType.SURGERY,
         label: 'Surgical Procedure',
         description: 'Minor or major surgical intervention',
@@ -148,7 +147,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'SPECIALIZED',
         virtualEnabled: false
     },
-    _a[appointment_type_enum_1.AppointmentType.DENTAL] = {
+    [appointment_type_enum_1.AppointmentType.DENTAL]: {
         value: appointment_type_enum_1.AppointmentType.DENTAL,
         label: 'Dental Appointment',
         description: 'Dental check-up or procedure',
@@ -157,7 +156,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'SPECIALIZED',
         virtualEnabled: false
     },
-    _a[appointment_type_enum_1.AppointmentType.PEDIATRIC] = {
+    [appointment_type_enum_1.AppointmentType.PEDIATRIC]: {
         value: appointment_type_enum_1.AppointmentType.PEDIATRIC,
         label: 'Pediatric Visit',
         description: 'Healthcare visit for children',
@@ -166,7 +165,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'PRIMARY',
         virtualEnabled: true
     },
-    _a[appointment_type_enum_1.AppointmentType.MATERNITY] = {
+    [appointment_type_enum_1.AppointmentType.MATERNITY]: {
         value: appointment_type_enum_1.AppointmentType.MATERNITY,
         label: 'Maternity Appointment',
         description: 'Prenatal, postnatal, or maternity care',
@@ -176,7 +175,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'SPECIALIZED',
         virtualEnabled: true
     },
-    _a[appointment_type_enum_1.AppointmentType.PHARMACY] = {
+    [appointment_type_enum_1.AppointmentType.PHARMACY]: {
         value: appointment_type_enum_1.AppointmentType.PHARMACY,
         label: 'Pharmacy Consultation',
         description: 'Medication review or consultation with pharmacist',
@@ -186,7 +185,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'SECONDARY',
         virtualEnabled: true
     },
-    _a[appointment_type_enum_1.AppointmentType.SPECIALIST_CONSULTATION] = {
+    [appointment_type_enum_1.AppointmentType.SPECIALIST_CONSULTATION]: {
         value: appointment_type_enum_1.AppointmentType.SPECIALIST_CONSULTATION,
         label: 'Specialist Consultation',
         description: 'Consultation with a medical specialist',
@@ -196,7 +195,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'SPECIALIZED',
         virtualEnabled: true
     },
-    _a[appointment_type_enum_1.AppointmentType.URGENT_CARE] = {
+    [appointment_type_enum_1.AppointmentType.URGENT_CARE]: {
         value: appointment_type_enum_1.AppointmentType.URGENT_CARE,
         label: 'Urgent Care',
         description: 'Immediate care for urgent medical issues',
@@ -205,7 +204,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'PRIMARY',
         virtualEnabled: false
     },
-    _a[appointment_type_enum_1.AppointmentType.PROCEDURE] = {
+    [appointment_type_enum_1.AppointmentType.PROCEDURE]: {
         value: appointment_type_enum_1.AppointmentType.PROCEDURE,
         label: 'Medical Procedure',
         description: 'Scheduled medical procedure',
@@ -215,7 +214,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'SPECIALIZED',
         virtualEnabled: false
     },
-    _a[appointment_type_enum_1.AppointmentType.TELEHEALTH] = {
+    [appointment_type_enum_1.AppointmentType.TELEHEALTH]: {
         value: appointment_type_enum_1.AppointmentType.TELEHEALTH,
         label: 'Telehealth Consultation',
         description: 'Remote consultation via telehealth platform',
@@ -225,7 +224,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'PRIMARY',
         virtualEnabled: true
     },
-    _a[appointment_type_enum_1.AppointmentType.WELLNESS_CHECK] = {
+    [appointment_type_enum_1.AppointmentType.WELLNESS_CHECK]: {
         value: appointment_type_enum_1.AppointmentType.WELLNESS_CHECK,
         label: 'Wellness Check',
         description: 'Routine wellness check-up',
@@ -234,7 +233,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'PRIMARY',
         virtualEnabled: true
     },
-    _a[appointment_type_enum_1.AppointmentType.LAB_WORK] = {
+    [appointment_type_enum_1.AppointmentType.LAB_WORK]: {
         value: appointment_type_enum_1.AppointmentType.LAB_WORK,
         label: 'Lab Work',
         description: 'Laboratory tests and procedures',
@@ -244,7 +243,7 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         category: 'SPECIALIZED',
         virtualEnabled: false
     },
-    _a[appointment_type_enum_1.AppointmentType.IMAGING] = {
+    [appointment_type_enum_1.AppointmentType.IMAGING]: {
         value: appointment_type_enum_1.AppointmentType.IMAGING,
         label: 'Imaging',
         description: 'Radiology and imaging procedures',
@@ -253,6 +252,6 @@ exports.APPOINTMENT_TYPE_METADATA = (_a = {},
         preparationInstructions: 'Follow specific instructions provided for the imaging procedure',
         category: 'SPECIALIZED',
         virtualEnabled: false
-    },
-    _a);
+    }
+};
 //# sourceMappingURL=appointment-type-metadata.js.map

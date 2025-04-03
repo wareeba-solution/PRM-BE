@@ -1,20 +1,11 @@
 "use strict";
 // src/common/decorators/roles.decorator.ts
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RolePermissions = exports.Permissions = exports.Permission = exports.PERMISSIONS_KEY = exports.Roles = exports.ROLES_KEY = void 0;
-exports.hasPermission = hasPermission;
-exports.getRolePermissions = getRolePermissions;
-var common_1 = require("@nestjs/common");
-var role_enum_1 = require("../../modules/users/enums/role.enum");
+exports.getRolePermissions = exports.hasPermission = exports.RolePermissions = exports.Permissions = exports.Permission = exports.PERMISSIONS_KEY = exports.Roles = exports.ROLES_KEY = void 0;
+const common_1 = require("@nestjs/common");
+const role_enum_1 = require("../../modules/users/enums/role.enum");
 exports.ROLES_KEY = 'roles';
-var Roles = function () {
-    var roles = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        roles[_i] = arguments[_i];
-    }
-    return (0, common_1.SetMetadata)(exports.ROLES_KEY, roles);
-};
+const Roles = (...roles) => (0, common_1.SetMetadata)(exports.ROLES_KEY, roles);
 exports.Roles = Roles;
 // Permission decorator
 exports.PERMISSIONS_KEY = 'permissions';
@@ -44,19 +35,13 @@ var Permission;
     // Settings permissions
     Permission["MANAGE_SETTINGS"] = "manage_settings";
     Permission["VIEW_SETTINGS"] = "view_settings";
-})(Permission || (exports.Permission = Permission = {}));
-var Permissions = function () {
-    var permissions = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        permissions[_i] = arguments[_i];
-    }
-    return (0, common_1.SetMetadata)(exports.PERMISSIONS_KEY, permissions);
-};
+})(Permission = exports.Permission || (exports.Permission = {}));
+const Permissions = (...permissions) => (0, common_1.SetMetadata)(exports.PERMISSIONS_KEY, permissions);
 exports.Permissions = Permissions;
 // Role definitions with associated permissions
-exports.RolePermissions = (_a = {},
-    _a[role_enum_1.Role.SUPER_ADMIN] = Object.values(Permission),
-    _a[role_enum_1.Role.ADMIN] = [
+exports.RolePermissions = {
+    [role_enum_1.Role.SUPER_ADMIN]: Object.values(Permission),
+    [role_enum_1.Role.ADMIN]: [
         Permission.MANAGE_USERS,
         Permission.VIEW_USERS,
         Permission.MANAGE_CONTACTS,
@@ -72,7 +57,7 @@ exports.RolePermissions = (_a = {},
         Permission.MANAGE_SETTINGS,
         Permission.VIEW_SETTINGS,
     ],
-    _a[role_enum_1.Role.DOCTOR] = [
+    [role_enum_1.Role.DOCTOR]: [
         Permission.VIEW_CONTACTS,
         Permission.MANAGE_APPOINTMENTS,
         Permission.VIEW_APPOINTMENTS,
@@ -81,7 +66,7 @@ exports.RolePermissions = (_a = {},
         Permission.SEND_MESSAGES,
         Permission.VIEW_MESSAGES,
     ],
-    _a[role_enum_1.Role.STAFF] = [
+    [role_enum_1.Role.STAFF]: [
         Permission.VIEW_CONTACTS,
         Permission.VIEW_APPOINTMENTS,
         Permission.BOOK_APPOINTMENTS,
@@ -90,7 +75,7 @@ exports.RolePermissions = (_a = {},
         Permission.SEND_MESSAGES,
         Permission.VIEW_MESSAGES,
     ],
-    _a[role_enum_1.Role.RECEPTIONIST] = [
+    [role_enum_1.Role.RECEPTIONIST]: [
         Permission.VIEW_CONTACTS,
         Permission.BOOK_APPOINTMENTS,
         Permission.VIEW_APPOINTMENTS,
@@ -99,24 +84,26 @@ exports.RolePermissions = (_a = {},
         Permission.SEND_MESSAGES,
         Permission.VIEW_MESSAGES,
     ],
-    _a[role_enum_1.Role.AGENT] = [],
-    _a[role_enum_1.Role.SUPERVISOR] = [],
-    _a[role_enum_1.Role.CLIENT] = [],
-    _a[role_enum_1.Role.USER] = [],
-    _a[role_enum_1.Role.GUEST] = [],
-    _a[role_enum_1.Role.MANAGER] = [],
-    _a[role_enum_1.Role.NURSE] = [],
-    _a[role_enum_1.Role.PATIENT] = [],
-    _a);
+    [role_enum_1.Role.AGENT]: [],
+    [role_enum_1.Role.SUPERVISOR]: [],
+    [role_enum_1.Role.CLIENT]: [],
+    [role_enum_1.Role.USER]: [],
+    [role_enum_1.Role.GUEST]: [],
+    [role_enum_1.Role.MANAGER]: [],
+    [role_enum_1.Role.NURSE]: [],
+    [role_enum_1.Role.PATIENT]: []
+};
 // Helper function to check if a role has a specific permission
 function hasPermission(role, permission) {
     var _a;
     return ((_a = exports.RolePermissions[role]) === null || _a === void 0 ? void 0 : _a.includes(permission)) || false;
 }
+exports.hasPermission = hasPermission;
 // Helper function to get all permissions for a role
 function getRolePermissions(role) {
     return exports.RolePermissions[role] || [];
 }
+exports.getRolePermissions = getRolePermissions;
 // Example usage:
 /*
 @Roles(Role.ADMIN, Role.DOCTOR)

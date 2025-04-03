@@ -1,10 +1,10 @@
 export declare enum AppointmentPriority {
-    EMERGENCY = "EMERGENCY",// Immediate attention required
-    URGENT = "URGENT",// Needs to be seen within 24 hours
-    HIGH = "HIGH",// Priority but not urgent (within 48-72 hours)
-    NORMAL = "NORMAL",// Regular appointment priority
-    MEDIUM = "MEDIUM",// Standard priority (within a week)
-    LOW = "LOW",// Routine appointment
+    EMERGENCY = "EMERGENCY",
+    URGENT = "URGENT",
+    HIGH = "HIGH",
+    NORMAL = "NORMAL",
+    MEDIUM = "MEDIUM",
+    LOW = "LOW",
     FOLLOW_UP = "FOLLOW_UP"
 }
 export type PriorityLevel = {

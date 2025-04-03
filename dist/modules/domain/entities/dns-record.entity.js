@@ -1,46 +1,17 @@
 "use strict";
-var __esDecorate = (this && this.__esDecorate) || function (ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
-    function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
-    var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
-    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
-    var _, done = false;
-    for (var i = decorators.length - 1; i >= 0; i--) {
-        var context = {};
-        for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
-        for (var p in contextIn.access) context.access[p] = contextIn.access[p];
-        context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
-        var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
-        if (kind === "accessor") {
-            if (result === void 0) continue;
-            if (result === null || typeof result !== "object") throw new TypeError("Object expected");
-            if (_ = accept(result.get)) descriptor.get = _;
-            if (_ = accept(result.set)) descriptor.set = _;
-            if (_ = accept(result.init)) initializers.unshift(_);
-        }
-        else if (_ = accept(result)) {
-            if (kind === "field") initializers.unshift(_);
-            else descriptor[key] = _;
-        }
-    }
-    if (target) Object.defineProperty(target, contextIn.name, descriptor);
-    done = true;
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __runInitializers = (this && this.__runInitializers) || function (thisArg, initializers, value) {
-    var useValue = arguments.length > 2;
-    for (var i = 0; i < initializers.length; i++) {
-        value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
-    }
-    return useValue ? value : void 0;
-};
-var __setFunctionName = (this && this.__setFunctionName) || function (f, name, prefix) {
-    if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
-    return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DnsRecord = exports.DnsRecordType = void 0;
-var openapi = require("@nestjs/swagger");
-var typeorm_1 = require("typeorm");
+const openapi = require("@nestjs/swagger");
+const typeorm_1 = require("typeorm");
 var DnsRecordType;
 (function (DnsRecordType) {
     DnsRecordType["A"] = "A";
@@ -53,213 +24,144 @@ var DnsRecordType;
     DnsRecordType["CAA"] = "CAA";
     DnsRecordType["PTR"] = "PTR";
     DnsRecordType["SOA"] = "SOA";
-})(DnsRecordType || (exports.DnsRecordType = DnsRecordType = {}));
-var DnsRecord = function () {
-    var _classDecorators = [(0, typeorm_1.Entity)('dns_records'), (0, typeorm_1.Index)(['domainId', 'type']), (0, typeorm_1.Index)(['domainId', 'name'])];
-    var _classDescriptor;
-    var _classExtraInitializers = [];
-    var _classThis;
-    var _id_decorators;
-    var _id_initializers = [];
-    var _id_extraInitializers = [];
-    var _domainId_decorators;
-    var _domainId_initializers = [];
-    var _domainId_extraInitializers = [];
-    var _domain_decorators;
-    var _domain_initializers = [];
-    var _domain_extraInitializers = [];
-    var _type_decorators;
-    var _type_initializers = [];
-    var _type_extraInitializers = [];
-    var _name_decorators;
-    var _name_initializers = [];
-    var _name_extraInitializers = [];
-    var _content_decorators;
-    var _content_initializers = [];
-    var _content_extraInitializers = [];
-    var _ttl_decorators;
-    var _ttl_initializers = [];
-    var _ttl_extraInitializers = [];
-    var _priority_decorators;
-    var _priority_initializers = [];
-    var _priority_extraInitializers = [];
-    var _isActive_decorators;
-    var _isActive_initializers = [];
-    var _isActive_extraInitializers = [];
-    var _metadata_decorators;
-    var _metadata_initializers = [];
-    var _metadata_extraInitializers = [];
-    var _validation_decorators;
-    var _validation_initializers = [];
-    var _validation_extraInitializers = [];
-    var _monitoring_decorators;
-    var _monitoring_initializers = [];
-    var _monitoring_extraInitializers = [];
-    var _geolocation_decorators;
-    var _geolocation_initializers = [];
-    var _geolocation_extraInitializers = [];
-    var _loadBalancing_decorators;
-    var _loadBalancing_initializers = [];
-    var _loadBalancing_extraInitializers = [];
-    var _failover_decorators;
-    var _failover_initializers = [];
-    var _failover_extraInitializers = [];
-    var _tags_decorators;
-    var _tags_initializers = [];
-    var _tags_extraInitializers = [];
-    var _isSystem_decorators;
-    var _isSystem_initializers = [];
-    var _isSystem_extraInitializers = [];
-    var _isLocked_decorators;
-    var _isLocked_initializers = [];
-    var _isLocked_extraInitializers = [];
-    var _isProtected_decorators;
-    var _isProtected_initializers = [];
-    var _isProtected_extraInitializers = [];
-    var _createdAt_decorators;
-    var _createdAt_initializers = [];
-    var _createdAt_extraInitializers = [];
-    var _updatedAt_decorators;
-    var _updatedAt_initializers = [];
-    var _updatedAt_extraInitializers = [];
-    var _createdBy_decorators;
-    var _createdBy_initializers = [];
-    var _createdBy_extraInitializers = [];
-    var _updatedBy_decorators;
-    var _updatedBy_initializers = [];
-    var _updatedBy_extraInitializers = [];
-    var _history_decorators;
-    var _history_initializers = [];
-    var _history_extraInitializers = [];
-    var _notes_decorators;
-    var _notes_initializers = [];
-    var _notes_extraInitializers = [];
-    var _isDeleted_decorators;
-    var _isDeleted_initializers = [];
-    var _isDeleted_extraInitializers = [];
-    var _deletedBy_decorators;
-    var _deletedBy_initializers = [];
-    var _deletedBy_extraInitializers = [];
-    var _deletedAt_decorators;
-    var _deletedAt_initializers = [];
-    var _deletedAt_extraInitializers = [];
-    var _propagation_decorators;
-    var _propagation_initializers = [];
-    var _propagation_extraInitializers = [];
-    var _analytics_decorators;
-    var _analytics_initializers = [];
-    var _analytics_extraInitializers = [];
-    var DnsRecord = _classThis = /** @class */ (function () {
-        function DnsRecord_1() {
-            this.id = __runInitializers(this, _id_initializers, void 0);
-            this.domainId = (__runInitializers(this, _id_extraInitializers), __runInitializers(this, _domainId_initializers, void 0));
-            this.domain = (__runInitializers(this, _domainId_extraInitializers), __runInitializers(this, _domain_initializers, void 0));
-            this.type = (__runInitializers(this, _domain_extraInitializers), __runInitializers(this, _type_initializers, void 0));
-            this.name = (__runInitializers(this, _type_extraInitializers), __runInitializers(this, _name_initializers, void 0));
-            this.content = (__runInitializers(this, _name_extraInitializers), __runInitializers(this, _content_initializers, void 0));
-            this.ttl = (__runInitializers(this, _content_extraInitializers), __runInitializers(this, _ttl_initializers, void 0));
-            this.priority = (__runInitializers(this, _ttl_extraInitializers), __runInitializers(this, _priority_initializers, void 0));
-            this.isActive = (__runInitializers(this, _priority_extraInitializers), __runInitializers(this, _isActive_initializers, void 0));
-            this.metadata = (__runInitializers(this, _isActive_extraInitializers), __runInitializers(this, _metadata_initializers, void 0));
-            this.validation = (__runInitializers(this, _metadata_extraInitializers), __runInitializers(this, _validation_initializers, void 0));
-            this.monitoring = (__runInitializers(this, _validation_extraInitializers), __runInitializers(this, _monitoring_initializers, void 0));
-            this.geolocation = (__runInitializers(this, _monitoring_extraInitializers), __runInitializers(this, _geolocation_initializers, void 0));
-            this.loadBalancing = (__runInitializers(this, _geolocation_extraInitializers), __runInitializers(this, _loadBalancing_initializers, void 0));
-            this.failover = (__runInitializers(this, _loadBalancing_extraInitializers), __runInitializers(this, _failover_initializers, void 0));
-            this.tags = (__runInitializers(this, _failover_extraInitializers), __runInitializers(this, _tags_initializers, void 0));
-            this.isSystem = (__runInitializers(this, _tags_extraInitializers), __runInitializers(this, _isSystem_initializers, void 0));
-            this.isLocked = (__runInitializers(this, _isSystem_extraInitializers), __runInitializers(this, _isLocked_initializers, void 0));
-            this.isProtected = (__runInitializers(this, _isLocked_extraInitializers), __runInitializers(this, _isProtected_initializers, void 0));
-            this.createdAt = (__runInitializers(this, _isProtected_extraInitializers), __runInitializers(this, _createdAt_initializers, void 0));
-            this.updatedAt = (__runInitializers(this, _createdAt_extraInitializers), __runInitializers(this, _updatedAt_initializers, void 0));
-            this.createdBy = (__runInitializers(this, _updatedAt_extraInitializers), __runInitializers(this, _createdBy_initializers, void 0));
-            this.updatedBy = (__runInitializers(this, _createdBy_extraInitializers), __runInitializers(this, _updatedBy_initializers, void 0));
-            this.history = (__runInitializers(this, _updatedBy_extraInitializers), __runInitializers(this, _history_initializers, void 0));
-            this.notes = (__runInitializers(this, _history_extraInitializers), __runInitializers(this, _notes_initializers, void 0));
-            this.isDeleted = (__runInitializers(this, _notes_extraInitializers), __runInitializers(this, _isDeleted_initializers, void 0));
-            this.deletedBy = (__runInitializers(this, _isDeleted_extraInitializers), __runInitializers(this, _deletedBy_initializers, void 0));
-            this.deletedAt = (__runInitializers(this, _deletedBy_extraInitializers), __runInitializers(this, _deletedAt_initializers, void 0));
-            this.propagation = (__runInitializers(this, _deletedAt_extraInitializers), __runInitializers(this, _propagation_initializers, void 0));
-            this.analytics = (__runInitializers(this, _propagation_extraInitializers), __runInitializers(this, _analytics_initializers, void 0));
-            __runInitializers(this, _analytics_extraInitializers);
-        }
-        DnsRecord_1._OPENAPI_METADATA_FACTORY = function () {
-            return { id: { required: true, type: function () { return String; } }, domainId: { required: true, type: function () { return String; } }, domain: { required: true, type: function () { return Object; } }, type: { required: true, enum: require("./dns-record.entity").DnsRecordType }, name: { required: true, type: function () { return String; } }, content: { required: true, type: function () { return String; } }, ttl: { required: true, type: function () { return Number; } }, priority: { required: false, type: function () { return Number; } }, isActive: { required: true, type: function () { return Boolean; } }, metadata: { required: false, type: function () { return ({ proxied: { required: false, type: function () { return Boolean; } }, cloudflare: { required: false, type: function () { return ({ proxied: { required: false, type: function () { return Boolean; } }, proxiedAt: { required: false, type: function () { return Date; } }, developmentMode: { required: false, type: function () { return Boolean; } } }); } }, aws: { required: false, type: function () { return ({ regionId: { required: false, type: function () { return String; } }, healthCheckId: { required: false, type: function () { return String; } }, evaluateTargetHealth: { required: false, type: function () { return Boolean; } } }); } }, google: { required: false, type: function () { return ({ routingPolicy: { required: false, type: function () { return String; } }, healthChecked: { required: false, type: function () { return Boolean; } } }); } }, azure: { required: false, type: function () { return ({ trafficManagerProfile: { required: false, type: function () { return String; } }, weight: { required: false, type: function () { return Number; } } }); } } }); } }, validation: { required: false, type: function () { return ({ isValid: { required: true, type: function () { return Boolean; } }, lastChecked: { required: true, type: function () { return Date; } }, errors: { required: false, type: function () { return [String]; } }, warnings: { required: false, type: function () { return [String]; } } }); } }, monitoring: { required: false, type: function () { return ({ enabled: { required: true, type: function () { return Boolean; } }, lastCheck: { required: false, type: function () { return Date; } }, status: { required: false, type: function () { return Object; } }, responseTime: { required: false, type: function () { return Number; } }, healthCheckId: { required: false, type: function () { return String; } }, alerts: { required: false, type: function () { return ({ email: { required: false, type: function () { return [String]; } }, webhook: { required: false, type: function () { return [String]; } } }); } } }); } }, geolocation: { required: false, type: function () { return ({ enabled: { required: true, type: function () { return Boolean; } }, regions: { required: false, type: function () { return [String]; } }, countries: { required: false, type: function () { return [String]; } }, continents: { required: false, type: function () { return [String]; } }, defaultResponse: { required: false, type: function () { return String; } } }); } }, loadBalancing: { required: false, type: function () { return ({ enabled: { required: true, type: function () { return Boolean; } }, method: { required: false, type: function () { return Object; } }, pools: { required: false } }); } }, failover: { required: false, type: function () { return ({ enabled: { required: true, type: function () { return Boolean; } }, primary: { required: false, type: function () { return String; } }, secondary: { required: false, type: function () { return String; } }, healthCheck: { required: false, type: function () { return ({ type: { required: true, type: function () { return String; } }, interval: { required: true, type: function () { return Number; } }, timeout: { required: true, type: function () { return Number; } }, retries: { required: true, type: function () { return Number; } } }); } } }); } }, tags: { required: false, type: function () { return [String]; } }, isSystem: { required: true, type: function () { return Boolean; } }, isLocked: { required: true, type: function () { return Boolean; } }, isProtected: { required: true, type: function () { return Boolean; } }, createdAt: { required: true, type: function () { return Date; } }, updatedAt: { required: true, type: function () { return Date; } }, createdBy: { required: false, type: function () { return String; } }, updatedBy: { required: false, type: function () { return String; } }, history: { required: false }, notes: { required: false, type: function () { return String; } }, isDeleted: { required: true, type: function () { return Boolean; } }, deletedBy: { required: false, type: function () { return String; } }, deletedAt: { required: false, type: function () { return Date; } }, propagation: { required: false, type: function () { return ({ status: { required: true, type: function () { return Object; } }, startedAt: { required: false, type: function () { return Date; } }, completedAt: { required: false, type: function () { return Date; } }, nameservers: { required: false } }); } }, analytics: { required: false, type: function () { return ({ lastUpdated: { required: false, type: function () { return Date; } }, queries: { required: false, type: function () { return ({ total: { required: true, type: function () { return Number; } }, timeframe: { required: true, type: function () { return String; } }, distribution: { required: false, type: function () { return Object; } } }); } }, performance: { required: false, type: function () { return ({ responseTime: { required: true, type: function () { return Number; } }, availability: { required: true, type: function () { return Number; } } }); } } }); } } };
-        };
-        return DnsRecord_1;
-    }());
-    __setFunctionName(_classThis, "DnsRecord");
-    (function () {
-        var _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
-        _id_decorators = [(0, typeorm_1.PrimaryGeneratedColumn)('uuid')];
-        _domainId_decorators = [(0, typeorm_1.Column)('uuid'), (0, typeorm_1.Index)()];
-        _domain_decorators = [(0, typeorm_1.ManyToOne)('Domain', 'dnsRecords', { onDelete: 'CASCADE' }), (0, typeorm_1.JoinColumn)({ name: 'domainId' })];
-        _type_decorators = [(0, typeorm_1.Column)({
-                type: 'enum',
-                enum: DnsRecordType
-            }), (0, typeorm_1.Index)()];
-        _name_decorators = [(0, typeorm_1.Column)(), (0, typeorm_1.Index)()];
-        _content_decorators = [(0, typeorm_1.Column)('text')];
-        _ttl_decorators = [(0, typeorm_1.Column)('int', { default: 3600 })];
-        _priority_decorators = [(0, typeorm_1.Column)('int', { nullable: true })];
-        _isActive_decorators = [(0, typeorm_1.Column)('boolean', { default: true })];
-        _metadata_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _validation_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _monitoring_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _geolocation_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _loadBalancing_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _failover_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _tags_decorators = [(0, typeorm_1.Column)('text', { array: true, nullable: true })];
-        _isSystem_decorators = [(0, typeorm_1.Column)('boolean', { default: false })];
-        _isLocked_decorators = [(0, typeorm_1.Column)('boolean', { default: false })];
-        _isProtected_decorators = [(0, typeorm_1.Column)('boolean', { default: false })];
-        _createdAt_decorators = [(0, typeorm_1.CreateDateColumn)()];
-        _updatedAt_decorators = [(0, typeorm_1.UpdateDateColumn)()];
-        _createdBy_decorators = [(0, typeorm_1.Column)('uuid', { nullable: true })];
-        _updatedBy_decorators = [(0, typeorm_1.Column)('uuid', { nullable: true })];
-        _history_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _notes_decorators = [(0, typeorm_1.Column)('text', { nullable: true })];
-        _isDeleted_decorators = [(0, typeorm_1.Column)('boolean', { default: false }), (0, typeorm_1.Index)()];
-        _deletedBy_decorators = [(0, typeorm_1.Column)('uuid', { nullable: true })];
-        _deletedAt_decorators = [(0, typeorm_1.Column)({ nullable: true })];
-        _propagation_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        _analytics_decorators = [(0, typeorm_1.Column)('jsonb', { nullable: true })];
-        __esDecorate(null, null, _id_decorators, { kind: "field", name: "id", static: false, private: false, access: { has: function (obj) { return "id" in obj; }, get: function (obj) { return obj.id; }, set: function (obj, value) { obj.id = value; } }, metadata: _metadata }, _id_initializers, _id_extraInitializers);
-        __esDecorate(null, null, _domainId_decorators, { kind: "field", name: "domainId", static: false, private: false, access: { has: function (obj) { return "domainId" in obj; }, get: function (obj) { return obj.domainId; }, set: function (obj, value) { obj.domainId = value; } }, metadata: _metadata }, _domainId_initializers, _domainId_extraInitializers);
-        __esDecorate(null, null, _domain_decorators, { kind: "field", name: "domain", static: false, private: false, access: { has: function (obj) { return "domain" in obj; }, get: function (obj) { return obj.domain; }, set: function (obj, value) { obj.domain = value; } }, metadata: _metadata }, _domain_initializers, _domain_extraInitializers);
-        __esDecorate(null, null, _type_decorators, { kind: "field", name: "type", static: false, private: false, access: { has: function (obj) { return "type" in obj; }, get: function (obj) { return obj.type; }, set: function (obj, value) { obj.type = value; } }, metadata: _metadata }, _type_initializers, _type_extraInitializers);
-        __esDecorate(null, null, _name_decorators, { kind: "field", name: "name", static: false, private: false, access: { has: function (obj) { return "name" in obj; }, get: function (obj) { return obj.name; }, set: function (obj, value) { obj.name = value; } }, metadata: _metadata }, _name_initializers, _name_extraInitializers);
-        __esDecorate(null, null, _content_decorators, { kind: "field", name: "content", static: false, private: false, access: { has: function (obj) { return "content" in obj; }, get: function (obj) { return obj.content; }, set: function (obj, value) { obj.content = value; } }, metadata: _metadata }, _content_initializers, _content_extraInitializers);
-        __esDecorate(null, null, _ttl_decorators, { kind: "field", name: "ttl", static: false, private: false, access: { has: function (obj) { return "ttl" in obj; }, get: function (obj) { return obj.ttl; }, set: function (obj, value) { obj.ttl = value; } }, metadata: _metadata }, _ttl_initializers, _ttl_extraInitializers);
-        __esDecorate(null, null, _priority_decorators, { kind: "field", name: "priority", static: false, private: false, access: { has: function (obj) { return "priority" in obj; }, get: function (obj) { return obj.priority; }, set: function (obj, value) { obj.priority = value; } }, metadata: _metadata }, _priority_initializers, _priority_extraInitializers);
-        __esDecorate(null, null, _isActive_decorators, { kind: "field", name: "isActive", static: false, private: false, access: { has: function (obj) { return "isActive" in obj; }, get: function (obj) { return obj.isActive; }, set: function (obj, value) { obj.isActive = value; } }, metadata: _metadata }, _isActive_initializers, _isActive_extraInitializers);
-        __esDecorate(null, null, _metadata_decorators, { kind: "field", name: "metadata", static: false, private: false, access: { has: function (obj) { return "metadata" in obj; }, get: function (obj) { return obj.metadata; }, set: function (obj, value) { obj.metadata = value; } }, metadata: _metadata }, _metadata_initializers, _metadata_extraInitializers);
-        __esDecorate(null, null, _validation_decorators, { kind: "field", name: "validation", static: false, private: false, access: { has: function (obj) { return "validation" in obj; }, get: function (obj) { return obj.validation; }, set: function (obj, value) { obj.validation = value; } }, metadata: _metadata }, _validation_initializers, _validation_extraInitializers);
-        __esDecorate(null, null, _monitoring_decorators, { kind: "field", name: "monitoring", static: false, private: false, access: { has: function (obj) { return "monitoring" in obj; }, get: function (obj) { return obj.monitoring; }, set: function (obj, value) { obj.monitoring = value; } }, metadata: _metadata }, _monitoring_initializers, _monitoring_extraInitializers);
-        __esDecorate(null, null, _geolocation_decorators, { kind: "field", name: "geolocation", static: false, private: false, access: { has: function (obj) { return "geolocation" in obj; }, get: function (obj) { return obj.geolocation; }, set: function (obj, value) { obj.geolocation = value; } }, metadata: _metadata }, _geolocation_initializers, _geolocation_extraInitializers);
-        __esDecorate(null, null, _loadBalancing_decorators, { kind: "field", name: "loadBalancing", static: false, private: false, access: { has: function (obj) { return "loadBalancing" in obj; }, get: function (obj) { return obj.loadBalancing; }, set: function (obj, value) { obj.loadBalancing = value; } }, metadata: _metadata }, _loadBalancing_initializers, _loadBalancing_extraInitializers);
-        __esDecorate(null, null, _failover_decorators, { kind: "field", name: "failover", static: false, private: false, access: { has: function (obj) { return "failover" in obj; }, get: function (obj) { return obj.failover; }, set: function (obj, value) { obj.failover = value; } }, metadata: _metadata }, _failover_initializers, _failover_extraInitializers);
-        __esDecorate(null, null, _tags_decorators, { kind: "field", name: "tags", static: false, private: false, access: { has: function (obj) { return "tags" in obj; }, get: function (obj) { return obj.tags; }, set: function (obj, value) { obj.tags = value; } }, metadata: _metadata }, _tags_initializers, _tags_extraInitializers);
-        __esDecorate(null, null, _isSystem_decorators, { kind: "field", name: "isSystem", static: false, private: false, access: { has: function (obj) { return "isSystem" in obj; }, get: function (obj) { return obj.isSystem; }, set: function (obj, value) { obj.isSystem = value; } }, metadata: _metadata }, _isSystem_initializers, _isSystem_extraInitializers);
-        __esDecorate(null, null, _isLocked_decorators, { kind: "field", name: "isLocked", static: false, private: false, access: { has: function (obj) { return "isLocked" in obj; }, get: function (obj) { return obj.isLocked; }, set: function (obj, value) { obj.isLocked = value; } }, metadata: _metadata }, _isLocked_initializers, _isLocked_extraInitializers);
-        __esDecorate(null, null, _isProtected_decorators, { kind: "field", name: "isProtected", static: false, private: false, access: { has: function (obj) { return "isProtected" in obj; }, get: function (obj) { return obj.isProtected; }, set: function (obj, value) { obj.isProtected = value; } }, metadata: _metadata }, _isProtected_initializers, _isProtected_extraInitializers);
-        __esDecorate(null, null, _createdAt_decorators, { kind: "field", name: "createdAt", static: false, private: false, access: { has: function (obj) { return "createdAt" in obj; }, get: function (obj) { return obj.createdAt; }, set: function (obj, value) { obj.createdAt = value; } }, metadata: _metadata }, _createdAt_initializers, _createdAt_extraInitializers);
-        __esDecorate(null, null, _updatedAt_decorators, { kind: "field", name: "updatedAt", static: false, private: false, access: { has: function (obj) { return "updatedAt" in obj; }, get: function (obj) { return obj.updatedAt; }, set: function (obj, value) { obj.updatedAt = value; } }, metadata: _metadata }, _updatedAt_initializers, _updatedAt_extraInitializers);
-        __esDecorate(null, null, _createdBy_decorators, { kind: "field", name: "createdBy", static: false, private: false, access: { has: function (obj) { return "createdBy" in obj; }, get: function (obj) { return obj.createdBy; }, set: function (obj, value) { obj.createdBy = value; } }, metadata: _metadata }, _createdBy_initializers, _createdBy_extraInitializers);
-        __esDecorate(null, null, _updatedBy_decorators, { kind: "field", name: "updatedBy", static: false, private: false, access: { has: function (obj) { return "updatedBy" in obj; }, get: function (obj) { return obj.updatedBy; }, set: function (obj, value) { obj.updatedBy = value; } }, metadata: _metadata }, _updatedBy_initializers, _updatedBy_extraInitializers);
-        __esDecorate(null, null, _history_decorators, { kind: "field", name: "history", static: false, private: false, access: { has: function (obj) { return "history" in obj; }, get: function (obj) { return obj.history; }, set: function (obj, value) { obj.history = value; } }, metadata: _metadata }, _history_initializers, _history_extraInitializers);
-        __esDecorate(null, null, _notes_decorators, { kind: "field", name: "notes", static: false, private: false, access: { has: function (obj) { return "notes" in obj; }, get: function (obj) { return obj.notes; }, set: function (obj, value) { obj.notes = value; } }, metadata: _metadata }, _notes_initializers, _notes_extraInitializers);
-        __esDecorate(null, null, _isDeleted_decorators, { kind: "field", name: "isDeleted", static: false, private: false, access: { has: function (obj) { return "isDeleted" in obj; }, get: function (obj) { return obj.isDeleted; }, set: function (obj, value) { obj.isDeleted = value; } }, metadata: _metadata }, _isDeleted_initializers, _isDeleted_extraInitializers);
-        __esDecorate(null, null, _deletedBy_decorators, { kind: "field", name: "deletedBy", static: false, private: false, access: { has: function (obj) { return "deletedBy" in obj; }, get: function (obj) { return obj.deletedBy; }, set: function (obj, value) { obj.deletedBy = value; } }, metadata: _metadata }, _deletedBy_initializers, _deletedBy_extraInitializers);
-        __esDecorate(null, null, _deletedAt_decorators, { kind: "field", name: "deletedAt", static: false, private: false, access: { has: function (obj) { return "deletedAt" in obj; }, get: function (obj) { return obj.deletedAt; }, set: function (obj, value) { obj.deletedAt = value; } }, metadata: _metadata }, _deletedAt_initializers, _deletedAt_extraInitializers);
-        __esDecorate(null, null, _propagation_decorators, { kind: "field", name: "propagation", static: false, private: false, access: { has: function (obj) { return "propagation" in obj; }, get: function (obj) { return obj.propagation; }, set: function (obj, value) { obj.propagation = value; } }, metadata: _metadata }, _propagation_initializers, _propagation_extraInitializers);
-        __esDecorate(null, null, _analytics_decorators, { kind: "field", name: "analytics", static: false, private: false, access: { has: function (obj) { return "analytics" in obj; }, get: function (obj) { return obj.analytics; }, set: function (obj, value) { obj.analytics = value; } }, metadata: _metadata }, _analytics_initializers, _analytics_extraInitializers);
-        __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
-        DnsRecord = _classThis = _classDescriptor.value;
-        if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
-        __runInitializers(_classThis, _classExtraInitializers);
-    })();
-    return DnsRecord = _classThis;
-}();
+})(DnsRecordType = exports.DnsRecordType || (exports.DnsRecordType = {}));
+let DnsRecord = class DnsRecord {
+    static _OPENAPI_METADATA_FACTORY() {
+        return { id: { required: true, type: () => String }, domainId: { required: true, type: () => String }, domain: { required: true, type: () => Object }, type: { required: true, enum: require("./dns-record.entity").DnsRecordType }, name: { required: true, type: () => String }, content: { required: true, type: () => String }, ttl: { required: true, type: () => Number }, priority: { required: false, type: () => Number }, isActive: { required: true, type: () => Boolean }, metadata: { required: false, type: () => ({ proxied: { required: false, type: () => Boolean }, cloudflare: { required: false, type: () => ({ proxied: { required: false, type: () => Boolean }, proxiedAt: { required: false, type: () => Date }, developmentMode: { required: false, type: () => Boolean } }) }, aws: { required: false, type: () => ({ regionId: { required: false, type: () => String }, healthCheckId: { required: false, type: () => String }, evaluateTargetHealth: { required: false, type: () => Boolean } }) }, google: { required: false, type: () => ({ routingPolicy: { required: false, type: () => String }, healthChecked: { required: false, type: () => Boolean } }) }, azure: { required: false, type: () => ({ trafficManagerProfile: { required: false, type: () => String }, weight: { required: false, type: () => Number } }) } }) }, validation: { required: false, type: () => ({ isValid: { required: true, type: () => Boolean }, lastChecked: { required: true, type: () => Date }, errors: { required: false, type: () => [String] }, warnings: { required: false, type: () => [String] } }) }, monitoring: { required: false, type: () => ({ enabled: { required: true, type: () => Boolean }, lastCheck: { required: false, type: () => Date }, status: { required: false, type: () => Object }, responseTime: { required: false, type: () => Number }, healthCheckId: { required: false, type: () => String }, alerts: { required: false, type: () => ({ email: { required: false, type: () => [String] }, webhook: { required: false, type: () => [String] } }) } }) }, geolocation: { required: false, type: () => ({ enabled: { required: true, type: () => Boolean }, regions: { required: false, type: () => [String] }, countries: { required: false, type: () => [String] }, continents: { required: false, type: () => [String] }, defaultResponse: { required: false, type: () => String } }) }, loadBalancing: { required: false, type: () => ({ enabled: { required: true, type: () => Boolean }, method: { required: false, type: () => Object }, pools: { required: false } }) }, failover: { required: false, type: () => ({ enabled: { required: true, type: () => Boolean }, primary: { required: false, type: () => String }, secondary: { required: false, type: () => String }, healthCheck: { required: false, type: () => ({ type: { required: true, type: () => String }, interval: { required: true, type: () => Number }, timeout: { required: true, type: () => Number }, retries: { required: true, type: () => Number } }) } }) }, tags: { required: false, type: () => [String] }, isSystem: { required: true, type: () => Boolean }, isLocked: { required: true, type: () => Boolean }, isProtected: { required: true, type: () => Boolean }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, createdBy: { required: false, type: () => String }, updatedBy: { required: false, type: () => String }, history: { required: false }, notes: { required: false, type: () => String }, isDeleted: { required: true, type: () => Boolean }, deletedBy: { required: false, type: () => String }, deletedAt: { required: false, type: () => Date }, propagation: { required: false, type: () => ({ status: { required: true, type: () => Object }, startedAt: { required: false, type: () => Date }, completedAt: { required: false, type: () => Date }, nameservers: { required: false } }) }, analytics: { required: false, type: () => ({ lastUpdated: { required: false, type: () => Date }, queries: { required: false, type: () => ({ total: { required: true, type: () => Number }, timeframe: { required: true, type: () => String }, distribution: { required: false, type: () => Object } }) }, performance: { required: false, type: () => ({ responseTime: { required: true, type: () => Number }, availability: { required: true, type: () => Number } }) } }) } };
+    }
+};
+__decorate([
+    (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
+    __metadata("design:type", String)
+], DnsRecord.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.Column)('uuid'),
+    (0, typeorm_1.Index)(),
+    __metadata("design:type", String)
+], DnsRecord.prototype, "domainId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)('Domain', 'dnsRecords', { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'domainId' }),
+    __metadata("design:type", Object)
+], DnsRecord.prototype, "domain", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: 'enum',
+        enum: DnsRecordType
+    }),
+    (0, typeorm_1.Index)(),
+    __metadata("design:type", String)
+], DnsRecord.prototype, "type", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Index)(),
+    __metadata("design:type", String)
+], DnsRecord.prototype, "name", void 0);
+__decorate([
+    (0, typeorm_1.Column)('text'),
+    __metadata("design:type", String)
+], DnsRecord.prototype, "content", void 0);
+__decorate([
+    (0, typeorm_1.Column)('int', { default: 3600 }),
+    __metadata("design:type", Number)
+], DnsRecord.prototype, "ttl", void 0);
+__decorate([
+    (0, typeorm_1.Column)('int', { nullable: true }),
+    __metadata("design:type", Number)
+], DnsRecord.prototype, "priority", void 0);
+__decorate([
+    (0, typeorm_1.Column)('boolean', { default: true }),
+    __metadata("design:type", Boolean)
+], DnsRecord.prototype, "isActive", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], DnsRecord.prototype, "metadata", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], DnsRecord.prototype, "validation", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], DnsRecord.prototype, "monitoring", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], DnsRecord.prototype, "geolocation", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], DnsRecord.prototype, "loadBalancing", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], DnsRecord.prototype, "failover", void 0);
+__decorate([
+    (0, typeorm_1.Column)('text', { array: true, nullable: true }),
+    __metadata("design:type", Array)
+], DnsRecord.prototype, "tags", void 0);
+__decorate([
+    (0, typeorm_1.Column)('boolean', { default: false }),
+    __metadata("design:type", Boolean)
+], DnsRecord.prototype, "isSystem", void 0);
+__decorate([
+    (0, typeorm_1.Column)('boolean', { default: false }),
+    __metadata("design:type", Boolean)
+], DnsRecord.prototype, "isLocked", void 0);
+__decorate([
+    (0, typeorm_1.Column)('boolean', { default: false }),
+    __metadata("design:type", Boolean)
+], DnsRecord.prototype, "isProtected", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)(),
+    __metadata("design:type", Date)
+], DnsRecord.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.UpdateDateColumn)(),
+    __metadata("design:type", Date)
+], DnsRecord.prototype, "updatedAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)('uuid', { nullable: true }),
+    __metadata("design:type", String)
+], DnsRecord.prototype, "createdBy", void 0);
+__decorate([
+    (0, typeorm_1.Column)('uuid', { nullable: true }),
+    __metadata("design:type", String)
+], DnsRecord.prototype, "updatedBy", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Array)
+], DnsRecord.prototype, "history", void 0);
+__decorate([
+    (0, typeorm_1.Column)('text', { nullable: true }),
+    __metadata("design:type", String)
+], DnsRecord.prototype, "notes", void 0);
+__decorate([
+    (0, typeorm_1.Column)('boolean', { default: false }),
+    (0, typeorm_1.Index)(),
+    __metadata("design:type", Boolean)
+], DnsRecord.prototype, "isDeleted", void 0);
+__decorate([
+    (0, typeorm_1.Column)('uuid', { nullable: true }),
+    __metadata("design:type", String)
+], DnsRecord.prototype, "deletedBy", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Date)
+], DnsRecord.prototype, "deletedAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], DnsRecord.prototype, "propagation", void 0);
+__decorate([
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
+    __metadata("design:type", Object)
+], DnsRecord.prototype, "analytics", void 0);
+DnsRecord = __decorate([
+    (0, typeorm_1.Entity)('dns_records'),
+    (0, typeorm_1.Index)(['domainId', 'type']),
+    (0, typeorm_1.Index)(['domainId', 'name'])
+], DnsRecord);
 exports.DnsRecord = DnsRecord;
 //# sourceMappingURL=dns-record.entity.js.map

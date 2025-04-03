@@ -9,5 +9,5 @@ var SubscriptionPlan;
     SubscriptionPlan["STANDARD"] = "STANDARD";
     SubscriptionPlan["PREMIUM"] = "PREMIUM";
     SubscriptionPlan["ENTERPRISE"] = "ENTERPRISE";
-})(SubscriptionPlan || (exports.SubscriptionPlan = SubscriptionPlan = {}));
+})(SubscriptionPlan = exports.SubscriptionPlan || (exports.SubscriptionPlan = {}));
 //# sourceMappingURL=subscription-plan.enum.js.map

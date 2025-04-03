@@ -71,5 +71,5 @@ var DomainVerificationStatus;
      * Verification succeeded but with warnings
      */
     DomainVerificationStatus["VERIFIED_WITH_WARNINGS"] = "verified_with_warnings";
-})(DomainVerificationStatus || (exports.DomainVerificationStatus = DomainVerificationStatus = {}));
+})(DomainVerificationStatus = exports.DomainVerificationStatus || (exports.DomainVerificationStatus = {}));
 //# sourceMappingURL=domain-verification-status.enum.js.map

@@ -15,5 +15,5 @@ var DayOfWeek;
     DayOfWeek[DayOfWeek["THURSDAY"] = 4] = "THURSDAY";
     DayOfWeek[DayOfWeek["FRIDAY"] = 5] = "FRIDAY";
     DayOfWeek[DayOfWeek["SATURDAY"] = 6] = "SATURDAY";
-})(DayOfWeek || (exports.DayOfWeek = DayOfWeek = {}));
+})(DayOfWeek = exports.DayOfWeek || (exports.DayOfWeek = {}));
 //# sourceMappingURL=day-of-week.enum.js.map

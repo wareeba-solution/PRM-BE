@@ -3,32 +3,28 @@
  * Utility functions for generating URL-friendly slugs
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateSlug = generateSlug;
-exports.generateRandomString = generateRandomString;
-exports.makeSlugUnique = makeSlugUnique;
-exports.isValidSlug = isValidSlug;
+exports.isValidSlug = exports.makeSlugUnique = exports.generateRandomString = exports.generateSlug = void 0;
 /**
  * Converts a string to a URL-friendly slug
  * @param text - The text to convert to a slug
  * @param options - Optional configuration for slug generation
  * @returns The generated slug
  */
-function generateSlug(text, options) {
-    if (options === void 0) { options = {}; }
-    var _a = options.lowercase, lowercase = _a === void 0 ? true : _a, _b = options.separator, separator = _b === void 0 ? '-' : _b, _c = options.removeStopWords, removeStopWords = _c === void 0 ? true : _c, _d = options.maxLength, maxLength = _d === void 0 ? 100 : _d;
+function generateSlug(text, options = {}) {
+    const { lowercase = true, separator = '-', removeStopWords = true, maxLength = 100 } = options;
     // List of common stop words to remove if removeStopWords is true
-    var stopWords = new Set([
+    const stopWords = new Set([
         'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for',
         'from', 'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on',
         'that', 'the', 'to', 'was', 'were', 'will', 'with'
     ]);
     // Convert to lowercase if specified
-    var slug = lowercase ? text.toLowerCase() : text;
+    let slug = lowercase ? text.toLowerCase() : text;
     // Remove stop words if specified
     if (removeStopWords) {
         slug = slug
             .split(' ')
-            .filter(function (word) { return !stopWords.has(word.toLowerCase()); })
+            .filter(word => !stopWords.has(word.toLowerCase()))
             .join(' ');
     }
     // Replace spaces and unwanted characters
@@ -41,14 +37,14 @@ function generateSlug(text, options) {
         // Replace multiple spaces with single separator
         .replace(/\s+/g, separator)
         // Replace multiple separators with single separator
-        .replace(new RegExp("".concat(separator, "+"), 'g'), separator)
+        .replace(new RegExp(`${separator}+`, 'g'), separator)
         // Remove separator from start and end
-        .replace(new RegExp("^".concat(separator, "+|").concat(separator, "+$"), 'g'), '');
+        .replace(new RegExp(`^${separator}+|${separator}+$`, 'g'), '');
     // Truncate to maximum length while avoiding cutting words
     if (maxLength && slug.length > maxLength) {
-        var truncated = slug.substring(0, maxLength);
+        const truncated = slug.substring(0, maxLength);
         // Find the last separator in the truncated string
-        var lastSeparator = truncated.lastIndexOf(separator);
+        const lastSeparator = truncated.lastIndexOf(separator);
         if (lastSeparator !== -1) {
             slug = truncated.substring(0, lastSeparator);
         }
@@ -58,20 +54,21 @@ function generateSlug(text, options) {
     }
     return slug;
 }
+exports.generateSlug = generateSlug;
 /**
  * Generates a random string to be appended to a slug to ensure uniqueness
  * @param length - Length of the random string
  * @returns Random string
  */
-function generateRandomString(length) {
-    if (length === void 0) { length = 6; }
-    var characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    var result = '';
-    for (var i = 0; i < length; i++) {
+function generateRandomString(length = 6) {
+    const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
         result += characters.charAt(Math.floor(Math.random() * characters.length));
     }
     return result;
 }
+exports.generateRandomString = generateRandomString;
 /**
  * Makes a slug unique by appending a random string or number
  * @param slug - Original slug
@@ -82,23 +79,25 @@ function makeSlugUnique(slug, existingSlugs) {
     if (!existingSlugs.includes(slug)) {
         return slug;
     }
-    var counter = 1;
-    var uniqueSlug = slug;
+    let counter = 1;
+    let uniqueSlug = slug;
     while (existingSlugs.includes(uniqueSlug)) {
-        uniqueSlug = "".concat(slug, "-").concat(generateRandomString(4));
+        uniqueSlug = `${slug}-${generateRandomString(4)}`;
         counter++;
     }
     return uniqueSlug;
 }
+exports.makeSlugUnique = makeSlugUnique;
 /**
  * Validates if a string is a valid slug
  * @param slug - Slug to validate
  * @returns Boolean indicating if slug is valid
  */
 function isValidSlug(slug) {
-    var slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+    const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
     return slugRegex.test(slug);
 }
+exports.isValidSlug = isValidSlug;
 /**
  * Example usage:
  *

@@ -36,5 +36,5 @@ var NotificationType;
     NotificationType["USER_INVITATION"] = "USER_INVITATION";
     // Custom notification
     NotificationType["CUSTOM"] = "CUSTOM";
-})(NotificationType || (exports.NotificationType = NotificationType = {}));
+})(NotificationType = exports.NotificationType || (exports.NotificationType = {}));
 //# sourceMappingURL=notification-type.enum.js.map
