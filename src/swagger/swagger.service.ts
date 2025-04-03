@@ -1,72 +1,3 @@
-// import { Injectable, Logger } from '@nestjs/common';
-// import { INestApplication } from '@nestjs/common';
-// import { SwaggerModule as NestSwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-// import { ManualOpenAPIObject } from './interfaces/manual-api.interface';
-// import { getAllSchemas } from './schemas';
-// import { getAllPaths } from './paths';
-// import { ConfigService } from '@nestjs/config';
-//
-// @Injectable()
-// export class SwaggerService {
-//   private readonly logger = new Logger(SwaggerService.name);
-//
-//   setup(app: INestApplication): void {
-//     try {
-//       // Get config service
-//       const configService = app.get(ConfigService);
-//       const isProduction = configService.get('app.nodeEnv') === 'production';
-//       const docsEnabled = configService.get('app.docsEnabled');
-//
-//       // Skip Swagger setup in production unless explicitly enabled
-//       if (isProduction && !docsEnabled) {
-//         this.logger.log('Swagger documentation disabled in production');
-//         return;
-//       }
-//
-//       this.logger.log('Setting up manual Swagger documentation...');
-//
-//       const config = new DocumentBuilder()
-//         .setTitle('Patient Relationship Manager API')
-//         .setDescription('API Documentation for PRM')
-//         .setVersion('1.0')
-//         .addBearerAuth()
-//         .addTag('Auth', 'Authentication endpoints')
-//         .addTag('Users', 'User management endpoints')
-//         .addTag('Organizations', 'Organization management endpoints')
-//         .addTag('Contacts', 'Contact management endpoints')
-//         .addTag('Appointments', 'Appointment scheduling endpoints')
-//         .addTag('Tickets', 'Support ticket endpoints')
-//         .addTag('Messages', 'Messaging functionality endpoints')
-//         .addTag('Notifications', 'Notification management endpoints')
-//         .build();
-//
-//       // Create a manual document
-//       const document: ManualOpenAPIObject = {
-//         ...config,
-//         paths: getAllPaths(),
-//         components: {
-//           schemas: getAllSchemas(),
-//           securitySchemes: {
-//             bearerAuth: {
-//               type: 'http',
-//               scheme: 'bearer',
-//               bearerFormat: 'JWT'
-//             }
-//           }
-//         }
-//       };
-//
-//       NestSwaggerModule.setup('api-docs', app, document as any);
-//       this.logger.log('Manual Swagger documentation setup at /api-docs path');
-//     } catch (error) {
-//       this.logger.error(`Failed to set up Swagger: ${error.message}`);
-//       this.logger.error(error.stack);
-//     }
-//   }
-// }
-
-
-
 import { Injectable, Logger } from '@nestjs/common';
 import { INestApplication } from '@nestjs/common';
 import { SwaggerModule as NestSwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -84,15 +15,12 @@ export class SwaggerService {
       // Get config service
       const configService = app.get(ConfigService);
       const isProduction = configService.get('app.nodeEnv') === 'production';
-      const docsEnabled = configService.get('app.docsEnabled');
 
-      // Skip Swagger setup in production unless explicitly enabled
-      if (isProduction && !docsEnabled) {
-        this.logger.log('Swagger documentation disabled in production');
-        return;
-      }
+      // Log environment details for debugging
+      this.logger.log(`Environment: ${isProduction ? 'Production' : 'Development'}`);
 
-      this.logger.log('Setting up manual Swagger documentation...');
+      // Optional: Force Swagger to be available in all environments
+      this.logger.log('Setting up Swagger documentation...');
 
       const config = new DocumentBuilder()
           .setTitle('Patient Relationship Manager API')
@@ -143,16 +71,35 @@ export class SwaggerService {
         }
       };
 
-      // Additional error handling for Swagger setup
+      // Setup Swagger with increased error handling
       try {
-        NestSwaggerModule.setup('api-docs', app, document as any);
-        this.logger.log('Manual Swagger documentation setup at /api-docs path');
+        // Use dynamic route for Swagger in production vs development
+        const swaggerRoute = isProduction ? 'api-docs' : 'api-docs';
+
+        NestSwaggerModule.setup(swaggerRoute, app, document as any, {
+          swaggerOptions: {
+            persistAuthorization: true,
+            // Optional: Add basic authentication for production
+            ...(isProduction ? {
+              authAction: {
+                defaultSecurityScheme: 'bearerAuth'
+              }
+            } : {})
+          }
+        });
+
+        this.logger.log(`Swagger documentation setup at /${swaggerRoute} path`);
       } catch (swaggerSetupError) {
         this.logger.error('Failed to setup Swagger module:', swaggerSetupError);
+        // Rethrow to ensure it's not silently ignored
+        throw swaggerSetupError;
       }
     } catch (error) {
       this.logger.error(`Critical error in Swagger setup: ${error.message}`);
       this.logger.error(error.stack);
+
+      // Optional: You might want to rethrow or handle this differently
+      throw error;
     }
   }
 }
