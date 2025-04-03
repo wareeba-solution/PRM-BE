@@ -38,8 +38,10 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     const configService = app.get(ConfigService);
 
-    // Set global prefix if needed
-    app.setGlobalPrefix('api');
+    // Set global prefix with exclusions for Swagger
+    app.setGlobalPrefix('api', {
+      exclude: ['api-docs', 'api-docs/(.*)', 'api-docs-json'],
+    });
 
     // Initialize our custom Swagger service
     const swaggerService = new SwaggerService();
@@ -69,6 +71,7 @@ async function bootstrap() {
     // Set up Swagger
     try {
       swaggerService.setup(app);
+      console.log('Swagger documentation set up at /api-docs');
     } catch (swaggerError) {
       logger.warn('Failed to set up Swagger:', swaggerError);
     }
