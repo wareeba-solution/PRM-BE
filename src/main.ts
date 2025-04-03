@@ -5,7 +5,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { SwaggerService } from './swagger/swagger.service';
-import * as express from 'express';
+import express from 'express'; // Changed to default import
 import * as http from 'http';
 
 async function bootstrap() {
@@ -13,7 +13,7 @@ async function bootstrap() {
   console.log('Starting application bootstrap process...');
 
   // Determine port early
-  const port = process.env.PORT || 3000;
+  const port = parseInt(process.env.PORT || '3000', 10); // Ensure port is a number
   console.log(`Using port: ${port}`);
 
   // Create a simple Express app that binds to the port immediately
@@ -27,7 +27,7 @@ async function bootstrap() {
 
   // Start the temporary server immediately
   const tempServer = http.createServer(tempApp);
-  tempServer.listen(port, '0.0.0.0', () => {
+  tempServer.listen(port, () => { // Removed the host parameter to fix TypeScript error
     console.log(`=============================================`);
     console.log(`TEMPORARY SERVER RUNNING ON PORT: ${port}`);
     console.log(`=============================================`);
@@ -86,20 +86,20 @@ async function bootstrap() {
 
     // Once NestJS is ready, close the temporary server and use NestJS instead
     console.log('NestJS initialization complete, closing temporary server...');
-    await new Promise(resolve => {
+    await new Promise<void>(resolve => {
       tempServer.close(() => {
         console.log('Temporary server closed.');
-        resolve(null);
+        resolve();
       });
     });
 
     // Start the NestJS server
     console.log(`Starting NestJS server on port ${finalPort}...`);
-    const server = await app.listen(finalPort, '0.0.0.0');
+    const server = await app.listen(finalPort);
 
     // Log port binding
     console.log(`=============================================`);
-    console.log(`NESTJS SERVER RUNNING: http://0.0.0.0:${finalPort}`);
+    console.log(`NESTJS SERVER RUNNING: http://localhost:${finalPort}`);
     console.log(`=============================================`);
     logger.log(`Application is running on port: ${finalPort}`);
     logger.log(`API documentation available at: /api-docs`);
