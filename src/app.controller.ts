@@ -21,6 +21,12 @@ export class AppController {
         };
     }
 
+    // In your AppController or similar
+    @Get('docs-test')
+    docsTest() {
+        return { message: 'Docs test endpoint is working' };
+    }
+
     @Get('health')
     @ApiOperation({ summary: 'Health check endpoint' })
     @ApiResponse({ status: 200, description: 'System is healthy' })
