@@ -15,12 +15,6 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
@@ -28,25 +22,27 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var SwaggerService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SwaggerService = void 0;
+// src/swagger/swagger.service.ts
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const schemasModule = __importStar(require("./schemas/index"));
 const pathsModule = __importStar(require("./paths/index"));
 const config_1 = require("@nestjs/config");
-let SwaggerService = SwaggerService_1 = class SwaggerService {
+class SwaggerService {
     constructor() {
-        this.logger = new common_1.Logger(SwaggerService_1.name);
+        this.logger = new common_1.Logger('SwaggerService');
     }
     setup(app) {
         try {
             // Get config service
             const configService = app.get(config_1.ConfigService);
             const isProduction = configService.get('app.nodeEnv') === 'production';
+            const globalPrefix = 'api'; // Match the global prefix in main.ts
             // Log environment details for debugging
             this.logger.log(`Environment: ${isProduction ? 'Production' : 'Development'}`);
+            this.logger.log(`Global API prefix: ${globalPrefix}`);
             this.logger.log('Setting up Swagger documentation...');
             const config = new swagger_1.DocumentBuilder()
                 .setTitle('Patient Relationship Manager API')
@@ -71,12 +67,13 @@ let SwaggerService = SwaggerService_1 = class SwaggerService {
             let paths = {};
             let schemas = {};
             try {
+                this.logger.log('Loading API paths...');
                 paths = pathsModule.getAllPaths ? pathsModule.getAllPaths() : {};
                 const pathKeys = Object.keys(paths);
                 this.logger.log(`Loaded ${pathKeys.length} API paths`);
                 // Enhanced debugging: log specific paths
                 if (pathKeys.length > 0) {
-                    this.logger.log(`Path keys: ${pathKeys.join(', ')}`);
+                    this.logger.log(`Path samples: ${pathKeys.slice(0, 5).join(', ')}${pathKeys.length > 5 ? '...' : ''}`);
                 }
                 else {
                     this.logger.warn('No API paths were loaded!');
@@ -87,12 +84,13 @@ let SwaggerService = SwaggerService_1 = class SwaggerService {
                 this.logger.error(pathError.stack);
             }
             try {
+                this.logger.log('Loading API schemas...');
                 schemas = schemasModule.getAllSchemas ? schemasModule.getAllSchemas() : {};
                 const schemaKeys = Object.keys(schemas);
                 this.logger.log(`Loaded ${schemaKeys.length} schemas`);
                 // Enhanced debugging: log specific schemas
                 if (schemaKeys.length > 0) {
-                    this.logger.log(`Schema keys: ${schemaKeys.slice(0, 10).join(', ')}${schemaKeys.length > 10 ? '...' : ''}`);
+                    this.logger.log(`Schema samples: ${schemaKeys.slice(0, 5).join(', ')}${schemaKeys.length > 5 ? '...' : ''}`);
                 }
                 else {
                     this.logger.warn('No schemas were loaded!');
@@ -122,21 +120,35 @@ let SwaggerService = SwaggerService_1 = class SwaggerService {
                         }
                     }
                 } });
+            // Try to serialize the document to check for circular references
+            try {
+                JSON.stringify(document);
+                this.logger.log('Document can be serialized correctly.');
+            }
+            catch (err) {
+                this.logger.warn('Document has circular references or cannot be serialized!', err.message);
+            }
             // Setup Swagger with increased error handling
             try {
-                // Set up Swagger at the correct paths
-                const swaggerRoutes = ['api-docs', 'swagger'];
+                // Set up Swagger at routes both with and without global prefix
+                const swaggerRoutes = [
+                    'swagger',
+                    'api-docs',
+                    `${globalPrefix}/swagger`,
+                    `${globalPrefix}/api-docs` // /api/api-docs
+                ];
                 for (const route of swaggerRoutes) {
                     try {
+                        this.logger.log(`Setting up Swagger at route: /${route}`);
                         swagger_1.SwaggerModule.setup(route, app, document, {
                             swaggerOptions: Object.assign({ persistAuthorization: true, docExpansion: 'none', filter: true, showExtensions: true }, (isProduction ? {
                                 authAction: {
                                     defaultSecurityScheme: 'bearerAuth'
                                 }
-                            } : {}))
+                            } : {})),
+                            customSiteTitle: 'PRM API Documentation'
                         });
                         this.logger.log(`Swagger documentation setup successfully at /${route}`);
-                        this.logger.log(`Access Swagger UI at: http://localhost:${app.getHttpServer().address().port}/${route}`);
                     }
                     catch (routeError) {
                         this.logger.error(`Failed to setup Swagger at /${route}:`, routeError);
@@ -155,9 +167,6 @@ let SwaggerService = SwaggerService_1 = class SwaggerService {
             throw error;
         }
     }
-};
-SwaggerService = SwaggerService_1 = __decorate([
-    (0, common_1.Injectable)()
-], SwaggerService);
+}
 exports.SwaggerService = SwaggerService;
 //# sourceMappingURL=swagger.service.js.map

@@ -1,26 +1,34 @@
+// src/swagger/schemas/index.ts
 import { authSchemas } from './auth.schema';
 import { userSchemas } from './user.schema';
-// Import other schema files as needed
+import { contactSchemas } from './contact.schema';
 
 export function getAllSchemas() {
   console.log('Loading API schemas...');
-  console.log('Auth schemas:', Object.keys(authSchemas).length);
-  console.log('User schemas:', Object.keys(userSchemas).length);
+
+  // Safely check if objects exist before trying to access their keys
+  const authSchemasCount = authSchemas ? Object.keys(authSchemas).length : 0;
+  const userSchemasCount = userSchemas ? Object.keys(userSchemas).length : 0;
+  const contactSchemasCount = contactSchemas ? Object.keys(contactSchemas).length : 0;
+
+  console.log('Auth schemas:', authSchemasCount);
+  console.log('User schemas:', userSchemasCount);
+  console.log('Contact schemas:', contactSchemasCount);
 
   const allSchemas = {
-    ...authSchemas,
-    ...userSchemas,
+    ...(authSchemas || {}),
+    ...(userSchemas || {}),
+    ...(contactSchemas || {}),
     // Important: Make sure SimpleOrganizationDto is included
     SimpleOrganizationDto: {
       type: 'object',
       properties: {
         id: { type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000' },
         name: { type: 'string', example: 'ACME Healthcare' },
-        createdAt: { type: 'string', format: 'date-time' },
-        updatedAt: { type: 'string', format: 'date-time' }
+        type: { type: 'string', example: 'HEALTHCARE' },
+        status: { type: 'string', example: 'ACTIVE' }
       }
     },
-    // Add other schemas as needed
   };
 
   console.log('Total schemas loaded:', Object.keys(allSchemas).length);

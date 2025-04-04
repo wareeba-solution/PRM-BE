@@ -11,17 +11,109 @@ export declare function getAllSchemas(): {
                 type: string;
                 example: string;
             };
-            createdAt: {
+            type: {
                 type: string;
-                format: string;
+                example: string;
             };
-            updatedAt: {
+            status: {
                 type: string;
-                format: string;
+                example: string;
             };
         };
     };
-    CreateUserDto: {
+    SimpleContactDto?: {
+        type: string;
+        properties: {
+            id: {
+                type: string;
+                format: string;
+                example: string;
+            };
+            firstName: {
+                type: string;
+                example: string;
+            };
+            lastName: {
+                type: string;
+                example: string;
+            };
+            email: {
+                type: string;
+                format: string;
+                example: string;
+            };
+            phoneNumber: {
+                type: string;
+                example: string;
+            };
+            type: {
+                type: string;
+                enum: string[];
+                example: string;
+            };
+        };
+    };
+    CreateContactDto?: {
+        type: string;
+        properties: {
+            firstName: {
+                type: string;
+                example: string;
+            };
+            lastName: {
+                type: string;
+                example: string;
+            };
+            email: {
+                type: string;
+                format: string;
+                example: string;
+            };
+            phoneNumber: {
+                type: string;
+                example: string;
+            };
+            type: {
+                type: string;
+                enum: string[];
+                example: string;
+            };
+            organizationId: {
+                type: string;
+                format: string;
+                example: string;
+            };
+        };
+        required: string[];
+    };
+    UpdateContactDto?: {
+        type: string;
+        properties: {
+            firstName: {
+                type: string;
+                example: string;
+            };
+            lastName: {
+                type: string;
+                example: string;
+            };
+            email: {
+                type: string;
+                format: string;
+                example: string;
+            };
+            phoneNumber: {
+                type: string;
+                example: string;
+            };
+            type: {
+                type: string;
+                enum: string[];
+                example: string;
+            };
+        };
+    };
+    CreateUserDto?: {
         type: string;
         properties: {
             email: {
@@ -55,7 +147,7 @@ export declare function getAllSchemas(): {
         };
         required: string[];
     };
-    UpdateUserDto: {
+    UpdateUserDto?: {
         type: string;
         properties: {
             firstName: {
@@ -77,7 +169,7 @@ export declare function getAllSchemas(): {
             };
         };
     };
-    UpdateProfileDto: {
+    UpdateProfileDto?: {
         type: string;
         properties: {
             firstName: {
@@ -98,7 +190,7 @@ export declare function getAllSchemas(): {
             };
         };
     };
-    UpdatePasswordDto: {
+    UpdatePasswordDto?: {
         type: string;
         properties: {
             currentPassword: {
@@ -114,7 +206,7 @@ export declare function getAllSchemas(): {
         };
         required: string[];
     };
-    UserResponseDto: {
+    UserResponseDto?: {
         type: string;
         properties: {
             id: {
@@ -183,7 +275,7 @@ export declare function getAllSchemas(): {
             };
         };
     };
-    SimpleUserDto: {
+    SimpleUserDto?: {
         type: string;
         properties: {
             id: {
@@ -214,7 +306,7 @@ export declare function getAllSchemas(): {
             };
         };
     };
-    UserActivityDto: {
+    UserActivityDto?: {
         type: string;
         properties: {
             activities: {
@@ -256,14 +348,14 @@ export declare function getAllSchemas(): {
             };
         };
     };
-    UserPermissionsDto: {
+    UserPermissionsDto?: {
         type: string;
         items: {
             type: string;
             example: string;
         };
     };
-    UserListResponseDto: {
+    UserListResponseDto?: {
         type: string;
         properties: {
             data: {
@@ -299,7 +391,7 @@ export declare function getAllSchemas(): {
             };
         };
     };
-    LoginDto: {
+    LoginDto?: {
         type: string;
         properties: {
             email: {
@@ -315,7 +407,7 @@ export declare function getAllSchemas(): {
         };
         required: string[];
     };
-    AuthResponseDto: {
+    AuthResponseDto?: {
         type: string;
         properties: {
             tokens: {
@@ -336,7 +428,7 @@ export declare function getAllSchemas(): {
             };
         };
     };
-    RegisterDto: {
+    RegisterDto?: {
         type: string;
         properties: {
             email: {
@@ -364,7 +456,7 @@ export declare function getAllSchemas(): {
         };
         required: string[];
     };
-    RegisterResponseDto: {
+    RegisterResponseDto?: {
         type: string;
         properties: {
             user: {
@@ -386,7 +478,7 @@ export declare function getAllSchemas(): {
             };
         };
     };
-    RefreshTokenDto: {
+    RefreshTokenDto?: {
         type: string;
         properties: {
             refreshToken: {
@@ -396,7 +488,7 @@ export declare function getAllSchemas(): {
         };
         required: string[];
     };
-    ForgotPasswordDto: {
+    ForgotPasswordDto?: {
         type: string;
         properties: {
             email: {
@@ -407,7 +499,7 @@ export declare function getAllSchemas(): {
         };
         required: string[];
     };
-    ResetPasswordDto: {
+    ResetPasswordDto?: {
         type: string;
         properties: {
             token: {
@@ -422,7 +514,7 @@ export declare function getAllSchemas(): {
         };
         required: string[];
     };
-    VerifyEmailDto: {
+    VerifyEmailDto?: {
         type: string;
         properties: {
             token: {
@@ -432,7 +524,7 @@ export declare function getAllSchemas(): {
         };
         required: string[];
     };
-    MessageResponseDto: {
+    MessageResponseDto?: {
         type: string;
         properties: {
             message: {

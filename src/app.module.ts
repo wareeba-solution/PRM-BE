@@ -6,7 +6,6 @@ dotenv.config();
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleAsyncOptions, TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { SwaggerModule as NestSwaggerModule } from '@nestjs/swagger';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -25,7 +24,6 @@ import { TicketsModule } from './modules/tickets/tickets.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { DomainModule } from './modules/domain/domain.module';
-import { SwaggerModule } from './swagger/swagger.module';
 
 // Configuration
 import appConfig from './config/app.config';
@@ -46,9 +44,6 @@ import { ThrottlerConfigService } from './config/throttler.config';
       isGlobal: true,
       load: [appConfig, databaseConfig, mailConfig, jwtConfig],
     }),
-
-    // Swagger Module
-    SwaggerModule,
 
     // Database Module
     TypeOrmModule.forRoot({
@@ -112,6 +107,7 @@ import { ThrottlerConfigService } from './config/throttler.config';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    ThrottlerConfigService,
   ],
 })
 export class AppModule {}

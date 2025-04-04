@@ -55,7 +55,6 @@ const tickets_module_1 = require("./modules/tickets/tickets.module");
 const messages_module_1 = require("./modules/messages/messages.module");
 const notifications_module_1 = require("./modules/notifications/notifications.module");
 const domain_module_1 = require("./modules/domain/domain.module");
-const swagger_module_1 = require("./swagger/swagger.module");
 // Configuration
 const app_config_1 = __importDefault(require("./config/app.config"));
 const database_config_1 = __importDefault(require("./config/database.config"));
@@ -65,6 +64,7 @@ const jwt_config_1 = __importDefault(require("./config/jwt.config"));
 const http_exception_filter_1 = require("./common/filters/http-exception.filter");
 const transform_interceptor_1 = require("./common/interceptors/transform.interceptor");
 const throttler_2 = require("@nestjs/throttler");
+const throttler_config_1 = require("./config/throttler.config");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -75,8 +75,6 @@ AppModule = __decorate([
                 isGlobal: true,
                 load: [app_config_1.default, database_config_1.default, mail_config_1.default, jwt_config_1.default],
             }),
-            // Swagger Module
-            swagger_module_1.SwaggerModule,
             // Database Module
             typeorm_1.TypeOrmModule.forRoot({
                 type: 'postgres',
@@ -135,6 +133,7 @@ AppModule = __decorate([
                 provide: core_1.APP_GUARD,
                 useClass: throttler_2.ThrottlerGuard,
             },
+            throttler_config_1.ThrottlerConfigService,
         ],
     })
 ], AppModule);

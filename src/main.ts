@@ -4,12 +4,9 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import * as pathsModule from './swagger/paths/index';
-import * as schemasModule from './swagger/schemas/index';
-
 import express from 'express';
 import * as http from 'http';
+import { SwaggerService } from './swagger/swagger.service';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -41,20 +38,6 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     const configService = app.get(ConfigService);
 
-    // Set global prefix with exclusions for Swagger
-    app.setGlobalPrefix('api', {
-      exclude: [
-        'api-docs',
-        'api-docs-json',
-        'swagger',
-        'swagger-ui',
-        'swagger-ui-express',
-        'swagger-fallback',
-        'api-docs/(.*)',
-        'swagger/(.*)'
-      ],
-    });
-
     // Configure CORS with more robust handling
     app.enableCors({
       origin: configService.get('app.cors.origins', '*'),
@@ -76,6 +59,31 @@ async function bootstrap() {
         value: false
       },
     }));
+
+    // *** IMPORTANT: Initialize Swagger BEFORE setting global prefix ***
+    try {
+      logger.log('Initializing Swagger documentation...');
+      const swaggerService = new SwaggerService(); // Create instance directly
+      swaggerService.setup(app);
+      logger.log('Swagger documentation initialized successfully.');
+    } catch (swaggerError) {
+      logger.error('Failed to initialize Swagger documentation:', swaggerError);
+      // Continue app startup even if Swagger fails
+    }
+
+    // Set global prefix AFTER Swagger setup
+    app.setGlobalPrefix('api');
+    logger.log('Global API prefix set to: /api');
+
+    // Add global middleware to handle trailing slashes
+    app.use((req, res, next) => {
+      if (req.path.length > 1 && req.path.endsWith('/')) {
+        const query = req.url.slice(req.path.length);
+        res.redirect(301, req.path.slice(0, -1) + query);
+      } else {
+        next();
+      }
+    });
 
     // Get final port
     const finalPort = (() => {
@@ -103,163 +111,11 @@ async function bootstrap() {
 
     console.log(`=============================================`);
     console.log(`NESTJS SERVER RUNNING: http://localhost:${finalPort}`);
+    console.log(`SWAGGER DOCS: http://localhost:${finalPort}/swagger`);
+    console.log(`API DOCS: http://localhost:${finalPort}/api-docs`);
     console.log(`=============================================`);
 
-    // Create a manual OpenAPI document to avoid circular dependencies
-    try {
-      // Set up config
-      const config = new DocumentBuilder()
-          .setTitle('Patient Relationship Manager API')
-          .setDescription('API Documentation for PRM')
-          .setVersion('1.0')
-          .addBearerAuth({
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT',
-            description: 'Enter JWT token',
-          })
-          .addTag('Auth', 'Authentication endpoints')
-          .addTag('Users', 'User management endpoints')
-          .addTag('Organizations', 'Organization management endpoints')
-          .addTag('Contacts', 'Contact management endpoints')
-          .addTag('Appointments', 'Appointment scheduling endpoints')
-          .addTag('Tickets', 'Support ticket endpoints')
-          .addTag('Messages', 'Messaging functionality endpoints')
-          .addTag('Notifications', 'Notification management endpoints')
-          .build();
-
-      // Create an empty document structure first (without scanning entities)
-      const document = {
-        openapi: '3.0.0',
-        info: config.info,
-        tags: config.tags || [],
-        paths: {},
-        components: {
-          securitySchemes: {
-            bearerAuth: {
-              type: 'http',
-              scheme: 'bearer',
-              bearerFormat: 'JWT'
-            }
-          },
-          schemas: {}
-        }
-      };
-
-      // Load custom paths directly
-      try {
-        if (pathsModule.getAllPaths) {
-          const customPaths = pathsModule.getAllPaths();
-          const pathKeys = Object.keys(customPaths);
-
-          if (pathKeys.length > 0) {
-            logger.log(`Adding ${pathKeys.length} custom API paths`);
-            // Add paths directly to our document
-            document.paths = customPaths as any;
-            logger.log(`Custom paths added: ${pathKeys.slice(0, 5).join(', ')}${pathKeys.length > 5 ? '...' : ''}`);
-          } else {
-            logger.warn('No API paths were loaded from path files');
-          }
-        } else {
-          logger.warn('getAllPaths function not found in paths module');
-        }
-      } catch (pathError) {
-        logger.error('Failed to load custom API paths:', pathError);
-        logger.error(pathError.stack);
-      }
-
-      // Load custom schemas directly
-      try {
-        if (schemasModule.getAllSchemas) {
-          const customSchemas = schemasModule.getAllSchemas();
-          const schemaKeys = Object.keys(customSchemas);
-
-          if (schemaKeys.length > 0) {
-            logger.log(`Adding ${schemaKeys.length} custom schemas`);
-            // Add schemas directly to our document
-            document.components.schemas = customSchemas as any;
-            logger.log(`Custom schemas added: ${schemaKeys.slice(0, 5).join(', ')}${schemaKeys.length > 5 ? '...' : ''}`);
-          } else {
-            logger.warn('No schemas were loaded from schema files');
-          }
-        } else {
-          logger.warn('getAllSchemas function not found in schemas module');
-        }
-      } catch (schemaError) {
-        logger.error('Failed to load custom schemas:', schemaError);
-        logger.error(schemaError.stack);
-      }
-
-      // Set up Swagger at both paths
-      SwaggerModule.setup('api-docs', app, document as any, {
-        swaggerOptions: {
-          persistAuthorization: true,
-          docExpansion: 'none',
-          filter: true,
-          showExtensions: true,
-        }
-      });
-
-      SwaggerModule.setup('swagger', app, document as any, {
-        swaggerOptions: {
-          persistAuthorization: true,
-          docExpansion: 'none',
-          filter: true,
-          showExtensions: true,
-        }
-      });
-
-      // Add endpoint to serve OpenAPI JSON
-      app.use('/api-docs-json', (req, res) => {
-        res.setHeader('Content-Type', 'application/json');
-        res.send(document);
-      });
-
-      logger.log('Swagger documentation set up at /api-docs and /swagger');
-    } catch (swaggerError) {
-      logger.error('Failed to set up Swagger:', swaggerError);
-      logger.error(swaggerError.stack);
-
-      // Set up fallback documentation endpoint
-      app.use('/swagger-fallback', (req, res) => {
-        res.setHeader('Content-Type', 'text/html');
-        res.send(`
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <title>API Documentation - Fallback</title>
-              <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                h1 { color: #1976D2; }
-                .endpoint { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-                .method { font-weight: bold; color: #1976D2; }
-                .path { font-family: monospace; }
-              </style>
-            </head>
-            <body>
-              <h1>PRM API Documentation</h1>
-              <p>Swagger UI failed to load due to circular dependencies. Here's a basic API reference:</p>
-              
-              <div class="endpoint">
-                <p><span class="method">POST</span> <span class="path">/api/auth/login</span></p>
-                <p>User login with email/password</p>
-              </div>
-              
-              <div class="endpoint">
-                <p><span class="method">POST</span> <span class="path">/api/auth/register</span></p>
-                <p>Register new user/organization</p>
-              </div>
-              
-              <p>For complete API documentation, please fix circular dependencies in your entity models.</p>
-            </body>
-          </html>
-        `);
-      });
-      logger.log('Fallback API documentation available at /swagger-fallback');
-    }
-
     logger.log(`Application is running on port: ${finalPort}`);
-    logger.log(`API documentation available at: /api-docs and /swagger`);
 
     // Set server timeout
     server.setTimeout(30000); // 30 seconds
