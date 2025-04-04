@@ -63,10 +63,6 @@ export declare class AppointmentsService {
         organizationId: string;
         updatedBy: string;
     }): Promise<Appointment>;
-    confirmAppointment(id: string, data: {
-        organizationId: string;
-        updatedBy: string;
-    }): Promise<Appointment>;
     complete(id: string, data: {
         organizationId: string;
         updatedBy: string;

@@ -24,7 +24,7 @@ export declare class NotificationDeliveryService {
             attempts: number;
             lastAttempt: Date;
             channels: {
-                channel: import("../dto/create-notification.dto").NotificationChannel;
+                channel: import("../enums/notification-channel.enum").NotificationChannel;
                 status: "SUCCESS" | "FAILED";
                 sentAt: Date;
                 error?: string;
@@ -32,6 +32,6 @@ export declare class NotificationDeliveryService {
             error?: string;
             timeoutAt?: Date;
         };
-        channels: import("../dto/create-notification.dto").NotificationChannel[];
+        channels: import("../enums/notification-channel.enum").NotificationChannel[];
     }>;
 }

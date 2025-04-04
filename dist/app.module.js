@@ -1,16 +1,41 @@
 "use strict";
 // src/app.module.ts
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
+const dotenv = __importStar(require("dotenv"));
+dotenv.config();
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
@@ -30,6 +55,7 @@ const tickets_module_1 = require("./modules/tickets/tickets.module");
 const messages_module_1 = require("./modules/messages/messages.module");
 const notifications_module_1 = require("./modules/notifications/notifications.module");
 const domain_module_1 = require("./modules/domain/domain.module");
+const swagger_module_1 = require("./swagger/swagger.module");
 // Configuration
 const app_config_1 = __importDefault(require("./config/app.config"));
 const database_config_1 = __importDefault(require("./config/database.config"));
@@ -44,26 +70,26 @@ let AppModule = class AppModule {
 AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            // Configuration
+            // Configuration Modules
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
                 load: [app_config_1.default, database_config_1.default, mail_config_1.default, jwt_config_1.default],
             }),
-            // Database - simplified configuration
-            typeorm_1.TypeOrmModule.forRootAsync({
-                imports: [config_1.ConfigModule],
-                inject: [config_1.ConfigService],
-                useFactory: (configService) => ({
-                    type: 'postgres',
-                    host: configService.get('database.host', 'localhost'),
-                    port: configService.get('database.port', 5432),
-                    username: configService.get('database.username', 'postgres'),
-                    password: configService.get('database.password', 'postgres'),
-                    database: configService.get('database.name', 'prm_db'),
-                    autoLoadEntities: true,
-                    synchronize: configService.get('database.synchronize', false),
-                    logging: ["error", "schema"], // Only log errors and schema-related queries
-                }),
+            // Swagger Module
+            swagger_module_1.SwaggerModule,
+            // Database Module
+            typeorm_1.TypeOrmModule.forRoot({
+                type: 'postgres',
+                host: process.env.DB_HOST || 'localhost',
+                port: parseInt(process.env.DB_PORT, 10) || 5432,
+                username: process.env.DB_USERNAME || 'default_username',
+                password: process.env.DB_PASSWORD || 'default_password',
+                database: process.env.DB_NAME || 'default_database',
+                schema: process.env.DB_SCHEMA || 'public',
+                entities: [__dirname + '/**/*.entity{.ts,.js}'],
+                synchronize: process.env.DB_SYNC === 'true',
+                logging: process.env.DB_LOGGING === 'true',
+                ssl: process.env.DB_SSL === 'true',
             }),
             // Rate Limiting
             throttler_1.ThrottlerModule.forRoot({

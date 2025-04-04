@@ -20,6 +20,7 @@ const create_ticket_dto_1 = require("../dto/create-ticket.dto");
 // import { User } from '../../users/entities/user.entity';
 // import { Contact } from '../../contacts/entities/contact.entity';
 const department_entity_1 = require("../../departments/entities/department.entity");
+const user_entity_1 = require("../../users/entities/user.entity");
 let Ticket = class Ticket {
     // Virtual properties
     get isEscalated() {
@@ -38,13 +39,15 @@ let Ticket = class Ticket {
         return !!this.firstResponseAt;
     }
     get responseTime() {
-        if (!this.firstResponseAt)
+        if (!this.firstResponseAt || !this.createdAt) {
             return null;
+        }
         return this.firstResponseAt.getTime() - this.createdAt.getTime();
     }
     get resolutionTime() {
-        if (!this.resolvedAt)
+        if (!this.resolvedAt || !this.createdAt) {
             return null;
+        }
         return this.resolvedAt.getTime() - this.createdAt.getTime();
     }
     static _OPENAPI_METADATA_FACTORY() {
@@ -249,56 +252,95 @@ __decorate([
     __metadata("design:type", Date)
 ], Ticket.prototype, "deletedAt", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' }
+        }
+    }),
     (0, typeorm_1.ManyToOne)('Organization'),
     (0, typeorm_1.JoinColumn)({ name: 'organizationId' }),
     __metadata("design:type", Object)
 ], Ticket.prototype, "organization", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            firstName: { type: 'string' },
+            lastName: { type: 'string' }
+        },
+        nullable: true
+    }),
     (0, typeorm_1.ManyToOne)('Contact'),
     (0, typeorm_1.JoinColumn)({ name: 'contactId' }),
     __metadata("design:type", Object)
 ], Ticket.prototype, "contact", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' }
+        },
+        nullable: true
+    }),
     (0, typeorm_1.ManyToOne)(() => department_entity_1.Department, { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'departmentId' }),
     __metadata("design:type", Promise)
 ], Ticket.prototype, "department", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)('User'),
+    (0, swagger_1.ApiProperty)({ type: () => user_entity_1.User, nullable: true }),
+    (0, typeorm_1.ManyToOne)('User', { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'assigneeId' }),
-    __metadata("design:type", Object)
+    __metadata("design:type", Promise)
 ], Ticket.prototype, "assignee", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)('User'),
+    (0, swagger_1.ApiProperty)({ type: () => user_entity_1.User }),
+    (0, typeorm_1.ManyToOne)('User', { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'createdById' }),
-    __metadata("design:type", Object)
+    __metadata("design:type", Promise)
 ], Ticket.prototype, "createdBy", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)('User'),
+    (0, swagger_1.ApiProperty)({ type: () => user_entity_1.User, nullable: true }),
+    (0, typeorm_1.ManyToOne)('User', { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'updatedById' }),
-    __metadata("design:type", Object)
+    __metadata("design:type", Promise)
 ], Ticket.prototype, "updatedBy", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)('User'),
+    (0, swagger_1.ApiProperty)({ type: () => user_entity_1.User, nullable: true }),
+    (0, typeorm_1.ManyToOne)('User', { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'resolvedById' }),
-    __metadata("design:type", Object)
+    __metadata("design:type", Promise)
 ], Ticket.prototype, "resolvedBy", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)('User'),
+    (0, swagger_1.ApiProperty)({ type: () => user_entity_1.User, nullable: true }),
+    (0, typeorm_1.ManyToOne)('User', { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'closedById' }),
-    __metadata("design:type", Object)
+    __metadata("design:type", Promise)
 ], Ticket.prototype, "closedBy", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)('User'),
+    (0, swagger_1.ApiProperty)({ type: () => user_entity_1.User, nullable: true }),
+    (0, typeorm_1.ManyToOne)('User', { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'escalatedById' }),
-    __metadata("design:type", Object)
+    __metadata("design:type", Promise)
 ], Ticket.prototype, "escalatedBy", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)('User'),
+    (0, swagger_1.ApiProperty)({ type: () => user_entity_1.User, nullable: true }),
+    (0, typeorm_1.ManyToOne)('User', { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'reopenedById' }),
-    __metadata("design:type", Object)
+    __metadata("design:type", Promise)
 ], Ticket.prototype, "reopenedBy", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            title: { type: 'string' }
+        },
+        nullable: true
+    }),
     (0, typeorm_1.ManyToOne)('Ticket'),
     (0, typeorm_1.JoinColumn)({ name: 'relatedTicketId' }),
     __metadata("design:type", Object)

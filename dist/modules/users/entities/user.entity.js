@@ -16,6 +16,7 @@ const openapi = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
 const swagger_1 = require("@nestjs/swagger");
 const role_enum_1 = require("../enums/role.enum");
+const organization_entity_1 = require("../../organizations/entities/organization.entity");
 const ticket_entity_1 = require("../../tickets/entities/ticket.entity");
 const message_entity_1 = require("../../messages/entities/message.entity");
 const appointment_entity_1 = require("../../appointments/entities/appointment.entity");
@@ -30,7 +31,7 @@ let User = User_1 = class User {
         return this.isActive && !this.isLocked;
     }
     static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, mobilePhone: { required: false, type: () => String }, organizationId: { required: true, type: () => String }, firstName: { required: true, type: () => String }, lastName: { required: true, type: () => String }, email: { required: true, type: () => String }, password: { required: true, type: () => String }, phoneNumber: { required: false, type: () => String }, role: { required: true, enum: require("../enums/role.enum").Role }, title: { required: false, type: () => String }, department: { required: false, type: () => String }, employeeId: { required: false, type: () => String }, address: { required: false, type: () => ({ street: { required: true, type: () => String }, city: { required: true, type: () => String }, state: { required: true, type: () => String }, postalCode: { required: true, type: () => String }, country: { required: true, type: () => String } }) }, emergencyContact: { required: false, type: () => ({ name: { required: true, type: () => String }, relationship: { required: true, type: () => String }, phone: { required: true, type: () => String }, address: { required: false, type: () => String } }) }, licenseNumber: { required: false, type: () => String }, specialization: { required: false, type: () => String }, qualifications: { required: false, type: () => [String] }, certifications: { required: false, type: () => [String] }, isOnCall: { required: true, type: () => Boolean }, languages: { required: false, type: () => [String] }, requirePasswordChange: { required: true, type: () => Boolean }, preferences: { required: false, type: () => ({ theme: { required: false, type: () => String }, notifications: { required: false, type: () => ({ email: { required: false, type: () => Boolean }, sms: { required: false, type: () => Boolean }, inApp: { required: false, type: () => Boolean } }) }, timezone: { required: false, type: () => String }, language: { required: false, type: () => String } }) }, metadata: { required: false, type: () => Object }, isActive: { required: true, type: () => Boolean }, isLocked: { required: true, type: () => Boolean }, isEmailVerified: { required: true, type: () => Boolean }, isPhoneVerified: { required: true, type: () => Boolean }, lastLoginAt: { required: false, type: () => Date }, lastActiveAt: { required: false, type: () => Date }, deviceTokens: { required: false, type: () => [String] }, avatar: { required: false, type: () => String }, signature: { required: false, type: () => String }, createdById: { required: true, type: () => String }, updatedById: { required: false, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, deletedAt: { required: false, type: () => Date }, organization: { required: true, type: () => Object }, createdBy: { required: true, type: () => require("./user.entity").User }, updatedBy: { required: false, type: () => require("./user.entity").User }, assignedTickets: { required: true, type: () => [require("../../tickets/entities/ticket.entity").Ticket] }, messages: { required: true, type: () => [require("../../messages/entities/message.entity").Message] }, appointments: { required: true, type: () => [require("../../appointments/entities/appointment.entity").Appointment] }, notifications: { required: true, type: () => [require("../../notifications/entities/notification.entity").Notification] }, activities: { required: true, type: () => [require("./user-activity.entity").UserActivity] } };
+        return { id: { required: true, type: () => String }, mobilePhone: { required: false, type: () => String }, organizationId: { required: true, type: () => String }, firstName: { required: true, type: () => String }, lastName: { required: true, type: () => String }, email: { required: true, type: () => String }, password: { required: true, type: () => String }, phoneNumber: { required: false, type: () => String }, role: { required: true, enum: require("../enums/role.enum").Role }, title: { required: false, type: () => String }, department: { required: false, type: () => String }, employeeId: { required: false, type: () => String }, address: { required: false, type: () => ({ street: { required: true, type: () => String }, city: { required: true, type: () => String }, state: { required: true, type: () => String }, postalCode: { required: true, type: () => String }, country: { required: true, type: () => String } }) }, emergencyContact: { required: false, type: () => ({ name: { required: true, type: () => String }, relationship: { required: true, type: () => String }, phone: { required: true, type: () => String }, address: { required: false, type: () => String } }) }, licenseNumber: { required: false, type: () => String }, specialization: { required: false, type: () => String }, qualifications: { required: false, type: () => [String] }, certifications: { required: false, type: () => [String] }, isOnCall: { required: true, type: () => Boolean }, languages: { required: false, type: () => [String] }, requirePasswordChange: { required: true, type: () => Boolean }, preferences: { required: false, type: () => ({ theme: { required: false, type: () => String }, notifications: { required: false, type: () => ({ email: { required: false, type: () => Boolean }, sms: { required: false, type: () => Boolean }, inApp: { required: false, type: () => Boolean } }) }, timezone: { required: false, type: () => String }, language: { required: false, type: () => String } }) }, metadata: { required: false, type: () => Object }, isActive: { required: true, type: () => Boolean }, isLocked: { required: true, type: () => Boolean }, isEmailVerified: { required: true, type: () => Boolean }, isPhoneVerified: { required: true, type: () => Boolean }, lastLoginAt: { required: false, type: () => Date }, lastActiveAt: { required: false, type: () => Date }, deviceTokens: { required: false, type: () => [String] }, avatar: { required: false, type: () => String }, signature: { required: false, type: () => String }, createdById: { required: true, type: () => String }, updatedById: { required: false, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, deletedAt: { required: false, type: () => Date }, organization: { required: true, type: () => require("../../organizations/entities/organization.entity").Organization }, createdBy: { required: true, type: () => require("./user.entity").User }, updatedBy: { required: false, type: () => require("./user.entity").User }, assignedTickets: { required: true, type: () => [require("../../tickets/entities/ticket.entity").Ticket] }, createdTickets: { required: true, type: () => [require("../../tickets/entities/ticket.entity").Ticket] }, messages: { required: true, type: () => [require("../../messages/entities/message.entity").Message] }, appointments: { required: true, type: () => [require("../../appointments/entities/appointment.entity").Appointment] }, notifications: { required: true, type: () => [require("../../notifications/entities/notification.entity").Notification] }, activities: { required: true, type: () => [require("./user-activity.entity").UserActivity] } };
     }
 };
 __decorate([
@@ -215,16 +216,25 @@ __decorate([
     __metadata("design:type", Date)
 ], User.prototype, "deletedAt", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)('Organization'),
+    (0, swagger_1.ApiProperty)({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' }
+        }
+    }),
+    (0, typeorm_1.ManyToOne)(() => organization_entity_1.Organization, { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'organizationId' }),
-    __metadata("design:type", Object)
+    __metadata("design:type", Promise)
 ], User.prototype, "organization", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ type: () => User_1 }),
     (0, typeorm_1.ManyToOne)(() => User_1, { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'createdById' }),
     __metadata("design:type", Promise)
 ], User.prototype, "createdBy", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ type: () => User_1, nullable: true }),
     (0, typeorm_1.ManyToOne)(() => User_1, { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'updatedById' }),
     __metadata("design:type", Promise)
@@ -234,15 +244,19 @@ __decorate([
     __metadata("design:type", Promise)
 ], User.prototype, "assignedTickets", void 0);
 __decorate([
+    (0, typeorm_1.OneToMany)(() => ticket_entity_1.Ticket, ticket => ticket.createdBy, { lazy: true }),
+    __metadata("design:type", Promise)
+], User.prototype, "createdTickets", void 0);
+__decorate([
     (0, typeorm_1.OneToMany)(() => message_entity_1.Message, message => message.sender, { lazy: true }),
     __metadata("design:type", Promise)
 ], User.prototype, "messages", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => appointment_entity_1.Appointment, appointment => appointment.provider, { lazy: true }),
+    (0, typeorm_1.OneToMany)(() => appointment_entity_1.Appointment, appointment => appointment.doctor, { lazy: true }),
     __metadata("design:type", Promise)
 ], User.prototype, "appointments", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => notification_entity_1.Notification, notification => notification.user, { lazy: true }),
+    (0, typeorm_1.OneToMany)(() => notification_entity_1.Notification, notification => notification.recipient, { lazy: true }),
     __metadata("design:type", Promise)
 ], User.prototype, "notifications", void 0);
 __decorate([

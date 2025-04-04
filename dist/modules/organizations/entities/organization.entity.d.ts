@@ -1,16 +1,8 @@
 import { User } from '../../users/entities/user.entity';
 import { Ticket } from '../../tickets/entities/ticket.entity';
-export declare enum SubscriptionTier {
-    FREE = "FREE",
-    BASIC = "BASIC",
-    PROFESSIONAL = "PROFESSIONAL",
-    ENTERPRISE = "ENTERPRISE"
-}
-export declare enum OrganizationStatus {
-    ACTIVE = "ACTIVE",
-    SUSPENDED = "SUSPENDED",
-    PENDING = "PENDING"
-}
+import { OrganizationStatus } from '../enums/organization-status.enum';
+import { SubscriptionTier } from '../enums/subscription-tier.enum';
+export { OrganizationStatus, SubscriptionTier };
 export declare class Organization {
     [x: string]: any;
     id: string;
@@ -69,4 +61,7 @@ export declare class Organization {
         retentionPeriod?: number;
         logLevel?: string;
     };
+    get isActive(): boolean;
+    get isPremium(): boolean;
+    get isEnterprise(): boolean;
 }

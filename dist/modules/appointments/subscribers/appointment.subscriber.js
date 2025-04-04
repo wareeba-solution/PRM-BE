@@ -68,7 +68,7 @@ let AppointmentSubscriber = class AppointmentSubscriber {
                     break;
                 default:
                     // For general updates and reschedules
-                    const oldDate = (_b = event.databaseEntity) === null || _b === void 0 ? void 0 : _b.scheduledFor;
+                    const oldDate = (_b = event.databaseEntity) === null || _b === void 0 ? void 0 : _b.startTime;
                     const newDate = appointment.scheduledFor;
                     if (oldDate && newDate && oldDate.getTime() !== newDate.getTime()) {
                         this.eventEmitter.emit(appointments_module_1.AppointmentEventTypes.RESCHEDULED, {

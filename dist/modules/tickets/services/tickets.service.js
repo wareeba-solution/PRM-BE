@@ -61,7 +61,7 @@ let TicketsService = class TicketsService {
         if (!reopenedByUser) {
             throw new common_1.NotFoundException('User not found');
         }
-        ticket.reopenedBy = reopenedByUser;
+        ticket.reopenedBy = Promise.resolve(reopenedByUser);
         await this.ticketRepository.save(ticket);
         return ticket;
     }
@@ -76,7 +76,7 @@ let TicketsService = class TicketsService {
             if (!createdByUser) {
                 throw new common_1.NotFoundException('User not found');
             }
-            const ticket = this.ticketRepository.create(Object.assign(Object.assign({}, data), { status: create_ticket_dto_1.TicketStatus.OPEN, createdBy: createdByUser, attachments: (_a = data.attachments) === null || _a === void 0 ? void 0 : _a.map(attachmentData => {
+            const ticket = this.ticketRepository.create(Object.assign(Object.assign({}, data), { status: create_ticket_dto_1.TicketStatus.OPEN, createdBy: Promise.resolve(createdByUser), attachments: (_a = data.attachments) === null || _a === void 0 ? void 0 : _a.map(attachmentData => {
                     const attachment = new ticket_attachment_entity_1.TicketAttachment();
                     Object.assign(attachment, attachmentData);
                     attachment.organizationId = data.organizationId;
@@ -193,6 +193,13 @@ let TicketsService = class TicketsService {
             const oldStatus = ticket.status;
             // Update ticket fields
             Object.assign(ticket, data);
+            // Handle updatedBy relationship
+            if (data.updatedBy) {
+                const updatedByUser = await this.userRepository.findOne({ where: { id: data.updatedBy } });
+                if (updatedByUser) {
+                    ticket.updatedBy = Promise.resolve(updatedByUser);
+                }
+            }
             await queryRunner.manager.save(ticket);
             // Create activity record for status change
             if (data.status && data.status !== oldStatus) {
@@ -234,6 +241,12 @@ let TicketsService = class TicketsService {
         const ticket = await this.findOne(id, data.organizationId);
         const oldAssigneeId = ticket.assigneeId;
         ticket.assigneeId = data.assigneeId;
+        if (data.assigneeId) {
+            const assigneeUser = await this.userRepository.findOne({ where: { id: data.assigneeId } });
+            if (assigneeUser) {
+                ticket.assignee = Promise.resolve(assigneeUser);
+            }
+        }
         await this.ticketRepository.save(ticket);
         // Create activity record
         const activity = new ticket_activity_entity_1.TicketActivity();
@@ -298,6 +311,10 @@ let TicketsService = class TicketsService {
         ticket.escalatedAt = new Date();
         ticket.escalatedById = data.escalatedBy;
         ticket.escalationReason = data.reason;
+        const escalatedByUser = await this.userRepository.findOne({ where: { id: data.escalatedBy } });
+        if (escalatedByUser) {
+            ticket.escalatedBy = Promise.resolve(escalatedByUser);
+        }
         await this.ticketRepository.save(ticket);
         // Create activity record
         const activity = new ticket_activity_entity_1.TicketActivity();
@@ -325,6 +342,10 @@ let TicketsService = class TicketsService {
         ticket.resolvedAt = new Date();
         ticket.resolvedById = data.resolvedBy;
         ticket.resolution = data.resolution;
+        const resolvedByUser = await this.userRepository.findOne({ where: { id: data.resolvedBy } });
+        if (resolvedByUser) {
+            ticket.resolvedBy = Promise.resolve(resolvedByUser);
+        }
         await this.ticketRepository.save(ticket);
         // Create activity record
         const activity = new ticket_activity_entity_1.TicketActivity();

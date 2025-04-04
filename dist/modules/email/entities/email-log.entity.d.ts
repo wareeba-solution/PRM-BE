@@ -1,3 +1,4 @@
+import { Organization } from '../../organizations/entities/organization.entity';
 export declare enum EmailStatus {
     QUEUED = "QUEUED",
     SENDING = "SENDING",
@@ -17,6 +18,7 @@ export declare class EmailLog {
     status: string;
     error?: string;
     organizationId?: string;
+    organization: Promise<Organization>;
     userId?: string;
     createdAt: Date;
     sentAt?: Date;

@@ -32,7 +32,7 @@ export declare class AuthController {
         organization: {
             id: string;
             name: string;
-            status: import("../../organizations/entities/organization.entity").OrganizationStatus;
+            status: import("../../organizations/enums/organization-status.enum").OrganizationStatus;
         };
         tokens: {
             accessToken: string;

@@ -13,6 +13,7 @@ exports.EmailTemplate = exports.EmailTemplateType = exports.EmailTemplateStatus 
 const openapi = require("@nestjs/swagger");
 // src/modules/email/entities/email-template.entity.ts
 const typeorm_1 = require("typeorm");
+const organization_entity_1 = require("../../organizations/entities/organization.entity");
 /**
  * Email template status enum
  */
@@ -69,7 +70,7 @@ let EmailTemplate = class EmailTemplate {
         return processedSubject;
     }
     static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, name: { required: true, type: () => String }, description: { required: false, type: () => String }, type: { required: true, enum: require("./email-template.entity").EmailTemplateType }, status: { required: true, enum: require("./email-template.entity").EmailTemplateStatus }, subject: { required: true, type: () => String }, content: { required: true, type: () => String }, plainTextContent: { required: false, type: () => String }, isDefault: { required: true, type: () => Boolean }, category: { required: false, type: () => String }, language: { required: false, type: () => String }, variables: { required: false, type: () => Object }, metadata: { required: false, type: () => Object }, previewText: { required: false, type: () => String }, fromEmail: { required: false, type: () => String }, fromName: { required: false, type: () => String }, replyToEmail: { required: false, type: () => String }, headerImageUrl: { required: false, type: () => String }, footerContent: { required: false, type: () => String }, createdById: { required: false, type: () => String }, updatedById: { required: false, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, deletedAt: { required: false, type: () => Date }, lastUsedAt: { required: false, type: () => Date }, useCount: { required: true, type: () => Number } };
+        return { id: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, organization: { required: true, type: () => require("../../organizations/entities/organization.entity").Organization }, name: { required: true, type: () => String }, description: { required: false, type: () => String }, type: { required: true, enum: require("./email-template.entity").EmailTemplateType }, status: { required: true, enum: require("./email-template.entity").EmailTemplateStatus }, subject: { required: true, type: () => String }, content: { required: true, type: () => String }, plainTextContent: { required: false, type: () => String }, isDefault: { required: true, type: () => Boolean }, category: { required: false, type: () => String }, language: { required: false, type: () => String }, variables: { required: false, type: () => Object }, metadata: { required: false, type: () => Object }, previewText: { required: false, type: () => String }, fromEmail: { required: false, type: () => String }, fromName: { required: false, type: () => String }, replyToEmail: { required: false, type: () => String }, headerImageUrl: { required: false, type: () => String }, footerContent: { required: false, type: () => String }, createdById: { required: false, type: () => String }, updatedById: { required: false, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, deletedAt: { required: false, type: () => Date }, lastUsedAt: { required: false, type: () => Date }, useCount: { required: true, type: () => Number } };
     }
 };
 __decorate([
@@ -81,6 +82,11 @@ __decorate([
     (0, typeorm_1.Index)(),
     __metadata("design:type", String)
 ], EmailTemplate.prototype, "organizationId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => organization_entity_1.Organization, { lazy: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'organizationId' }),
+    __metadata("design:type", Promise)
+], EmailTemplate.prototype, "organization", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     (0, typeorm_1.Index)(),

@@ -85,6 +85,103 @@ exports.userPaths = {
             }
         }
     },
+    '/users/profile': {
+        get: {
+            tags: ['Users'],
+            summary: 'Get current user profile',
+            security: [{ bearerAuth: [] }],
+            responses: {
+                '200': {
+                    description: 'Return current user profile',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                $ref: '#/components/schemas/SimpleUserDto'
+                            }
+                        }
+                    }
+                },
+                '401': {
+                    description: 'Unauthorized'
+                },
+                '403': {
+                    description: 'Forbidden - Organization context required'
+                }
+            }
+        },
+        put: {
+            tags: ['Users'],
+            summary: 'Update current user profile',
+            security: [{ bearerAuth: [] }],
+            requestBody: {
+                content: {
+                    'application/json': {
+                        schema: {
+                            $ref: '#/components/schemas/UpdateProfileDto'
+                        }
+                    }
+                }
+            },
+            responses: {
+                '200': {
+                    description: 'Profile updated successfully',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                $ref: '#/components/schemas/SimpleUserDto'
+                            }
+                        }
+                    }
+                },
+                '400': {
+                    description: 'Bad Request - validation failed'
+                },
+                '401': {
+                    description: 'Unauthorized'
+                },
+                '403': {
+                    description: 'Forbidden - Organization context required'
+                }
+            }
+        }
+    },
+    '/users/profile/password': {
+        put: {
+            tags: ['Users'],
+            summary: 'Update current user password',
+            security: [{ bearerAuth: [] }],
+            requestBody: {
+                content: {
+                    'application/json': {
+                        schema: {
+                            $ref: '#/components/schemas/UpdatePasswordDto'
+                        }
+                    }
+                }
+            },
+            responses: {
+                '200': {
+                    description: 'Password updated successfully',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                $ref: '#/components/schemas/SimpleUserDto'
+                            }
+                        }
+                    }
+                },
+                '400': {
+                    description: 'Bad Request - validation failed'
+                },
+                '401': {
+                    description: 'Unauthorized'
+                },
+                '403': {
+                    description: 'Forbidden - Organization context required'
+                }
+            }
+        }
+    },
     '/users/{id}': {
         get: {
             tags: ['Users'],
@@ -153,7 +250,7 @@ exports.userPaths = {
                     }
                 },
                 '400': {
-                    description: 'Bad Request - validation failed'
+                    description: 'Bad Request - validation failed or cannot demote last admin'
                 },
                 '401': {
                     description: 'Unauthorized'
@@ -190,6 +287,170 @@ exports.userPaths = {
                 },
                 '403': {
                     description: 'Forbidden - requires ADMIN role'
+                },
+                '404': {
+                    description: 'User not found'
+                }
+            }
+        }
+    },
+    '/users/{id}/activate': {
+        put: {
+            tags: ['Users'],
+            summary: 'Activate user',
+            security: [{ bearerAuth: [] }],
+            parameters: [
+                {
+                    name: 'id',
+                    in: 'path',
+                    required: true,
+                    schema: { type: 'string', format: 'uuid' }
+                }
+            ],
+            responses: {
+                '200': {
+                    description: 'User activated successfully',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                $ref: '#/components/schemas/SimpleUserDto'
+                            }
+                        }
+                    }
+                },
+                '401': {
+                    description: 'Unauthorized'
+                },
+                '403': {
+                    description: 'Forbidden - requires ADMIN role'
+                },
+                '404': {
+                    description: 'User not found'
+                }
+            }
+        }
+    },
+    '/users/{id}/deactivate': {
+        put: {
+            tags: ['Users'],
+            summary: 'Deactivate user',
+            security: [{ bearerAuth: [] }],
+            parameters: [
+                {
+                    name: 'id',
+                    in: 'path',
+                    required: true,
+                    schema: { type: 'string', format: 'uuid' }
+                }
+            ],
+            responses: {
+                '200': {
+                    description: 'User deactivated successfully',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                $ref: '#/components/schemas/SimpleUserDto'
+                            }
+                        }
+                    }
+                },
+                '400': {
+                    description: 'Bad Request - cannot deactivate last admin'
+                },
+                '401': {
+                    description: 'Unauthorized'
+                },
+                '403': {
+                    description: 'Forbidden - requires ADMIN role'
+                },
+                '404': {
+                    description: 'User not found'
+                }
+            }
+        }
+    },
+    '/users/{id}/activity': {
+        get: {
+            tags: ['Users'],
+            summary: 'Get user activity',
+            security: [{ bearerAuth: [] }],
+            parameters: [
+                {
+                    name: 'id',
+                    in: 'path',
+                    required: true,
+                    schema: { type: 'string', format: 'uuid' }
+                }
+            ],
+            responses: {
+                '200': {
+                    description: 'Return user activity',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    activities: {
+                                        type: 'array',
+                                        items: {
+                                            type: 'object',
+                                            properties: {
+                                                id: { type: 'string' },
+                                                action: { type: 'string' },
+                                                timestamp: { type: 'string', format: 'date-time' }
+                                            }
+                                        }
+                                    },
+                                    total: { type: 'number' }
+                                }
+                            }
+                        }
+                    }
+                },
+                '401': {
+                    description: 'Unauthorized'
+                },
+                '403': {
+                    description: 'Forbidden - requires ADMIN role'
+                },
+                '404': {
+                    description: 'User not found'
+                }
+            }
+        }
+    },
+    '/users/{id}/permissions': {
+        get: {
+            tags: ['Users'],
+            summary: 'Get user permissions',
+            security: [{ bearerAuth: [] }],
+            parameters: [
+                {
+                    name: 'id',
+                    in: 'path',
+                    required: true,
+                    schema: { type: 'string', format: 'uuid' }
+                }
+            ],
+            responses: {
+                '200': {
+                    description: 'Return user permissions',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'array',
+                                items: {
+                                    type: 'string'
+                                }
+                            }
+                        }
+                    }
+                },
+                '401': {
+                    description: 'Unauthorized'
+                },
+                '403': {
+                    description: 'Forbidden - Organization context required'
                 },
                 '404': {
                     description: 'User not found'

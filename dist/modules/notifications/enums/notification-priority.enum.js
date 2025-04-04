@@ -5,6 +5,7 @@ exports.NotificationPriority = void 0;
 var NotificationPriority;
 (function (NotificationPriority) {
     NotificationPriority["LOW"] = "LOW";
+    NotificationPriority["NORMAL"] = "NORMAL";
     NotificationPriority["MEDIUM"] = "MEDIUM";
     NotificationPriority["HIGH"] = "HIGH";
     NotificationPriority["URGENT"] = "URGENT";

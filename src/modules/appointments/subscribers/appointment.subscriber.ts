@@ -69,7 +69,7 @@ import {
             break;
           default:
             // For general updates and reschedules
-            const oldDate = event.databaseEntity?.scheduledFor;
+            const oldDate = event.databaseEntity?.startTime;
             const newDate = appointment.scheduledFor;
             
             if (oldDate && newDate && oldDate.getTime() !== newDate.getTime()) {

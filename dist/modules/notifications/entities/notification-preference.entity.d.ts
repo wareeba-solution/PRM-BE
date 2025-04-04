@@ -1,33 +1,7 @@
-import { User } from '../../users/entities/user.entity';
-import { Organization } from '../../organizations/entities/organization.entity';
-export declare enum NotificationChannel {
-    EMAIL = "EMAIL",
-    SMS = "SMS",
-    PUSH = "PUSH",
-    IN_APP = "IN_APP",
-    WHATSAPP = "WHATSAPP",
-    SLACK = "SLACK",
-    WEBHOOK = "WEBHOOK"
-}
-export declare enum NotificationCategory {
-    APPOINTMENT = "APPOINTMENT",
-    TICKET = "TICKET",
-    SYSTEM = "SYSTEM",
-    SECURITY = "SECURITY",
-    BILLING = "BILLING",
-    MESSAGING = "MESSAGING",
-    TASK = "TASK",
-    REMINDER = "REMINDER",
-    ALERT = "ALERT",
-    NEWS = "NEWS"
-}
-export declare enum NotificationFrequency {
-    IMMEDIATELY = "IMMEDIATELY",
-    DAILY_DIGEST = "DAILY_DIGEST",
-    WEEKLY_DIGEST = "WEEKLY_DIGEST",
-    CUSTOM = "CUSTOM",
-    NEVER = "NEVER"
-}
+import { NotificationChannel } from '../enums/notification-channel.enum';
+import { NotificationCategory } from '../enums/notification-category.enum';
+import { NotificationFrequency } from '../enums/notification-frequency.enum';
+export { NotificationChannel, NotificationCategory, NotificationFrequency };
 export declare class NotificationPreference {
     id: string;
     organizationId: string;
@@ -94,14 +68,29 @@ export declare class NotificationPreference {
     allowReminders: boolean;
     reminderInterval?: number;
     maxReminders: number;
-    metadata?: Record<string, any>;
+    settings?: {
+        quietHours?: {
+            start: string;
+            end: string;
+            timezone: string;
+        };
+        digest?: {
+            time: string;
+            timezone: string;
+        };
+        [key: string]: any;
+    };
+    metadata?: {
+        lastUpdated?: Date;
+        [key: string]: any;
+    };
+    createdById: string;
+    updatedById?: string;
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;
-    createdById?: string;
-    updatedById?: string;
-    organization: Organization;
-    user: User;
-    createdBy?: User;
-    updatedBy?: User;
+    organization: any;
+    user: Promise<any>;
+    createdBy: Promise<any>;
+    updatedBy?: Promise<any>;
 }

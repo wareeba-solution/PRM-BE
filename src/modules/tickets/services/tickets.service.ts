@@ -77,7 +77,7 @@ export class TicketsService {
         if (!reopenedByUser) {
             throw new NotFoundException('User not found');
         }
-        ticket.reopenedBy = reopenedByUser;
+        ticket.reopenedBy = Promise.resolve(reopenedByUser);
         await this.ticketRepository.save(ticket);
         return ticket;
     }
@@ -97,7 +97,7 @@ export class TicketsService {
             const ticket = this.ticketRepository.create({
                 ...data,
                 status: TicketStatus.OPEN,
-                createdBy: createdByUser,
+                createdBy: Promise.resolve(createdByUser),
                 attachments: data.attachments?.map(attachmentData => {
                     const attachment = new TicketAttachment();
                     Object.assign(attachment, attachmentData);
@@ -263,6 +263,15 @@ export class TicketsService {
 
             // Update ticket fields
             Object.assign(ticket, data);
+            
+            // Handle updatedBy relationship
+            if (data.updatedBy) {
+                const updatedByUser = await this.userRepository.findOne({ where: { id: data.updatedBy } });
+                if (updatedByUser) {
+                    ticket.updatedBy = Promise.resolve(updatedByUser);
+                }
+            }
+            
             await queryRunner.manager.save(ticket);
 
             // Create activity record for status change
@@ -311,6 +320,12 @@ export class TicketsService {
         const oldAssigneeId = ticket.assigneeId;
     
         ticket.assigneeId = data.assigneeId;
+        if (data.assigneeId) {
+            const assigneeUser = await this.userRepository.findOne({ where: { id: data.assigneeId } });
+            if (assigneeUser) {
+                ticket.assignee = Promise.resolve(assigneeUser);
+            }
+        }
         await this.ticketRepository.save(ticket);
     
         // Create activity record
@@ -395,6 +410,11 @@ export class TicketsService {
         ticket.escalatedAt = new Date();
         ticket.escalatedById = data.escalatedBy;
         ticket.escalationReason = data.reason;
+        
+        const escalatedByUser = await this.userRepository.findOne({ where: { id: data.escalatedBy } });
+        if (escalatedByUser) {
+            ticket.escalatedBy = Promise.resolve(escalatedByUser);
+        }
 
         await this.ticketRepository.save(ticket);
 
@@ -432,6 +452,11 @@ export class TicketsService {
         ticket.resolvedAt = new Date();
         ticket.resolvedById = data.resolvedBy;
         ticket.resolution = data.resolution;
+        
+        const resolvedByUser = await this.userRepository.findOne({ where: { id: data.resolvedBy } });
+        if (resolvedByUser) {
+            ticket.resolvedBy = Promise.resolve(resolvedByUser);
+        }
 
         await this.ticketRepository.save(ticket);
 

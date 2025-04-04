@@ -185,13 +185,13 @@ export class Contact {
     @JoinColumn({ name: 'organizationId' })
     organization: any;
 
-    @ManyToOne('User')
+    @ManyToOne('User', { lazy: true })
     @JoinColumn({ name: 'createdById' })
-    createdBy: any;
+    createdBy: Promise<any>;
 
-    @ManyToOne('User')
+    @ManyToOne('User', { lazy: true })
     @JoinColumn({ name: 'updatedById' })
-    updatedBy: any;
+    updatedBy: Promise<any>;
 
     @OneToMany('Appointment', 'contact')
     appointments: any[];

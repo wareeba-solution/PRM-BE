@@ -5,8 +5,11 @@ import {
     PrimaryGeneratedColumn,
     Column,
     CreateDateColumn,
-    Index
+    Index,
+    ManyToOne,
+    JoinColumn
   } from 'typeorm';
+import { Organization } from '../../organizations/entities/organization.entity';
   
   export enum EmailStatus {
     QUEUED = 'QUEUED',
@@ -52,9 +55,13 @@ import {
     @Column({ nullable: true })
     error?: string;
   
-    @Column({ nullable: true })
+    @Column({ type: 'uuid', nullable: true })
     @Index()
     organizationId?: string;
+  
+    @ManyToOne(() => Organization, { lazy: true })
+    @JoinColumn({ name: 'organizationId' })
+    organization: Promise<Organization>;
   
     @Column({ nullable: true })
     userId?: string;

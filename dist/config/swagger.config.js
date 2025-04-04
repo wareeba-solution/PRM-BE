@@ -112,14 +112,7 @@ exports.swaggerCustomOptions = {
         filter: true,
         displayRequestDuration: true,
         tryItOutEnabled: true,
-    },
-    customSiteTitle: 'PRM API Documentation',
-    customCss: `
-        .swagger-ui .topbar { display: none }
-        .swagger-ui .information-container { padding: 20px }
-        .swagger-ui .scheme-container { padding: 20px }
-        .swagger-ui .opblock-tag { padding: 10px }
-    `,
+    }
 };
 // Swagger security configuration
 const swaggerSecurityConfig = (app) => {

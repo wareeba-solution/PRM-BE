@@ -1,3 +1,4 @@
+import { Organization } from '../../organizations/entities/organization.entity';
 /**
  * Email template status enum
  */
@@ -23,6 +24,7 @@ export declare enum EmailTemplateType {
 export declare class EmailTemplate {
     id: string;
     organizationId: string;
+    organization: Promise<Organization>;
     name: string;
     description?: string;
     type: EmailTemplateType;

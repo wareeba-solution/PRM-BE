@@ -28,6 +28,7 @@ var NotificationType;
     NotificationType["TICKET_UPDATED"] = "TICKET_UPDATED";
     NotificationType["TICKET_COMMENT"] = "TICKET_COMMENT";
     NotificationType["TICKET_STATUS_CHANGED"] = "TICKET_STATUS_CHANGED";
+    NotificationType["TICKET_ESCALATED"] = "TICKET_ESCALATED";
     // General system notifications
     NotificationType["SYSTEM_ANNOUNCEMENT"] = "SYSTEM_ANNOUNCEMENT";
     NotificationType["TASK_REMINDER"] = "TASK_REMINDER";

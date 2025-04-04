@@ -58,38 +58,21 @@ exports.default = (0, config_1.registerAs)('app', () => {
         apiPrefix: process.env.API_PREFIX || 'api',
         apiVersion: process.env.API_VERSION || 'v1',
         frontendUrl: process.env.FRONTEND_URL,
-        docsEnabled: process.env.DOCS_ENABLED === 'true',
+        // Enable docs by default in non-production environments or if explicitly enabled
+        docsEnabled: process.env.DOCS_ENABLED === 'true' || (process.env.NODE_ENV !== 'production'),
         rateLimiting: {
             ttl: parseInt(process.env.RATE_LIMIT_TTL || '60', 10),
             limit: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
         },
         cors: {
-            enabled: process.env.CORS_ENABLED === 'true',
+            enabled: process.env.CORS_ENABLED !== 'false',
             origins: ((_a = process.env.CORS_ORIGINS) === null || _a === void 0 ? void 0 : _a.split(',')) || ['*'],
         },
         logging: {
             level: process.env.LOG_LEVEL || 'info',
-            console: process.env.LOG_CONSOLE === 'true',
+            console: process.env.LOG_CONSOLE !== 'false',
             file: process.env.LOG_FILE === 'true',
         },
     });
 });
-// Example .env file:
-/*
-NODE_ENV=development
-APP_NAME=Patient Relationship Manager
-APP_HOST=localhost
-APP_PORT=3000
-API_PREFIX=api
-API_VERSION=v1
-FRONTEND_URL=http://localhost:3001
-DOCS_ENABLED=true
-RATE_LIMIT_TTL=60
-RATE_LIMIT_MAX=100
-CORS_ENABLED=true
-CORS_ORIGINS=http://localhost:3001,http://localhost:3002
-LOG_LEVEL=debug
-LOG_CONSOLE=true
-LOG_FILE=true
-*/
 //# sourceMappingURL=app.config.js.map

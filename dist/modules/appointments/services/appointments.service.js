@@ -39,14 +39,17 @@ let AppointmentsService = class AppointmentsService {
     }
     async create(createAppointmentDto) {
         // Validate doctor and patient
-        const [doctor, patient] = await Promise.all([
+        const [doctor, patient, creator] = await Promise.all([
             this.userRepository.findOne({ where: { id: createAppointmentDto.doctorId } }),
             this.contactRepository.findOne({ where: { id: createAppointmentDto.patientId } }),
+            this.userRepository.findOne({ where: { id: createAppointmentDto.createdBy } }),
         ]);
         if (!doctor)
             throw new common_1.NotFoundException('Doctor not found');
         if (!patient)
             throw new common_1.NotFoundException('Patient not found');
+        if (!creator)
+            throw new common_1.NotFoundException('Creator not found');
         // Check doctor availability
         const isAvailable = await this.doctorScheduleService.checkAvailability({
             doctorId: doctor.id,
@@ -63,7 +66,7 @@ let AppointmentsService = class AppointmentsService {
             endTime: new Date(createAppointmentDto.endTime),
         });
         // Create appointment
-        const appointment = this.appointmentRepository.create(Object.assign(Object.assign({}, createAppointmentDto), { startTime: new Date(createAppointmentDto.startTime), endTime: new Date(createAppointmentDto.endTime) }));
+        const appointment = this.appointmentRepository.create(Object.assign(Object.assign({}, createAppointmentDto), { startTime: new Date(createAppointmentDto.startTime), endTime: new Date(createAppointmentDto.endTime), doctor: Promise.resolve(doctor), createdBy: Promise.resolve(creator) }));
         const savedAppointment = await this.appointmentRepository.save(appointment);
         // Handle recurring appointments if specified
         if ('isRecurring' in createAppointmentDto &&
@@ -144,8 +147,15 @@ let AppointmentsService = class AppointmentsService {
                 excludeAppointmentId: id,
             });
         }
+        // Get the updater user
+        const updater = await this.userRepository.findOne({ where: { id: updateAppointmentDto.updatedBy } });
+        if (!updater) {
+            throw new common_1.NotFoundException('User not found');
+        }
         // Update appointment
         Object.assign(appointment, updateAppointmentDto);
+        // Set the updatedBy relationship
+        appointment.updatedBy = Promise.resolve(updater);
         const savedAppointment = await this.appointmentRepository.save(appointment);
         // Send notifications
         await this.sendAppointmentNotifications(savedAppointment, 'updated');
@@ -155,10 +165,6 @@ let AppointmentsService = class AppointmentsService {
     }
     async cancel(id, data) {
         const appointment = await this.findOne(id, data.organizationId);
-        if (!appointment.canBeModified()) {
-            throw new common_1.ForbiddenException('Appointment cannot be cancelled');
-        }
-        // Fetch the user object
         const updater = await this.userRepository.findOne({ where: { id: data.updatedBy } });
         if (!updater) {
             throw new common_1.NotFoundException('User not found');
@@ -166,81 +172,60 @@ let AppointmentsService = class AppointmentsService {
         appointment.status = appointment_status_enum_1.AppointmentStatus.CANCELLED;
         appointment.cancellationReason = data.reason;
         appointment.cancelledAt = new Date();
-        appointment.updatedBy = updater; // Assign User object instead of string
+        appointment.updatedBy = Promise.resolve(updater); // Use Promise.resolve for Promise<any> properties
         const savedAppointment = await this.appointmentRepository.save(appointment);
         // Send notifications
         await this.sendAppointmentNotifications(savedAppointment, 'cancelled');
-        // Emit event
-        this.eventEmitter.emit('appointment.cancelled', savedAppointment);
         return savedAppointment;
     }
     async reschedule(id, data) {
         const appointment = await this.findOne(id, data.organizationId);
-        if (!appointment.canBeModified()) {
-            throw new common_1.ForbiddenException('Appointment cannot be rescheduled');
-        }
-        // Check doctor availability and conflicts
-        await this.checkConflicts({
-            doctorId: appointment.doctorId,
-            startTime: data.startTime,
-            endTime: data.endTime,
-            excludeAppointmentId: id,
-        });
-        // Fetch the user object
         const updater = await this.userRepository.findOne({ where: { id: data.updatedBy } });
         if (!updater) {
             throw new common_1.NotFoundException('User not found');
         }
+        // Check for conflicts
+        await this.checkConflicts({
+            doctorId: appointment.doctorId,
+            startTime: data.startTime,
+            endTime: data.endTime,
+            excludeAppointmentId: appointment.id,
+        });
         appointment.startTime = data.startTime;
         appointment.endTime = data.endTime;
-        appointment.status = appointment_status_enum_1.AppointmentStatus.RESCHEDULED;
-        appointment.reschedulingReason = data.reason;
-        appointment.updatedBy = updater; // Assign User object instead of string
+        appointment.rescheduleReason = data.reason;
+        appointment.updatedBy = Promise.resolve(updater); // Use Promise.resolve for Promise<any> properties
         const savedAppointment = await this.appointmentRepository.save(appointment);
         // Send notifications
         await this.sendAppointmentNotifications(savedAppointment, 'rescheduled');
-        // Emit event
-        this.eventEmitter.emit('appointment.rescheduled', savedAppointment);
         return savedAppointment;
     }
     async confirm(id, data) {
         const appointment = await this.findOne(id, data.organizationId);
-        if (appointment.status !== appointment_status_enum_1.AppointmentStatus.PENDING) {
-            throw new common_1.BadRequestException('Only pending appointments can be confirmed');
-        }
-        // Fetch the user object
         const updater = await this.userRepository.findOne({ where: { id: data.updatedBy } });
         if (!updater) {
             throw new common_1.NotFoundException('User not found');
         }
         appointment.status = appointment_status_enum_1.AppointmentStatus.CONFIRMED;
         appointment.confirmedAt = new Date();
-        appointment.updatedBy = updater; // Assign User object instead of string
+        appointment.updatedBy = Promise.resolve(updater); // Use Promise.resolve for Promise<any> properties
         const savedAppointment = await this.appointmentRepository.save(appointment);
         // Send notifications
         await this.sendAppointmentNotifications(savedAppointment, 'confirmed');
-        // Emit event
-        this.eventEmitter.emit('appointment.confirmed', savedAppointment);
         return savedAppointment;
     }
     async complete(id, data) {
         const appointment = await this.findOne(id, data.organizationId);
-        if (appointment.status !== appointment_status_enum_1.AppointmentStatus.CONFIRMED) {
-            throw new common_1.BadRequestException('Only confirmed appointments can be completed');
-        }
-        // Fetch the user object
         const updater = await this.userRepository.findOne({ where: { id: data.updatedBy } });
         if (!updater) {
             throw new common_1.NotFoundException('User not found');
         }
         appointment.status = appointment_status_enum_1.AppointmentStatus.COMPLETED;
         appointment.completedAt = new Date();
-        appointment.updatedBy = updater; // Assign User object instead of string
+        appointment.updatedBy = Promise.resolve(updater); // Use Promise.resolve for Promise<any> properties
         const savedAppointment = await this.appointmentRepository.save(appointment);
         // Send notifications
         await this.sendAppointmentNotifications(savedAppointment, 'completed');
-        // Emit event
-        this.eventEmitter.emit('appointment.completed', savedAppointment);
         return savedAppointment;
     }
     async remove(id, organizationId) {
@@ -263,24 +248,28 @@ let AppointmentsService = class AppointmentsService {
             relations: ['doctor', 'patient'],
         });
         // Map appointments to calendar format
-        return appointments.map(appointment => {
-            var _a;
-            return ({
+        const calendarEvents = await Promise.all(appointments.map(async (appointment) => {
+            const doctor = appointment.doctor ? await appointment.doctor : null;
+            const patient = appointment.patient;
+            const patientData = await patient;
+            const title = `Appointment with ${(patientData === null || patientData === void 0 ? void 0 : patientData.fullName) || 'Patient'}`;
+            return {
                 id: appointment.id,
-                title: `Appointment with ${((_a = appointment.patient) === null || _a === void 0 ? void 0 : _a.fullName) || 'Patient'}`,
+                title: title,
                 start: appointment.startTime,
                 end: appointment.endTime,
                 status: appointment.status,
-                doctor: appointment.doctor ? {
-                    id: appointment.doctor.id,
-                    name: appointment.doctor.fullName || `${appointment.doctor.firstName} ${appointment.doctor.lastName}`,
+                doctor: doctor ? {
+                    id: doctor.id,
+                    name: doctor.fullName || `${doctor.firstName} ${doctor.lastName}`,
                 } : null,
-                patient: appointment.patient ? {
-                    id: appointment.patient.id,
-                    name: appointment.patient.fullName || `${appointment.patient.firstName} ${appointment.patient.lastName}`,
-                } : null,
-            });
-        });
+                patient: {
+                    id: patientData.id,
+                    name: patientData.fullName || `${patientData.firstName} ${patientData.lastName}`,
+                },
+            };
+        }));
+        return calendarEvents;
     }
     async findAvailableSlots(query) {
         // Get doctor's schedule for that day
@@ -368,8 +357,24 @@ let AppointmentsService = class AppointmentsService {
         // This would create future appointments based on the recurrence pattern
     }
     async sendAppointmentNotifications(appointment, action) {
-        // Send notifications to relevant parties (doctor, patient, staff)
-        // This would use the notification service to send emails, SMS, etc.
+        const doctor = await appointment.doctor;
+        const notificationData = {
+            type: 'appointment',
+            title: `Appointment ${action}`,
+            content: `Appointment has been ${action}`,
+            recipients: [{ userId: doctor.id }],
+            organizationId: appointment.organizationId,
+            senderId: appointment.id,
+            priority: 'normal',
+            metadata: {
+                appointmentId: appointment.id,
+                doctor: {
+                    id: doctor.id,
+                    name: `${doctor.firstName} ${doctor.lastName}`.trim(),
+                },
+            },
+        };
+        await this.notificationsService.create(notificationData);
     }
 };
 AppointmentsService = __decorate([

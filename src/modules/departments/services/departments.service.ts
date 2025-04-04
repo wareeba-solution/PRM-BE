@@ -43,8 +43,7 @@ export class DepartmentsService {
     organizationId: string,
     query: DepartmentQueryDto
   ): Promise<[Department[], number]> {
-    const where: FindOptionsWhere<Department> = { organizationId };
-
+    const where = {} as Record<string, any>;
     if (query.isActive !== undefined) {
       where.isActive = query.isActive;
     }

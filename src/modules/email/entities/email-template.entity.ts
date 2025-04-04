@@ -11,6 +11,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
+import { Organization } from '../../organizations/entities/organization.entity';
 
 /**
  * Email template status enum
@@ -44,6 +45,10 @@ export class EmailTemplate {
   @Column()
   @Index()
   organizationId: string;
+
+  @ManyToOne(() => Organization, { lazy: true })
+  @JoinColumn({ name: 'organizationId' })
+  organization: Promise<Organization>;
 
   @Column()
   @Index()

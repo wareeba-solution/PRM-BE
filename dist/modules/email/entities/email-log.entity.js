@@ -13,6 +13,7 @@ exports.EmailLog = exports.EmailStatus = void 0;
 const openapi = require("@nestjs/swagger");
 // src/modules/email/entities/email-log.entity.ts
 const typeorm_1 = require("typeorm");
+const organization_entity_1 = require("../../organizations/entities/organization.entity");
 var EmailStatus;
 (function (EmailStatus) {
     EmailStatus["QUEUED"] = "QUEUED";
@@ -23,7 +24,7 @@ var EmailStatus;
 })(EmailStatus = exports.EmailStatus || (exports.EmailStatus = {}));
 let EmailLog = class EmailLog {
     static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, jobId: { required: false, type: () => String }, to: { required: true, type: () => String }, cc: { required: false, type: () => String }, bcc: { required: false, type: () => String }, subject: { required: true, type: () => String }, template: { required: true, type: () => String }, context: { required: false, type: () => Object }, status: { required: true, type: () => String }, error: { required: false, type: () => String }, organizationId: { required: false, type: () => String }, userId: { required: false, type: () => String }, createdAt: { required: true, type: () => Date }, sentAt: { required: false, type: () => Date } };
+        return { id: { required: true, type: () => String }, jobId: { required: false, type: () => String }, to: { required: true, type: () => String }, cc: { required: false, type: () => String }, bcc: { required: false, type: () => String }, subject: { required: true, type: () => String }, template: { required: true, type: () => String }, context: { required: false, type: () => Object }, status: { required: true, type: () => String }, error: { required: false, type: () => String }, organizationId: { required: false, type: () => String }, organization: { required: true, type: () => require("../../organizations/entities/organization.entity").Organization }, userId: { required: false, type: () => String }, createdAt: { required: true, type: () => Date }, sentAt: { required: false, type: () => Date } };
     }
 };
 __decorate([
@@ -71,10 +72,15 @@ __decorate([
     __metadata("design:type", String)
 ], EmailLog.prototype, "error", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
     (0, typeorm_1.Index)(),
     __metadata("design:type", String)
 ], EmailLog.prototype, "organizationId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => organization_entity_1.Organization, { lazy: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'organizationId' }),
+    __metadata("design:type", Promise)
+], EmailLog.prototype, "organization", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)

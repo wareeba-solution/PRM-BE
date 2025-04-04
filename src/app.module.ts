@@ -1,9 +1,12 @@
 // src/app.module.ts
 
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleAsyncOptions, TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { SwaggerModule } from '@nestjs/swagger';
+import { SwaggerModule as NestSwaggerModule } from '@nestjs/swagger';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -22,6 +25,7 @@ import { TicketsModule } from './modules/tickets/tickets.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { DomainModule } from './modules/domain/domain.module';
+import { SwaggerModule } from './swagger/swagger.module';
 
 // Configuration
 import appConfig from './config/app.config';
@@ -34,18 +38,6 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { ThrottlerConfigService } from './config/throttler.config';
-
-// TypeORM Async Configuration
-TypeOrmModule.forRoot({
-  type: 'postgres',
-  url: process.env.DATABASE_URL, // Use the full connection URL from Render
-  autoLoadEntities: true,
-  synchronize: false, // Always false in production
-  logging: ['error', 'schema'],
-  ssl: {
-    rejectUnauthorized: false // Typically needed for cloud databases
-  }
-})
 
 @Module({
   imports: [
@@ -61,13 +53,16 @@ TypeOrmModule.forRoot({
     // Database Module
     TypeOrmModule.forRoot({
       type: 'postgres',
-      url: process.env.DATABASE_URL, // Use the full connection URL from Render
-      autoLoadEntities: true,
-      synchronize: false, // Always false in production
-      logging: ['error', 'schema'],
-      ssl: {
-        rejectUnauthorized: false // Typically needed for cloud databases
-      }
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT, 10) || 5432,
+      username: process.env.DB_USERNAME || 'default_username',
+      password: process.env.DB_PASSWORD || 'default_password',
+      database: process.env.DB_NAME || 'default_database', // Use DB_NAME here
+      schema: process.env.DB_SCHEMA || 'public',
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: process.env.DB_SYNC === 'true',
+      logging: process.env.DB_LOGGING === 'true',
+      ssl: process.env.DB_SSL === 'true',
     }),
 
     // Rate Limiting

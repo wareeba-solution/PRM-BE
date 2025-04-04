@@ -193,16 +193,25 @@ export class User {
     deletedAt?: Date;
 
     // Relations
-    @ManyToOne('Organization')
+    @ApiProperty({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' }
+        }
+    })
+    @ManyToOne(() => Organization, { lazy: true })
     @JoinColumn({ name: 'organizationId' })
-    organization: any;
+    organization: Promise<Organization>;
 
     // Change this to use lazy loading
+    @ApiProperty({ type: () => User })
     @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'createdById' })
     createdBy: Promise<User>;
 
     // Change this to use lazy loading
+    @ApiProperty({ type: () => User, nullable: true })
     @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'updatedById' })
     updatedBy?: Promise<User>;
@@ -211,13 +220,16 @@ export class User {
     @OneToMany(() => Ticket, ticket => ticket.assignee, { lazy: true })
     assignedTickets: Promise<Ticket[]>;
 
+    @OneToMany(() => Ticket, ticket => ticket.createdBy, { lazy: true })
+    createdTickets: Promise<Ticket[]>;
+
     @OneToMany(() => Message, message => message.sender, { lazy: true })
     messages: Promise<Message[]>;
 
-    @OneToMany(() => Appointment, appointment => appointment.provider, { lazy: true })
+    @OneToMany(() => Appointment, appointment => appointment.doctor, { lazy: true })
     appointments: Promise<Appointment[]>;
 
-    @OneToMany(() => Notification, notification => notification.user, { lazy: true })
+    @OneToMany(() => Notification, notification => notification.recipient, { lazy: true })
     notifications: Promise<Notification[]>;
 
     @OneToMany(() => UserActivity, activity => activity.user, { lazy: true })

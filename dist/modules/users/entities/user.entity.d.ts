@@ -1,4 +1,5 @@
 import { Role } from '../enums/role.enum';
+import { Organization } from '../../organizations/entities/organization.entity';
 import { Ticket } from '../../tickets/entities/ticket.entity';
 import { Message } from '../../messages/entities/message.entity';
 import { Appointment } from '../../appointments/entities/appointment.entity';
@@ -62,10 +63,11 @@ export declare class User {
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;
-    organization: any;
+    organization: Promise<Organization>;
     createdBy: Promise<User>;
     updatedBy?: Promise<User>;
     assignedTickets: Promise<Ticket[]>;
+    createdTickets: Promise<Ticket[]>;
     messages: Promise<Message[]>;
     appointments: Promise<Appointment[]>;
     notifications: Promise<Notification[]>;

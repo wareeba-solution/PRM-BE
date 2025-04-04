@@ -15,35 +15,11 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { NotificationChannel } from '../enums/notification-channel.enum';
+import { NotificationPriority } from '../enums/notification-priority.enum';
+import { NotificationType } from '../enums/notification-type.enum';
 
-export enum NotificationType {
-    SYSTEM = 'SYSTEM',
-    APPOINTMENT = 'APPOINTMENT',
-    MESSAGE = 'MESSAGE',
-    TASK = 'TASK',
-    ALERT = 'ALERT',
-    REMINDER = 'REMINDER',
-    DOCUMENT = 'DOCUMENT',
-    TICKET_ESCALATED = 'TICKET_ESCALATED',
-}
-
-export enum NotificationPriority {
-    LOW = 'LOW',
-    NORMAL = 'NORMAL',
-    MEDIUM = 'MEDIUM',
-    HIGH = 'HIGH',
-    URGENT = 'URGENT',
-}
-
-export enum NotificationChannel {
-    IN_APP = 'IN_APP',
-    EMAIL = 'EMAIL',
-    SMS = 'SMS',
-    PUSH = 'PUSH',
-    WEBHOOK = 'WEBHOOK',
-    SLACK = "SLACK",
-    WHATSAPP = "WHATSAPP",
-}
+export { NotificationChannel, NotificationPriority, NotificationType };
 
 export class NotificationAction {
     @ApiProperty()
@@ -71,7 +47,14 @@ export class NotificationRecipient {
     @ApiProperty()
     @IsUUID()
     userId: string;
+
+    @ApiProperty()
+    @IsString()
     role: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsUUID()
     organizationId?: string;
 
     @ApiPropertyOptional()
@@ -179,6 +162,14 @@ export class CreateNotificationDto {
     @IsOptional()
     @IsUUID()
     organizationId: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsUUID()
     senderId?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsObject()
     metadata?: Record<string, any>;
 }

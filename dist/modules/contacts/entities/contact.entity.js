@@ -221,14 +221,14 @@ __decorate([
     __metadata("design:type", Object)
 ], Contact.prototype, "organization", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)('User'),
+    (0, typeorm_1.ManyToOne)('User', { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'createdById' }),
-    __metadata("design:type", Object)
+    __metadata("design:type", Promise)
 ], Contact.prototype, "createdBy", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)('User'),
+    (0, typeorm_1.ManyToOne)('User', { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'updatedById' }),
-    __metadata("design:type", Object)
+    __metadata("design:type", Promise)
 ], Contact.prototype, "updatedBy", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)('Appointment', 'contact'),

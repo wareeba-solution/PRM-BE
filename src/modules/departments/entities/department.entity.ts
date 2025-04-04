@@ -8,13 +8,14 @@ import {
     ManyToOne,
     OneToMany,
     JoinColumn,
+    Index,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from '../../users/entities/user.entity';
-import { Organization } from '../../organizations/entities/organization.entity';
-import { Ticket } from '../../tickets/entities/ticket.entity';
+import { DepartmentStatus } from '../enums/department-status.enum';
 
 @Entity('departments')
+@Index(['organizationId', 'status'])
+@Index(['organizationId', 'managerId'])
 export class Department {
     @ApiProperty()
     @PrimaryGeneratedColumn('uuid')
@@ -22,14 +23,14 @@ export class Department {
 
     @ApiProperty()
     @Column()
-    name: string;
-
-    @ApiProperty()
-    @Column()
     organizationId: string;
 
     @ApiProperty()
-    @Column({ nullable: true })
+    @Column()
+    name: string;
+
+    @ApiProperty()
+    @Column({ type: 'text', nullable: true })
     description?: string;
 
     @ApiProperty()
@@ -41,28 +42,55 @@ export class Department {
     managerId?: string;
 
     @ApiProperty()
-    @Column({ nullable: true })
-    createdById?: string;
+    @Column({
+        type: 'enum',
+        enum: DepartmentStatus,
+        default: DepartmentStatus.ACTIVE,
+    })
+    status: DepartmentStatus;
+
+    @ApiProperty()
+    @Column({ type: 'jsonb', nullable: true })
+    settings?: {
+        workingHours?: {
+            start: string;
+            end: string;
+            timezone: string;
+            workingDays: string[];
+        };
+        notificationPreferences?: {
+            email?: boolean;
+            sms?: boolean;
+            whatsapp?: boolean;
+        };
+        [key: string]: any;
+    };
+
+    @ApiProperty()
+    @Column({ type: 'jsonb', nullable: true })
+    metadata?: {
+        location?: string;
+        floor?: string;
+        room?: string;
+        equipment?: string[];
+        [key: string]: any;
+    };
+
+    @ApiProperty()
+    @Column()
+    createdById: string;
 
     @ApiProperty()
     @Column({ nullable: true })
     updatedById?: string;
 
     @ApiProperty()
-    @Column({ default: true })
-    isActive: boolean;
-
-    @ApiProperty()
-    @Column({ type: 'int', default: 0 })
+    @Column({ default: 0 })
     memberCount: number;
 
     @ApiProperty()
-    @Column({ type: 'int', default: 0 })
+    @Column({ default: 0 })
     sortOrder: number;
-
-    @ApiProperty()
-    @Column({ type: 'jsonb', nullable: true })
-    metadata?: Record<string, any>;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -73,30 +101,86 @@ export class Department {
     @DeleteDateColumn()
     deletedAt?: Date;
 
-    // Relations
-    @ManyToOne(() => Organization)
+    // Relations - all using string references to avoid circular dependencies
+    @ApiProperty({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' }
+        }
+    })
+    @ManyToOne('Organization')
     @JoinColumn({ name: 'organizationId' })
-    organization: Organization;
+    organization: any;
 
-    @ManyToOne(() => Department, { nullable: true })
+    @ApiProperty({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' }
+        },
+        nullable: true
+    })
+    @ManyToOne('Department')
     @JoinColumn({ name: 'parentDepartmentId' })
-    parentDepartment?: Department;
+    parentDepartment?: any;
 
-    @OneToMany(() => Department, dept => dept.parentDepartment)
-    childDepartments: Department[];
-
-    @ManyToOne(() => User, { lazy: true })
+    @ApiProperty({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            firstName: { type: 'string' },
+            lastName: { type: 'string' }
+        },
+        nullable: true
+    })
+    @ManyToOne('User', { lazy: true })
     @JoinColumn({ name: 'managerId' })
-    manager: Promise<User>;
+    manager?: Promise<any>;
 
-    @ManyToOne(() => User, { lazy: true })
+    @ApiProperty({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            firstName: { type: 'string' },
+            lastName: { type: 'string' }
+        }
+    })
+    @ManyToOne('User', { lazy: true })
     @JoinColumn({ name: 'createdById' })
-    createdBy: Promise<User>;
+    createdBy: Promise<any>;
 
-    @ManyToOne(() => User, { lazy: true })
+    @ApiProperty({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            firstName: { type: 'string' },
+            lastName: { type: 'string' }
+        },
+        nullable: true
+    })
+    @ManyToOne('User', { lazy: true })
     @JoinColumn({ name: 'updatedById' })
-    updatedBy: Promise<User>;
+    updatedBy?: Promise<any>;
 
-    @OneToMany(() => Ticket, ticket => ticket.department)
-    tickets: Promise<Ticket[]>;
+    @OneToMany('Department', 'parentDepartment')
+    childDepartments: any[];
+
+    @OneToMany('User', 'department')
+    users: any[];
+
+    @OneToMany('Ticket', 'department')
+    tickets: any[];
+
+    get isActive(): boolean {
+        return this.status === DepartmentStatus.ACTIVE;
+    }
+
+    get hasManager(): boolean {
+        return !!this.managerId;
+    }
+
+    get isParentDepartment(): boolean {
+        return !this.parentDepartmentId;
+    }
 }

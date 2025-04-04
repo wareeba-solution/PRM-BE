@@ -36,7 +36,7 @@ let DepartmentsService = class DepartmentsService {
      * Find all departments matching query
      */
     async findAll(organizationId, query) {
-        const where = { organizationId };
+        const where = {};
         if (query.isActive !== undefined) {
             where.isActive = query.isActive;
         }

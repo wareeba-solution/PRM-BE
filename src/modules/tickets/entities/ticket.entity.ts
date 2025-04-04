@@ -27,6 +27,7 @@ import { Department } from '../../departments/entities/department.entity';
 import { TicketComment } from './ticket-comment.entity';
 import { TicketAttachment } from './ticket-attachment.entity';
 import { TicketActivity } from './ticket-activity.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('tickets')
 @Index(['organizationId', 'status'])
@@ -210,46 +211,85 @@ export class Ticket {
     deletedAt?: Date;
 
     // Relations - all using string references to avoid circular dependencies
+    @ApiProperty({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' }
+        }
+    })
     @ManyToOne('Organization')
     @JoinColumn({ name: 'organizationId' })
     organization: any;
 
+    @ApiProperty({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            firstName: { type: 'string' },
+            lastName: { type: 'string' }
+        },
+        nullable: true
+    })
     @ManyToOne('Contact')
     @JoinColumn({ name: 'contactId' })
     contact?: any;
 
+    @ApiProperty({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' }
+        },
+        nullable: true
+    })
     @ManyToOne(() => Department, { lazy: true })
     @JoinColumn({ name: 'departmentId' })
     department?: Promise<Department>;
 
-    @ManyToOne('User')
+    @ApiProperty({ type: () => User, nullable: true })
+    @ManyToOne('User', { lazy: true })
     @JoinColumn({ name: 'assigneeId' })
-    assignee?: any;
+    assignee?: Promise<any>;
 
-    @ManyToOne('User')
+    @ApiProperty({ type: () => User })
+    @ManyToOne('User', { lazy: true })
     @JoinColumn({ name: 'createdById' })
-    createdBy: any;
+    createdBy: Promise<any>;
 
-    @ManyToOne('User')
+    @ApiProperty({ type: () => User, nullable: true })
+    @ManyToOne('User', { lazy: true })
     @JoinColumn({ name: 'updatedById' })
-    updatedBy?: any;
+    updatedBy?: Promise<any>;
 
-    @ManyToOne('User')
+    @ApiProperty({ type: () => User, nullable: true })
+    @ManyToOne('User', { lazy: true })
     @JoinColumn({ name: 'resolvedById' })
-    resolvedBy?: any;
+    resolvedBy?: Promise<any>;
 
-    @ManyToOne('User')
+    @ApiProperty({ type: () => User, nullable: true })
+    @ManyToOne('User', { lazy: true })
     @JoinColumn({ name: 'closedById' })
-    closedBy?: any;
+    closedBy?: Promise<any>;
 
-    @ManyToOne('User')
+    @ApiProperty({ type: () => User, nullable: true })
+    @ManyToOne('User', { lazy: true })
     @JoinColumn({ name: 'escalatedById' })
-    escalatedBy?: any;
+    escalatedBy?: Promise<any>;
 
-    @ManyToOne('User')
+    @ApiProperty({ type: () => User, nullable: true })
+    @ManyToOne('User', { lazy: true })
     @JoinColumn({ name: 'reopenedById' })
-    reopenedBy?: any;
+    reopenedBy?: Promise<any>;
 
+    @ApiProperty({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            title: { type: 'string' }
+        },
+        nullable: true
+    })
     @ManyToOne('Ticket')
     @JoinColumn({ name: 'relatedTicketId' })
     relatedTicket?: any;
@@ -291,13 +331,17 @@ export class Ticket {
 
     @ApiProperty()
     get responseTime(): number | null {
-        if (!this.firstResponseAt) return null;
+        if (!this.firstResponseAt || !this.createdAt) {
+            return null;
+        }
         return this.firstResponseAt.getTime() - this.createdAt.getTime();
     }
 
     @ApiProperty()
     get resolutionTime(): number | null {
-        if (!this.resolvedAt) return null;
+        if (!this.resolvedAt || !this.createdAt) {
+            return null;
+        }
         return this.resolvedAt.getTime() - this.createdAt.getTime();
     }
 }

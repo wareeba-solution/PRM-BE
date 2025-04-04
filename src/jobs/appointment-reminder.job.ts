@@ -3,7 +3,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThanOrEqual, MoreThan, In, FindOptionsWhere } from 'typeorm';
+import { Repository, LessThanOrEqual, MoreThan, In, FindOptionsWhere, Between } from 'typeorm';
 // Fixed import path - adjust based on actual location
 import { EmailService } from '../modules/notifications/services/email.service';
 import { SmsService } from '../modules/sms/services/sms.service';
@@ -13,23 +13,33 @@ import { Appointment } from '../modules/appointments/entities/appointment.entity
 import { Contact } from '../modules/contacts/entities/contact.entity';
 import { Organization } from '../modules/organizations/entities/organization.entity';
 import { AppointmentStatus } from '../modules/appointments/enums/appointment-status.enum';
+import { User } from '../modules/users/entities/user.entity';
+
+interface AppointmentReminderData {
+    appointmentId: string;
+    patientName: string;
+    doctorName: string;
+    dateTime: Date;
+    location: string;
+    notes: string;
+    organizationName: string;
+}
 
 // This interface adds typed relations to the Appointment entity
-interface AppointmentWithRelations {
-  id: string;
-  startTime: Date;
-  status: string;
-  reminderSent: boolean;
-  contact?: ContactWithPreferences;
-  doctor?: {
-    firstName: string;
-    lastName: string;
-  };
-  organization?: {
-    name: string;
-  };
-  location?: string;
-  notes?: string;
+interface AppointmentWithRelations extends Appointment {
+    organization: Promise<Organization>;
+    patient: any;
+    doctor: Promise<User>;
+    contact: {
+        email?: string;
+        phone?: string;
+        whatsapp?: string;
+        firstName: string;
+        lastName: string;
+        allowEmail?: boolean;
+        allowSMS?: boolean;
+        allowWhatsApp?: boolean;
+    };
 }
 
 // Fixed interface to correctly extend Contact
@@ -78,7 +88,7 @@ export class AppointmentReminderJob {
             await Promise.all([
                 this.processEmailReminders(reminderGroups.email),
                 this.processSmsReminders(reminderGroups.sms),
-                this.processWhatsappReminders(reminderGroups.whatsapp),
+                this.processWhatsappReminders(),
             ]);
 
             this.logger.log(`Processed ${appointments.length} appointment reminders`);
@@ -93,20 +103,21 @@ export class AppointmentReminderJob {
         const now = new Date();
         const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
-        // Using proper type casting to avoid type errors
         const whereClause = {
             startTime: LessThanOrEqual(tomorrow),
             status: AppointmentStatus.CONFIRMED,
             reminderSent: false,
         } as FindOptionsWhere<Appointment>;
 
-        return this.appointmentRepository.find({
+        const appointments = await this.appointmentRepository.find({
             where: whereClause,
             relations: ['contact', 'doctor', 'organization'],
             order: {
                 startTime: 'ASC',
             },
-        }) as Promise<AppointmentWithRelations[]>;
+        });
+
+        return appointments as AppointmentWithRelations[];
     }
 
     private groupAppointmentsByReminderType(appointments: AppointmentWithRelations[]) {
@@ -135,92 +146,104 @@ export class AppointmentReminderJob {
 
     private async processEmailReminders(appointments: AppointmentWithRelations[]) {
         for (const appointment of appointments) {
-            try {
-                if (!appointment.contact || !appointment.doctor || !appointment.organization) {
-                    this.logger.warn(`Skipping email reminder for appointment ${appointment.id}: missing required relation`);
-                    continue;
-                }
-                
-                await this.emailService.sendAppointmentReminder(
-                    appointment.contact.email || '',
-                    {
-                        appointmentId: appointment.id,
-                        patientName: `${appointment.contact.firstName || ''} ${appointment.contact.lastName || ''}`.trim(),
-                        doctorName: `Dr. ${appointment.doctor.firstName || ''} ${appointment.doctor.lastName || ''}`.trim(),
-                        dateTime: appointment.startTime,
-                        location: appointment.location || 'N/A',
-                        notes: appointment.notes || '',
-                        organizationName: appointment.organization.name || 'N/A',
-                    },
-                );
+            if (!appointment.contact?.email || !appointment.contact?.allowEmail) continue;
 
+            try {
+                const doctor = await appointment.doctor;
+                const organization = await appointment.organization;
+                const notificationData: AppointmentReminderData = {
+                    appointmentId: appointment.id,
+                    patientName: `${appointment.contact.firstName} ${appointment.contact.lastName}`,
+                    doctorName: `Dr. ${doctor.firstName || ''} ${doctor.lastName || ''}`.trim(),
+                    dateTime: appointment.startTime,
+                    location: appointment.location || 'N/A',
+                    notes: appointment.notes || '',
+                    organizationName: organization.name || 'N/A',
+                };
+
+                await this.emailService.sendAppointmentReminder(appointment.contact.email, notificationData);
                 await this.markReminderSent(appointment.id);
             } catch (error) {
-                this.logger.error(`Error sending email reminder for appointment ${appointment.id}:`, error);
+                this.logger.error(`Failed to send email reminder for appointment ${appointment.id}:`, error);
             }
         }
     }
 
     private async processSmsReminders(appointments: AppointmentWithRelations[]) {
         for (const appointment of appointments) {
-            try {
-                if (!appointment.contact || !appointment.organization) {
-                    this.logger.warn(`Skipping SMS reminder for appointment ${appointment.id}: missing required relation`);
-                    continue;
-                }
+            if (!appointment.contact?.phone || !appointment.contact?.allowSMS) continue;
 
-                await this.smsService.sendAppointmentReminder({
+            try {
+                const doctor = await appointment.doctor;
+                const organization = await appointment.organization;
+                const smsData = {
                     id: appointment.id,
                     contact: {
-                        phone: appointment.contact.phone || '',
-                        firstName: appointment.contact.firstName || '',
-                        lastName: appointment.contact.lastName || ''
+                        phone: appointment.contact.phone,
+                        firstName: appointment.contact.firstName,
+                        lastName: appointment.contact.lastName,
                     },
                     dateTime: appointment.startTime,
                     organization: {
-                        name: appointment.organization.name || 'N/A'
-                    }
-                });
+                        name: organization.name || 'N/A',
+                    },
+                };
 
+                await this.smsService.sendAppointmentReminder(smsData);
                 await this.markReminderSent(appointment.id);
             } catch (error) {
-                this.logger.error(`Error sending SMS reminder for appointment ${appointment.id}:`, error);
+                this.logger.error(`Failed to send SMS reminder for appointment ${appointment.id}:`, error);
             }
         }
     }
 
-    private async processWhatsappReminders(appointments: AppointmentWithRelations[]) {
+    private async processWhatsappReminders() {
+        const appointments = await this.appointmentRepository.find({
+            where: {
+                startTime: Between(
+                    new Date(Date.now() + 24 * 60 * 60 * 1000),
+                    new Date(Date.now() + 25 * 60 * 60 * 1000)
+                ),
+                reminderSent: false,
+                status: AppointmentStatus.SCHEDULED,
+            },
+            relations: ['doctor', 'organization'],
+        });
+
         for (const appointment of appointments) {
             try {
-                if (!appointment.contact || !appointment.doctor || !appointment.organization) {
-                    this.logger.warn(`Skipping WhatsApp reminder for appointment ${appointment.id}: missing required relation`);
-                    continue;
-                }
-                
-                await this.whatsappService.sendAppointmentReminder(
-                    appointment.contact.whatsapp || '',
-                    {
-                        appointmentId: appointment.id,
-                        patientName: `${appointment.contact.firstName || ''} ${appointment.contact.lastName || ''}`.trim(),
-                        doctorName: `Dr. ${appointment.doctor.firstName || ''} ${appointment.doctor.lastName || ''}`.trim(),
-                        dateTime: appointment.startTime,
-                        location: appointment.location || 'N/A',
-                        organizationName: appointment.organization.name || 'N/A',
-                    },
+                const doctor = await appointment.doctor;
+                const organization = await appointment.organization;
+
+                const notificationData = {
+                    appointmentId: appointment.id,
+                    appointmentDate: appointment.startTime,
+                    appointmentTime: appointment.startTime,
+                    doctorName: `${doctor.firstName} ${doctor.lastName}`,
+                    organizationName: organization.name,
+                };
+
+                await this.notificationService.sendNotification(
+                    appointment.patientId,
+                    'appointment_reminder',
+                    notificationData
                 );
 
                 await this.markReminderSent(appointment.id);
             } catch (error) {
-                this.logger.error(`Error sending WhatsApp reminder for appointment ${appointment.id}:`, error);
+                this.logger.error(`Failed to send WhatsApp reminder for appointment ${appointment.id}:`, error);
             }
         }
     }
 
-    private async markReminderSent(appointmentId: string) {
-        await this.appointmentRepository.update(appointmentId, {
-            reminderSent: true,
-            reminderSentAt: new Date(),
-        });
+    private async markReminderSent(appointmentId: string): Promise<void> {
+        await this.appointmentRepository.update(
+            { id: appointmentId },
+            {
+                reminderSent: true,
+                reminderSentAt: new Date(),
+            }
+        );
     }
 
     // Cleanup old reminder records

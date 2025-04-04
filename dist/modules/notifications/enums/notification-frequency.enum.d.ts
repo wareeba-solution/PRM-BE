@@ -1,0 +1,8 @@
+export declare enum NotificationFrequency {
+    IMMEDIATELY = "IMMEDIATELY",
+    DAILY_DIGEST = "DAILY_DIGEST",
+    WEEKLY_DIGEST = "WEEKLY_DIGEST",
+    MONTHLY_DIGEST = "MONTHLY_DIGEST",
+    CUSTOM = "CUSTOM",
+    NEVER = "NEVER"
+}

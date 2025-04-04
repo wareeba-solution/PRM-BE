@@ -6,25 +6,25 @@ import {
     PrimaryGeneratedColumn,
     CreateDateColumn,
     UpdateDateColumn,
+    DeleteDateColumn,
     ManyToOne,
     OneToMany,
     JoinColumn,
     Index,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
-import { Organization } from '../../organizations/entities/organization.entity';
-import { AppointmentType } from '../enums/appointment-type.enum';
-import { AppointmentStatus } from '../enums/appointment-status.enum';
-import { AppointmentPriority } from '../enums/appointment-priority.enum';
 import { ApiProperty } from '@nestjs/swagger';
-import { DeepPartial } from 'typeorm';
-
-// DO NOT import Contact directly - this is what causes the circular dependency
+import { AppointmentStatus } from '../enums/appointment-status.enum';
+import { AppointmentType } from '../enums/appointment-type.enum';
+import { AppointmentPriority } from '../enums/appointment-priority.enum';
+import { User } from '../../users/entities/user.entity';
+import { Department } from '../../departments/entities/department.entity';
 
 @Entity('appointments')
+@Index(['organizationId', 'status'])
+@Index(['organizationId', 'doctorId'])
+@Index(['organizationId', 'patientId'])
+@Index(['organizationId', 'departmentId'])
 @Index(['organizationId', 'startTime'])
-@Index(['doctorId', 'startTime'])
-@Index(['patientId', 'startTime'])
 export class Appointment {
     @ApiProperty()
     @PrimaryGeneratedColumn('uuid')
@@ -32,48 +32,37 @@ export class Appointment {
 
     @ApiProperty()
     @Column()
-    title: string;
+    organizationId: string;
 
     @ApiProperty()
-    @Column({ type: 'timestamp' })
-    startTime: Date;
+    @Column()
+    doctorId: string;
 
     @ApiProperty()
-    @Column({ type: 'timestamp' })
-    endTime: Date;
+    @Column()
+    patientId: string;
 
     @ApiProperty()
     @Column({ nullable: true })
-    notes?: string;
+    departmentId?: string;
 
-    @Column({ type: 'uuid' })
-    organizationId: string;
+    @ApiProperty()
+    @Column()
+    title: string;
 
-    @Column({ type: 'uuid' })
-    patientId: string;
+    @ApiProperty()
+    @Column({ type: 'text', nullable: true })
+    description?: string;
 
-    @Column({ type: 'uuid' })
-    doctorId: string;
+    @ApiProperty()
+    @Column()
+    startTime: Date;
 
-    @Column({ type: 'uuid' })
-    createdById: string;
+    @ApiProperty()
+    @Column()
+    endTime: Date;
 
-    @Column({ type: 'uuid', nullable: true })
-    updatedById?: string;
-
-    @Column({ type: 'timestamp with time zone', nullable: true })
-    confirmedAt?: Date;
-
-    @Column({ type: 'timestamp with time zone' })
-    scheduledFor: Date;
-
-    @Column({
-        type: 'enum',
-        enum: AppointmentType,
-        default: AppointmentType.IN_PERSON,
-    })
-    type: AppointmentType;
-
+    @ApiProperty()
     @Column({
         type: 'enum',
         enum: AppointmentStatus,
@@ -81,6 +70,15 @@ export class Appointment {
     })
     status: AppointmentStatus;
 
+    @ApiProperty()
+    @Column({
+        type: 'enum',
+        enum: AppointmentType,
+        default: AppointmentType.IN_PERSON,
+    })
+    type: AppointmentType;
+
+    @ApiProperty()
     @Column({
         type: 'enum',
         enum: AppointmentPriority,
@@ -88,143 +86,217 @@ export class Appointment {
     })
     priority: AppointmentPriority;
 
+    @ApiProperty()
+    @Column({ nullable: true })
+    location?: string;
+
+    @ApiProperty()
     @Column({ type: 'text', nullable: true })
-    description: string;
+    notes?: string;
 
-    @Column({ length: 200, nullable: true })
-    location: string;
-
-    @Column({ length: 500, nullable: true })
-    meetingLink: string;
-
-    @Column({ type: 'boolean', default: true })
-    sendReminders: boolean;
-
+    @ApiProperty()
     @Column({ type: 'jsonb', nullable: true })
-    reminderPreferences: {
-        email: boolean;
-        sms: boolean;
-        whatsapp: boolean;
-        reminderTimes: number[];
-    };
-
-    @Column({ type: 'jsonb', nullable: true })
-    formData: {
-        chiefComplaint?: string;
+    metadata?: {
+        reason?: string;
         symptoms?: string[];
-        duration?: string;
-        notes?: string;
-        diagnosis?: string;
-        treatmentPlan?: string;
-        prescriptions?: string[];
-        followUpInstructions?: string;
+        previousAppointments?: string[];
+        followUpRequired?: boolean;
+        followUpNotes?: string;
+        [key: string]: any;
     };
 
-    @Column({ type: 'jsonb', nullable: true })
-    metadata: {
-        referralSource?: string;
-        insurance?: string;
-        tags?: string[];
-        externalId?: string;
-        followUpAppointmentId?: string;
-        previousAppointmentId?: string;
-        billingStatus?: string;
-        claimStatus?: string;
-        followUpSentAt?: string;
-    };
-
-    @Column({ type: 'boolean', default: false })
+    @ApiProperty()
+    @Column({ default: false })
     isRecurring: boolean;
 
+    @ApiProperty()
     @Column({ type: 'jsonb', nullable: true })
-    recurrencePattern: {
-        frequency: 'daily' | 'weekly' | 'monthly';
+    recurrenceRule?: {
+        frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
         interval: number;
         endDate?: Date;
+        count?: number;
         daysOfWeek?: number[];
+        daysOfMonth?: number[];
     };
 
-    @Column({ type: 'uuid', nullable: true })
-    parentAppointmentId: string;
+    @ApiProperty()
+    @Column({ nullable: true })
+    parentAppointmentId?: string;
 
-    @Column({ length: 500, nullable: true })
-    cancellationReason: string;
+    @ApiProperty()
+    @Column({ nullable: true })
+    cancelledAt?: Date;
 
-    @Column({ length: 500, nullable: true })
-    reschedulingReason: string;
+    @ApiProperty()
+    @Column({ nullable: true })
+    cancelledById?: string;
 
-    @Column({ type: 'boolean', default: false })
+    @ApiProperty()
+    @Column({ type: 'text', nullable: true })
+    cancellationReason?: string;
+
+    @ApiProperty()
+    @Column({ nullable: true })
+    rescheduledAt?: Date;
+
+    @ApiProperty()
+    @Column({ nullable: true })
+    rescheduledById?: string;
+
+    @ApiProperty()
+    @Column({ type: 'text', nullable: true })
+    rescheduleReason?: string;
+
+    @ApiProperty()
+    @Column({ nullable: true })
+    completedAt?: Date;
+
+    @ApiProperty()
+    @Column({ nullable: true })
+    completedById?: string;
+
+    @ApiProperty()
+    @Column({ type: 'text', nullable: true })
+    completionNotes?: string;
+
+    @ApiProperty()
+    @Column({ nullable: true })
+    noShowAt?: Date;
+
+    @ApiProperty()
+    @Column({ nullable: true })
+    noShowById?: string;
+
+    @ApiProperty()
+    @Column({ type: 'text', nullable: true })
+    noShowReason?: string;
+
+    @ApiProperty()
+    @Column()
+    createdById: string;
+
+    @ApiProperty()
+    @Column({ nullable: true })
+    updatedById?: string;
+
+    @ApiProperty()
+    @Column({ nullable: true })
+    confirmedAt?: Date;
+
+    @ApiProperty()
+    @Column({ default: false })
     reminderSent: boolean;
 
-    @Column({ type: 'timestamp with time zone', nullable: true })
-    reminderSentAt: Date;
+    @ApiProperty()
+    @Column({ nullable: true })
+    reminderSentAt?: Date;
 
-    @Column({ type: 'timestamp with time zone', nullable: true })
-    checkedInAt: Date;
-
-    @Column({ type: 'timestamp with time zone', nullable: true })
-    completedAt: Date;
-
-    @Column({ type: 'timestamp with time zone', nullable: true })
-    cancelledAt: Date;
-
-    @CreateDateColumn({ type: 'timestamp with time zone' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ type: 'timestamp with time zone' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
-    // Relationships - use only string references for circular dependencies
-    @ManyToOne('Organization', { onDelete: 'CASCADE' })
+    @DeleteDateColumn()
+    deletedAt?: Date;
+
+    // Relations - all using string references to avoid circular dependencies
+    @ApiProperty({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' }
+        }
+    })
+    @ManyToOne('Organization')
     @JoinColumn({ name: 'organizationId' })
     organization: any;
 
-    // FIXED: Keep only one relationship to Contact using patientId
-    @ManyToOne('Contact', 'appointments', { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'patientId' })
-    patient: any;
-
-    // REMOVED the duplicate relationship that was here
-    // @ManyToOne('Contact', 'appointments', { onDelete: 'CASCADE' })
-    // @JoinColumn({ name: 'patientId' })
-    // contact: any;
-
-    @ManyToOne('User', { onDelete: 'CASCADE' })
+    @ApiProperty({ type: () => User })
+    @ManyToOne('User', { lazy: true })
     @JoinColumn({ name: 'doctorId' })
-    doctor: any;
+    doctor: Promise<any>;
 
-    @ManyToOne('User')
-    @JoinColumn({ name: 'createdById' })
-    createdBy: any;
+    @ApiProperty({ type: () => User })
+    @ManyToOne('User', { lazy: true })
+    @JoinColumn({ name: 'patientId' })
+    patient: Promise<any>;
 
-    @ManyToOne('User')
-    @JoinColumn({ name: 'updatedById' })
-    updatedBy: any;
+    @ApiProperty({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            name: { type: 'string' }
+        },
+        nullable: true
+    })
+    @ManyToOne(() => Department, { lazy: true })
+    @JoinColumn({ name: 'departmentId' })
+    department?: Promise<Department>;
 
-    @ManyToOne(() => Appointment, { nullable: true })
+    @ApiProperty({
+        type: 'object',
+        properties: {
+            id: { type: 'string' },
+            title: { type: 'string' }
+        },
+        nullable: true
+    })
+    @ManyToOne('Appointment')
     @JoinColumn({ name: 'parentAppointmentId' })
-    parentAppointment: Appointment;
+    parentAppointment?: any;
 
-    @OneToMany(() => Appointment, appointment => appointment.parentAppointment)
-    recurrentAppointments: Appointment[];
-    
-    provider: any;
+    @ApiProperty({ type: () => User, nullable: true })
+    @ManyToOne('User', { lazy: true })
+    @JoinColumn({ name: 'cancelledById' })
+    cancelledBy?: Promise<any>;
 
-    // Helper methods
-    isUpcoming(): boolean {
-        return new Date() < this.startTime;
+    @ApiProperty({ type: () => User, nullable: true })
+    @ManyToOne('User', { lazy: true })
+    @JoinColumn({ name: 'rescheduledById' })
+    rescheduledBy?: Promise<any>;
+
+    @ApiProperty({ type: () => User, nullable: true })
+    @ManyToOne('User', { lazy: true })
+    @JoinColumn({ name: 'completedById' })
+    completedBy?: Promise<any>;
+
+    @ApiProperty({ type: () => User, nullable: true })
+    @ManyToOne('User', { lazy: true })
+    @JoinColumn({ name: 'noShowById' })
+    noShowBy?: Promise<any>;
+
+    @ApiProperty({ type: () => User })
+    @ManyToOne('User', { lazy: true })
+    @JoinColumn({ name: 'createdById' })
+    createdBy: Promise<any>;
+
+    @ApiProperty({ type: () => User, nullable: true })
+    @ManyToOne('User', { lazy: true })
+    @JoinColumn({ name: 'updatedById' })
+    updatedBy?: Promise<any>;
+
+    @OneToMany('Appointment', 'parentAppointment')
+    childAppointments: any[];
+
+    get isCancelled(): boolean {
+        return !!this.cancelledAt;
     }
 
-    isInProgress(): boolean {
-        const now = new Date();
-        return now >= this.startTime && now <= this.endTime;
+    get isRescheduled(): boolean {
+        return !!this.rescheduledAt;
     }
 
-    isOverdue(): boolean {
-        return new Date() > this.endTime && this.status !== AppointmentStatus.COMPLETED;
+    get isCompleted(): boolean {
+        return !!this.completedAt;
     }
 
-    getDuration(): number {
+    get isNoShow(): boolean {
+        return !!this.noShowAt;
+    }
+
+    get duration(): number {
         return this.endTime.getTime() - this.startTime.getTime();
     }
 
@@ -233,19 +305,5 @@ export class Appointment {
             AppointmentStatus.COMPLETED,
             AppointmentStatus.CANCELLED,
         ].includes(this.status);
-    }
-
-    needsReminder(): boolean {
-        if (!this.sendReminders || this.reminderSent || !this.isUpcoming()) {
-            return false;
-        }
-
-        const now = new Date();
-        const nextReminderTime = Math.min(
-            ...this.reminderPreferences?.reminderTimes || [60]
-        );
-        const reminderDue = new Date(this.startTime.getTime() - nextReminderTime * 60000);
-
-        return now >= reminderDue;
     }
 }

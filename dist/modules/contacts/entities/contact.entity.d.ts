@@ -66,8 +66,8 @@ export declare class Contact {
     updatedAt: Date;
     deletedAt?: Date;
     organization: any;
-    createdBy: any;
-    updatedBy: any;
+    createdBy: Promise<any>;
+    updatedBy: Promise<any>;
     appointments: any[];
     documents: any[];
     medicalHistory: any[];
