@@ -7,6 +7,7 @@ import { AppModule } from './app.module';
 import express from 'express';
 import * as http from 'http';
 import { SwaggerService } from './swagger/swagger.service';
+import { ExpressAdapter } from '@nestjs/platform-express';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -34,8 +35,22 @@ async function bootstrap() {
   });
 
   try {
-    // Continue with normal NestJS initialization
-    const app = await NestFactory.create(AppModule);
+    // Create a shared Express instance for better control
+    const server = express();
+
+    // Add root route handler to the shared Express instance
+    server.get('/', (req, res) => {
+      res.json({
+        name: 'Patient Relationship Manager API',
+        version: '1.0',
+        documentation: '/docs',
+        status: 'running',
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    // Continue with normal NestJS initialization using the Express instance
+    const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
     const configService = app.get(ConfigService);
 
     // Configure CORS with more robust handling
@@ -60,15 +75,26 @@ async function bootstrap() {
       },
     }));
 
+    // Add direct Express routes for diagnostics
+    server.get('/health-check', (req, res) => {
+      res.json({ status: 'ok', time: new Date().toISOString() });
+    });
+
+    server.get('/swagger-health', (req, res) => {
+      res.json({ status: 'ok', time: new Date().toISOString() });
+    });
+
+    logger.log('Direct health check endpoints created');
+
     // *** IMPORTANT: Initialize Swagger BEFORE setting global prefix ***
     try {
       logger.log('Initializing Swagger documentation...');
-      const swaggerService = new SwaggerService(); // Create instance directly
+      const swaggerService = new SwaggerService();
       swaggerService.setup(app);
       logger.log('Swagger documentation initialized successfully.');
     } catch (swaggerError) {
       logger.error('Failed to initialize Swagger documentation:', swaggerError);
-      // Continue app startup even if Swagger fails
+      logger.error(swaggerError.stack);
     }
 
     // Set global prefix AFTER Swagger setup
@@ -84,6 +110,10 @@ async function bootstrap() {
         next();
       }
     });
+
+    // Initialize NestJS (important to do this after all setup is complete)
+    await app.init();
+    logger.log('NestJS application initialized');
 
     // Get final port
     const finalPort = (() => {
@@ -105,26 +135,35 @@ async function bootstrap() {
       });
     });
 
-    // Start the NestJS server
+    // Start the NestJS server using the shared Express instance
     console.log(`Starting NestJS server on port ${finalPort}...`);
-    const server = await app.listen(finalPort);
+    const httpServer = http.createServer(server);
+    await new Promise<void>(resolve => {
+      httpServer.listen(finalPort, () => {
+        console.log('Server started');
+        resolve();
+      });
+    });
 
     console.log(`=============================================`);
     console.log(`NESTJS SERVER RUNNING: http://localhost:${finalPort}`);
-    console.log(`SWAGGER DOCS: http://localhost:${finalPort}/swagger`);
-    console.log(`API DOCS: http://localhost:${finalPort}/api-docs`);
+    console.log(`ROOT: http://localhost:${finalPort}/`);
+    console.log(`API: http://localhost:${finalPort}/api`);
+    console.log(`SWAGGER DOCS: http://localhost:${finalPort}/docs`);
+    console.log(`HEALTH CHECK: http://localhost:${finalPort}/health-check`);
     console.log(`=============================================`);
 
     logger.log(`Application is running on port: ${finalPort}`);
 
     // Set server timeout
-    server.setTimeout(30000); // 30 seconds
+    httpServer.setTimeout(30000); // 30 seconds
 
     // Graceful shutdown handling
     process.on('SIGTERM', async () => {
       logger.log('SIGTERM received, shutting down gracefully');
       try {
         await app.close();
+        httpServer.close();
         process.exit(0);
       } catch (error) {
         logger.error('Error during graceful shutdown', error);
@@ -132,7 +171,7 @@ async function bootstrap() {
       }
     });
 
-    return app;
+    return { app, server: httpServer };
   } catch (error) {
     logger.error('Failed to initialize NestJS application:', error);
 
