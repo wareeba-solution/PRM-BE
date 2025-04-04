@@ -40,7 +40,23 @@ class SwaggerService {
             const configService = app.get(config_1.ConfigService);
             const isProduction = configService.get('app.nodeEnv') === 'production';
             const globalPrefix = 'api'; // Match the global prefix in main.ts
-            // Log environment details for debugging
+            // Production-specific debugging
+            if (isProduction) {
+                this.logger.log('=== PRODUCTION MODE ENABLED ===');
+                this.logger.log('NODE_ENV:', process.env.NODE_ENV || 'not set');
+                this.logger.log('Production host:', process.env.HOST || 'not set');
+                this.logger.log('Production port:', process.env.PORT || 'not set');
+                this.logger.log('Base URL:', configService.get('app.baseUrl', 'not configured'));
+                // Fix for TypeScript error - use separate log statements
+                const swaggerDisabled = configService.get('app.disableSwagger') === true;
+                this.logger.log('Swagger explicitly disabled?', swaggerDisabled ? 'Yes' : 'No');
+            }
+            // Correctly handle the config check
+            const swaggerDisabled = configService.get('app.disableSwagger') === true;
+            if (isProduction && swaggerDisabled) {
+                this.logger.log('Swagger documentation is disabled in production mode by configuration');
+                return;
+            }
             this.logger.log(`Environment: ${isProduction ? 'Production' : 'Development'}`);
             this.logger.log(`Global API prefix: ${globalPrefix}`);
             this.logger.log('Setting up Swagger documentation...');
@@ -71,7 +87,6 @@ class SwaggerService {
                 paths = pathsModule.getAllPaths ? pathsModule.getAllPaths() : {};
                 const pathKeys = Object.keys(paths);
                 this.logger.log(`Loaded ${pathKeys.length} API paths`);
-                // Enhanced debugging: log specific paths
                 if (pathKeys.length > 0) {
                     this.logger.log(`Path samples: ${pathKeys.slice(0, 5).join(', ')}${pathKeys.length > 5 ? '...' : ''}`);
                 }
@@ -88,7 +103,6 @@ class SwaggerService {
                 schemas = schemasModule.getAllSchemas ? schemasModule.getAllSchemas() : {};
                 const schemaKeys = Object.keys(schemas);
                 this.logger.log(`Loaded ${schemaKeys.length} schemas`);
-                // Enhanced debugging: log specific schemas
                 if (schemaKeys.length > 0) {
                     this.logger.log(`Schema samples: ${schemaKeys.slice(0, 5).join(', ')}${schemaKeys.length > 5 ? '...' : ''}`);
                 }
@@ -100,7 +114,6 @@ class SwaggerService {
                 this.logger.error('Failed to load schemas:', schemaError);
                 this.logger.error(schemaError.stack);
             }
-            // Log additional debug information
             if (Object.keys(paths).length === 0) {
                 this.logger.warn('WARNING: No paths loaded for Swagger documentation!');
                 this.logger.warn('Check paths/index.ts and ensure getAllPaths() is properly implemented');
@@ -120,7 +133,7 @@ class SwaggerService {
                         }
                     }
                 } });
-            // Try to serialize the document to check for circular references
+            // Check document serialization
             try {
                 JSON.stringify(document);
                 this.logger.log('Document can be serialized correctly.');
@@ -128,12 +141,20 @@ class SwaggerService {
             catch (err) {
                 this.logger.warn('Document has circular references or cannot be serialized!', err.message);
             }
-            // Setup Swagger with increased error handling
+            // Create dedicated JSON endpoint
+            app.use('/swagger-json', (req, res) => {
+                res.setHeader('Content-Type', 'application/json');
+                res.send(JSON.stringify(document));
+            });
+            this.logger.log('Swagger JSON endpoint created at /swagger-json');
+            // Setup Swagger routes
             try {
-                // Set up Swagger at routes both with and without global prefix
+                // Set up Swagger at various route combinations
                 const swaggerRoutes = [
+                    'docs',
                     'swagger',
                     'api-docs',
+                    `${globalPrefix}/docs`,
                     `${globalPrefix}/swagger`,
                     `${globalPrefix}/api-docs` // /api/api-docs
                 ];
@@ -141,12 +162,18 @@ class SwaggerService {
                     try {
                         this.logger.log(`Setting up Swagger at route: /${route}`);
                         swagger_1.SwaggerModule.setup(route, app, document, {
-                            swaggerOptions: Object.assign({ persistAuthorization: true, docExpansion: 'none', filter: true, showExtensions: true }, (isProduction ? {
+                            explorer: true,
+                            swaggerOptions: Object.assign({ persistAuthorization: true, docExpansion: 'none', filter: true, showExtensions: true, deepLinking: true, displayOperationId: true, defaultModelsExpandDepth: 0, defaultModelExpandDepth: 1, 
+                                // Use custom-defined JSON URL
+                                url: '/swagger-json' }, (isProduction ? {
+                                layout: 'StandaloneLayout',
+                                displayRequestDuration: true,
                                 authAction: {
                                     defaultSecurityScheme: 'bearerAuth'
                                 }
                             } : {})),
-                            customSiteTitle: 'PRM API Documentation'
+                            customSiteTitle: 'PRM API Documentation',
+                            customfavIcon: '/favicon.ico'
                         });
                         this.logger.log(`Swagger documentation setup successfully at /${route}`);
                     }
@@ -155,6 +182,22 @@ class SwaggerService {
                         this.logger.error(routeError.stack);
                     }
                 }
+                // Get server address if possible
+                try {
+                    const serverInstance = app.getHttpServer();
+                    if (serverInstance && serverInstance.address) {
+                        const address = serverInstance.address();
+                        if (address && typeof address === 'object') {
+                            const host = address.address === '::' ? 'localhost' : address.address;
+                            const port = address.port;
+                            this.logger.log(`Swagger UI available at: http://${host}:${port}/swagger`);
+                        }
+                    }
+                }
+                catch (addrError) {
+                    this.logger.warn('Unable to determine server address');
+                }
+                this.logger.log('All Swagger routes setup complete');
             }
             catch (swaggerSetupError) {
                 this.logger.error('Failed to setup Swagger module:', swaggerSetupError);
