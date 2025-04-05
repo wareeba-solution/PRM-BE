@@ -21,22 +21,16 @@ export declare class AuthController {
         };
     }>;
     register(registerDto: RegisterDto, userAgent: string, ip: string): Promise<{
-        user: {
-            id: string;
-            email: string;
-            firstName: string;
-            lastName: string;
-            role: import("../../users/enums/role.enum").Role;
-            organizationId: string;
-        };
-        organization: {
-            id: string;
-            name: string;
-            status: import("../../organizations/enums/organization-status.enum").OrganizationStatus;
-        };
-        tokens: {
+        message: string;
+        data: {
             accessToken: string;
             refreshToken: string;
+            user: {
+                id: string;
+                email: string;
+                role: import("../../users/enums/role.enum").Role;
+                organizationId: string;
+            };
         };
     }>;
     refreshToken(refreshTokenDto: RefreshTokenDto): Promise<{

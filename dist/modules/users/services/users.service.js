@@ -35,13 +35,15 @@ const user_activity_entity_1 = require("../entities/user-activity.entity");
 const role_enum_1 = require("../enums/role.enum");
 const notifications_service_1 = require("../../notifications/services/notifications.service");
 const nestjs_typeorm_paginate_1 = require("nestjs-typeorm-paginate");
+const user_settings_entity_1 = require("../entities/user-settings.entity");
 let UsersService = class UsersService {
     findUsersByRole(organizationId, arg1) {
         throw new Error('Method not implemented.');
     }
-    constructor(userRepository, activityRepository, dataSource, eventEmitter, notificationsService) {
+    constructor(userRepository, activityRepository, userSettingsRepository, dataSource, eventEmitter, notificationsService) {
         this.userRepository = userRepository;
         this.activityRepository = activityRepository;
+        this.userSettingsRepository = userSettingsRepository;
         this.dataSource = dataSource;
         this.eventEmitter = eventEmitter;
         this.notificationsService = notificationsService;
@@ -92,21 +94,40 @@ let UsersService = class UsersService {
         await queryRunner.connect();
         await queryRunner.startTransaction();
         try {
+            // Check for existing user by email
             const existingUser = await this.userRepository.findOne({
-                where: [
-                    { email: data.email },
-                    { phoneNumber: data.phoneNumber },
-                ],
+                where: { email: data.email },
             });
             if (existingUser) {
-                throw new common_1.ConflictException(existingUser.email === data.email
-                    ? 'Email already registered'
-                    : 'Phone number already registered');
+                throw new common_1.ConflictException('Email already registered');
+            }
+            // Check for existing phone number in user settings
+            if (data.phoneNumber) {
+                const existingPhone = await this.userSettingsRepository
+                    .createQueryBuilder('settings')
+                    .where('settings.phone = :phone', { phone: data.phoneNumber })
+                    .getOne();
+                if (existingPhone) {
+                    throw new common_1.ConflictException('Phone number already registered');
+                }
             }
             const hashedPassword = await (0, bcrypt_1.hash)(data.password, 12);
-            const { createdBy } = data, userData = __rest(data, ["createdBy"]);
+            const { createdBy, phoneNumber } = data, userData = __rest(data, ["createdBy", "phoneNumber"]);
             const user = this.userRepository.create(Object.assign(Object.assign({}, userData), { password: hashedPassword }));
             await queryRunner.manager.save(user);
+            // Create user settings with phone number
+            if (phoneNumber) {
+                const settings = new user_settings_entity_1.UserSettings();
+                settings.userId = user.id;
+                settings.phone = phoneNumber;
+                settings.notificationPreferences = {
+                    email: true,
+                    sms: true,
+                    inApp: true,
+                    push: false
+                };
+                await queryRunner.manager.save(settings);
+            }
             // Record activity
             const activity = this.activityRepository.create({
                 userId: user.id,
@@ -252,7 +273,9 @@ UsersService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __param(1, (0, typeorm_1.InjectRepository)(user_activity_entity_1.UserActivity)),
+    __param(2, (0, typeorm_1.InjectRepository)(user_settings_entity_1.UserSettings)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.DataSource,
         event_emitter_1.EventEmitter2,

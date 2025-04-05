@@ -12,6 +12,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RefreshToken } from '../auth/entities/refresh-token.entity';
 import { User } from '../users/entities/user.entity';
 import { Organization } from '../organizations/entities/organization.entity';
+import { UserSettings } from '../users/entities/user-settings.entity';
 import { UsersModule } from '../users/users.module';
 
 
@@ -37,7 +38,7 @@ export enum AppointmentEventTypes {
         },
       }),
     }),
-    TypeOrmModule.forFeature([User, RefreshToken, Organization]),
+    TypeOrmModule.forFeature([User, RefreshToken, Organization, UserSettings]),
     UsersModule,
   ],
   controllers: [AuthController],

@@ -59,24 +59,21 @@ export class AuthController {
 
     @Post('register')
     @Public()
-    @ApiOperation({ summary: 'Register new user/organization' })
-    @ApiResponse({ status: HttpStatus.CREATED, description: 'Registration successful' })
+    @ApiOperation({ summary: 'Register a new user and organization' })
+    @ApiResponse({ status: 201, description: 'Successfully registered' })
+    @ApiResponse({ status: 400, description: 'Bad request' })
     async register(
         @Body() registerDto: RegisterDto,
         @Headers('user-agent') userAgent: string,
         @Ip() ip: string,
     ) {
-        const result = await this.authService.register(registerDto, {
-            userAgent,
-            ip,
-        });
-
+        const result = await this.authService.register(registerDto, { userAgent, ip });
         return {
-            user: result.user,
-            organization: result.organization,
-            tokens: {
+            message: 'Registration successful',
+            data: {
                 accessToken: result.accessToken,
                 refreshToken: result.refreshToken,
+                user: result.user,
             },
         };
     }

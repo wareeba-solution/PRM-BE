@@ -32,8 +32,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('User not found');
     }
 
+    // Get the organization since it's lazy loaded
+    const organization = await user.organization;
+
     // Verify if the user's organization is active
-    if (!user.organization.isActive) {
+    if (!organization?.isActive) {
       throw new UnauthorizedException('Organization is inactive');
     }
 

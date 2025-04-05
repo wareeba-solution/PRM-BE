@@ -4,10 +4,11 @@ import { User } from '../../users/entities/user.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
-import { Organization, OrganizationStatus } from '../../organizations/entities/organization.entity';
+import { Organization } from '../../organizations/entities/organization.entity';
 import { Role } from '../../users/enums/role.enum';
 import { UsersService } from '../../users/services/users.service';
 import { ConfigService } from '@nestjs/config';
+import { UserSettings } from '../../users/entities/user-settings.entity';
 export declare class AuthService {
     private readonly userRepository;
     private readonly refreshTokenRepository;
@@ -15,7 +16,8 @@ export declare class AuthService {
     private readonly jwtService;
     private readonly usersService;
     private readonly configService;
-    constructor(userRepository: Repository<User>, refreshTokenRepository: Repository<RefreshToken>, organizationRepository: Repository<Organization>, jwtService: JwtService, usersService: UsersService, configService: ConfigService);
+    private readonly userSettingsRepository;
+    constructor(userRepository: Repository<User>, refreshTokenRepository: Repository<RefreshToken>, organizationRepository: Repository<Organization>, jwtService: JwtService, usersService: UsersService, configService: ConfigService, userSettingsRepository: Repository<UserSettings>);
     /**
      * Checks if a token has been blacklisted
      * @param token The JWT token to check
@@ -53,15 +55,8 @@ export declare class AuthService {
         user: {
             id: string;
             email: string;
-            firstName: string;
-            lastName: string;
             role: Role;
             organizationId: string;
-        };
-        organization: {
-            id: string;
-            name: string;
-            status: OrganizationStatus;
         };
     }>;
     refreshToken(token: string): Promise<{

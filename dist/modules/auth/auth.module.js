@@ -19,13 +19,14 @@ const jwt_strategy_1 = require("./strategies/jwt.strategy");
 const user_entity_1 = require("../users/entities/user.entity");
 const refresh_token_entity_1 = require("./entities/refresh-token.entity");
 const organization_entity_1 = require("../organizations/entities/organization.entity");
+const user_settings_entity_1 = require("../users/entities/user-settings.entity");
 const users_module_1 = require("../users/users.module");
 let AuthModule = class AuthModule {
 };
 AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([user_entity_1.User, refresh_token_entity_1.RefreshToken, organization_entity_1.Organization]),
+            typeorm_1.TypeOrmModule.forFeature([user_entity_1.User, refresh_token_entity_1.RefreshToken, organization_entity_1.Organization, user_settings_entity_1.UserSettings]),
             passport_1.PassportModule.register({ defaultStrategy: 'jwt' }),
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],

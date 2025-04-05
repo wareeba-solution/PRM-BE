@@ -52,11 +52,11 @@ import { ThrottlerConfigService } from './config/throttler.config';
       port: parseInt(process.env.DB_PORT, 10) || 5432,
       username: process.env.DB_USERNAME || 'default_username',
       password: process.env.DB_PASSWORD || 'default_password',
-      database: process.env.DB_NAME || 'default_database', // Use DB_NAME here
+      database: process.env.DB_NAME || 'default_database',
       schema: process.env.DB_SCHEMA || 'public',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: process.env.DB_SYNC === 'true',
-      logging: process.env.DB_LOGGING === 'true',
+      logging: false,
       ssl: process.env.DB_SSL === 'true',
     }),
 

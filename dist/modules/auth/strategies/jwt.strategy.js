@@ -39,8 +39,10 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
         if (!user) {
             throw new common_1.UnauthorizedException('User not found');
         }
+        // Get the organization since it's lazy loaded
+        const organization = await user.organization;
         // Verify if the user's organization is active
-        if (!user.organization.isActive) {
+        if (!(organization === null || organization === void 0 ? void 0 : organization.isActive)) {
             throw new common_1.UnauthorizedException('Organization is inactive');
         }
         // Add necessary user information to the request

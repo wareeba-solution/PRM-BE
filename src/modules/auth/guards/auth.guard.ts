@@ -32,44 +32,35 @@ export class AuthGuard {
       const token = this.extractTokenFromHeader(request);
       if (!token) {
         if (isPublic) return true;
-        throw new UnauthorizedException('No authentication token provided');
+        throw new UnauthorizedException('No token provided');
       }
 
       try {
-        // Verify and decode the token using JwtService directly
-        const payload = this.jwtService.verify(token, {
+        const payload = await this.jwtService.verifyAsync(token, {
           secret: this.configService.get<string>('JWT_SECRET')
         });
-        
-        // Check if token is blacklisted using existing method
-        if (this.authService.isTokenBlacklisted(token)) {
-          throw new UnauthorizedException('Token has been revoked');
-        }
+        const user = await this.usersService.findOne(payload.sub, payload.organizationId);
 
-        // Fetch user data using existing UsersService
-        const user = await this.usersService.findById(payload.sub);
         if (!user) {
           throw new UnauthorizedException('User not found');
         }
 
-        // Check if user is active
         if (!user.isActive) {
           throw new UnauthorizedException('User account is inactive');
         }
 
-        // Check if email verification is required
-        if (this.authService.requireEmailVerification && !user.isEmailVerified) {
-          throw new UnauthorizedException('Email verification required');
+        if (user.isLocked) {
+          throw new UnauthorizedException('User account is locked');
         }
 
-        // Attach user and token info to request for controllers to use
-        request.user = user;
-        request.tokenMetadata = {
-          token,
-          iat: payload.iat,
-          exp: payload.exp,
-        };
+        if (this.authService.requireEmailVerification) {
+          const verification = await user.verification;
+          if (!verification?.isEmailVerified) {
+            throw new UnauthorizedException('Email verification required');
+          }
+        }
 
+        request.user = user;
         return true;
       } catch (error) {
         if (isPublic) return true;

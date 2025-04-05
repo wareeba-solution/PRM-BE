@@ -8,6 +8,7 @@ import { PushSubscription } from '../modules/notifications/entities/push-subscri
 import { EmailService } from '../modules/email/services/email.service';
 import { SmsService } from '../modules/sms/services/sms.service';
 import { NotificationPriority } from '../modules/notifications/enums/notification-priority.enum';
+import { UsersService } from '../modules/users/services/users.service';
 export interface NotificationJob {
     type: 'SYSTEM' | 'USER' | 'ORGANIZATION';
     title: string;
@@ -40,9 +41,10 @@ export declare class NotificationJob {
     private readonly emailService;
     private readonly smsService;
     private readonly configService;
+    private readonly usersService;
     private readonly logger;
     server: Server;
-    constructor(notificationQueue: Queue<NotificationJob>, notificationRepository: Repository<Notification>, userRepository: Repository<User>, pushSubscriptionRepository: Repository<PushSubscription>, emailService: EmailService, smsService: SmsService, configService: ConfigService);
+    constructor(notificationQueue: Queue<NotificationJob>, notificationRepository: Repository<Notification>, userRepository: Repository<User>, pushSubscriptionRepository: Repository<PushSubscription>, emailService: EmailService, smsService: SmsService, configService: ConfigService, usersService: UsersService);
     processNotification(job: Job<NotificationJob>): Promise<{
         success: boolean;
         error: string;
@@ -57,6 +59,7 @@ export declare class NotificationJob {
     private sendInAppNotifications;
     private sendEmailNotifications;
     private sendSmsNotifications;
+    private formatMessage;
     private sendPushNotifications;
     private sendPushNotification;
     addToQueue(data: NotificationJob): Promise<Job<NotificationJob>>;

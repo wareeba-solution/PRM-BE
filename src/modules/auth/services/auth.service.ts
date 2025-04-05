@@ -15,6 +15,7 @@ import { JwtPayload } from '../../../interfaces/jwt-payload.interface';
 import { UsersService } from '../../users/services/users.service';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
+import { UserSettings } from '../../users/entities/user-settings.entity';
 
 @Injectable()
 export class AuthService {
@@ -28,6 +29,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
     private readonly configService: ConfigService,
+    @InjectRepository(UserSettings)
+    private readonly userSettingsRepository: Repository<UserSettings>,
   ) { }
 
   /**
@@ -161,11 +164,11 @@ export class AuthService {
   async register(registerDto: RegisterDto, metadata: { userAgent: string; ip: string }) {
     // Check if user with the same email already exists
     const existingUser = await this.userRepository.findOne({
-      where: { email: registerDto.user.email },
+        where: { email: registerDto.user.email },
     });
 
     if (existingUser) {
-      throw new UnauthorizedException('Email already registered');
+        throw new UnauthorizedException('Email already registered');
     }
 
     // Create organization first
@@ -175,86 +178,76 @@ export class AuthService {
     organization.isSubscriptionActive = true;
 
     if (registerDto.organization.website) {
-      organization.website = registerDto.organization.website;
+        organization.website = registerDto.organization.website;
     }
 
     if (registerDto.organization.phone) {
-      organization.contactInfo = {
-        phone: registerDto.organization.phone
-      };
+        organization.contactInfo = {
+            phone: registerDto.organization.phone
+        };
     }
 
     if (registerDto.organization.address) {
-      organization.contactInfo = {
-        ...organization.contactInfo,
-        address: {
-          street: registerDto.organization.address.street,
-          city: registerDto.organization.address.city,
-          state: registerDto.organization.address.state,
-          postalCode: registerDto.organization.address.postalCode,
-          country: registerDto.organization.address.country,
-        },
-      };
+        organization.contactInfo = {
+            ...organization.contactInfo,
+            address: {
+                street: registerDto.organization.address.street,
+                city: registerDto.organization.address.city,
+                state: registerDto.organization.address.state,
+                postalCode: registerDto.organization.address.postalCode,
+                country: registerDto.organization.address.country,
+            },
+        };
     }
-
-    // Generate a slug from the organization name
-    organization.slug = this.generateSlug(registerDto.organization.name);
 
     const savedOrganization = await this.organizationRepository.save(organization);
 
-    // Hash the password
-    const hashedPassword = await hash(registerDto.user.password, 10);
-
-    // Create the user
+    // Create user
     const user = new User();
+    user.email = registerDto.user.email;
+    user.password = await hash(registerDto.user.password, 10);
     user.firstName = registerDto.user.firstName;
     user.lastName = registerDto.user.lastName;
-    user.email = registerDto.user.email;
-    user.password = hashedPassword;
-    user.role = registerDto.user.role || Role.ADMIN; // Default role for first user
+    user.role = Role.ADMIN;
     user.organizationId = savedOrganization.id;
-    user.createdById = savedOrganization.id; // Temporary, will be updated later
-
-    if (registerDto.user.phone) {
-      user.phoneNumber = registerDto.user.phone;
-    }
+    user.createdById = null; // System created
 
     const savedUser = await this.userRepository.save(user);
 
-    // Update the organization's createdById to point to the user
-    savedOrganization.createdById = savedUser.id;
-    await this.organizationRepository.save(savedOrganization);
+    // Create user settings
+    const settings = new UserSettings();
+    settings.userId = savedUser.id;
+    settings.phone = registerDto.user.phone;
+    settings.notificationPreferences = {
+        email: true,
+        sms: !!registerDto.user.phone,
+        inApp: true,
+        push: false
+    };
+    await this.userSettingsRepository.save(settings);
 
     // Generate tokens
     const payload: JwtPayload = {
-      sub: savedUser.id,
-      email: savedUser.email,
-      role: savedUser.role,
-      organizationId: savedOrganization.id,
-      permissions: [],
-      sessionId: uuidv4(),
+        sub: savedUser.id,
+        email: savedUser.email,
+        role: savedUser.role,
+        organizationId: savedOrganization.id,
+        permissions: [],
+        sessionId: uuidv4(),
     };
 
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = await this.generateRefreshToken(savedUser.id, metadata);
 
-    // Return response without exposing password
     return {
-      accessToken,
-      refreshToken: refreshToken.token,
-      user: {
-        id: savedUser.id,
-        email: savedUser.email,
-        firstName: savedUser.firstName,
-        lastName: savedUser.lastName,
-        role: savedUser.role,
-        organizationId: savedOrganization.id,
-      },
-      organization: {
-        id: savedOrganization.id,
-        name: savedOrganization.name,
-        status: savedOrganization.status,
-      },
+        accessToken,
+        refreshToken: refreshToken.token,
+        user: {
+            id: savedUser.id,
+            email: savedUser.email,
+            role: savedUser.role,
+            organizationId: savedOrganization.id,
+        },
     };
   }
 

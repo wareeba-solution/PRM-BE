@@ -8,15 +8,17 @@ import { UpdatePasswordDto } from '../dto/update-password.dto';
 import { UpdateProfileDto } from '../dto/update-profile.dto';
 import { UserQueryDto } from '../dto/user-query.dto';
 import { NotificationsService } from '../../notifications/services/notifications.service';
+import { UserSettings } from '../entities/user-settings.entity';
 export declare class UsersService {
     private readonly userRepository;
     private readonly activityRepository;
+    private readonly userSettingsRepository;
     private readonly dataSource;
     private readonly eventEmitter;
     private readonly notificationsService;
     findUsersByRole(organizationId: string, arg1: string): void;
     private readonly permissionsByRole;
-    constructor(userRepository: Repository<User>, activityRepository: Repository<UserActivity>, dataSource: DataSource, eventEmitter: EventEmitter2, notificationsService: NotificationsService);
+    constructor(userRepository: Repository<User>, activityRepository: Repository<UserActivity>, userSettingsRepository: Repository<UserSettings>, dataSource: DataSource, eventEmitter: EventEmitter2, notificationsService: NotificationsService);
     findByRole(role: string, organizationId: string): Promise<User[]>;
     create(data: CreateUserDto & {
         organizationId: string;

@@ -14,6 +14,7 @@ import { PushSubscription } from '../modules/notifications/entities/push-subscri
 import { EmailService } from '../modules/email/services/email.service';
 import { SmsService } from '../modules/sms/services/sms.service';
 import { NotificationPriority } from '../modules/notifications/enums/notification-priority.enum';
+import { UsersService } from '../modules/users/services/users.service';
 
 
 
@@ -63,6 +64,7 @@ export class NotificationJob {
         private readonly emailService: EmailService,
         private readonly smsService: SmsService,
         private readonly configService: ConfigService,
+        private readonly usersService: UsersService,
     ) {}
 
     @Process('send')
@@ -219,18 +221,16 @@ export class NotificationJob {
 
             // Send SMS
             const smsPromises = Object.entries(userNotifications).map(async ([userId, userNotifs]) => {
-                const user = await this.userRepository.findOne({ where: { id: userId } });
-                if (!user || !user.mobilePhone) return;
+                const user = await this.usersService.findOne(userId, notifications[0].organizationId);
+                if (!user) return;
 
-                // Change this line:
-                // await this.smsService.sendSms(user.mobilePhone, {
-                //     notifications: userNotifs,
-                //     userName: `${user.firstName} ${user.lastName}`,
-                // });
+                const settings = await user.settings;
+                if (!settings?.phone || !settings.notificationPreferences?.sms) return;
 
-                // To this (which matches your SmsService.sendSms method signature):
-                const message = `You have ${userNotifs.length} new notification(s): ${userNotifs[0].title}${userNotifs.length > 1 ? ' and more...' : ''}`;
-                await this.smsService.sendSms(user.mobilePhone, message);
+                const message = this.formatMessage(userNotifs[0], userNotifs);
+                if (!message) return;
+
+                await this.smsService.sendSms(settings.phone, message);
             });
 
             await Promise.all(smsPromises);
@@ -238,6 +238,13 @@ export class NotificationJob {
             this.logger.error('Failed to send SMS notifications:', error);
             throw error;
         }
+    }
+
+    private formatMessage(notification: Notification, notifications?: Notification[]): string {
+        if (notifications) {
+            return `You have ${notifications.length} new notification(s): ${notification.title}${notifications.length > 1 ? ' and more...' : ''}`;
+        }
+        return `New notification: ${notification.title}`;
     }
 
     private async sendPushNotifications(notifications: Notification[]) {

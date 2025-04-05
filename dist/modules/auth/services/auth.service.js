@@ -37,14 +37,16 @@ const role_enum_1 = require("../../users/enums/role.enum");
 const users_service_1 = require("../../users/services/users.service");
 const uuid_1 = require("uuid");
 const config_1 = require("@nestjs/config");
+const user_settings_entity_1 = require("../../users/entities/user-settings.entity");
 let AuthService = class AuthService {
-    constructor(userRepository, refreshTokenRepository, organizationRepository, jwtService, usersService, configService) {
+    constructor(userRepository, refreshTokenRepository, organizationRepository, jwtService, usersService, configService, userSettingsRepository) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.organizationRepository = organizationRepository;
         this.jwtService = jwtService;
         this.usersService = usersService;
         this.configService = configService;
+        this.userSettingsRepository = userSettingsRepository;
     }
     /**
      * Checks if a token has been blacklisted
@@ -188,27 +190,28 @@ let AuthService = class AuthService {
                     country: registerDto.organization.address.country,
                 } });
         }
-        // Generate a slug from the organization name
-        organization.slug = this.generateSlug(registerDto.organization.name);
         const savedOrganization = await this.organizationRepository.save(organization);
-        // Hash the password
-        const hashedPassword = await (0, bcrypt_1.hash)(registerDto.user.password, 10);
-        // Create the user
+        // Create user
         const user = new user_entity_1.User();
+        user.email = registerDto.user.email;
+        user.password = await (0, bcrypt_1.hash)(registerDto.user.password, 10);
         user.firstName = registerDto.user.firstName;
         user.lastName = registerDto.user.lastName;
-        user.email = registerDto.user.email;
-        user.password = hashedPassword;
-        user.role = registerDto.user.role || role_enum_1.Role.ADMIN; // Default role for first user
+        user.role = role_enum_1.Role.ADMIN;
         user.organizationId = savedOrganization.id;
-        user.createdById = savedOrganization.id; // Temporary, will be updated later
-        if (registerDto.user.phone) {
-            user.phoneNumber = registerDto.user.phone;
-        }
+        user.createdById = null; // System created
         const savedUser = await this.userRepository.save(user);
-        // Update the organization's createdById to point to the user
-        savedOrganization.createdById = savedUser.id;
-        await this.organizationRepository.save(savedOrganization);
+        // Create user settings
+        const settings = new user_settings_entity_1.UserSettings();
+        settings.userId = savedUser.id;
+        settings.phone = registerDto.user.phone;
+        settings.notificationPreferences = {
+            email: true,
+            sms: !!registerDto.user.phone,
+            inApp: true,
+            push: false
+        };
+        await this.userSettingsRepository.save(settings);
         // Generate tokens
         const payload = {
             sub: savedUser.id,
@@ -220,22 +223,14 @@ let AuthService = class AuthService {
         };
         const accessToken = this.jwtService.sign(payload);
         const refreshToken = await this.generateRefreshToken(savedUser.id, metadata);
-        // Return response without exposing password
         return {
             accessToken,
             refreshToken: refreshToken.token,
             user: {
                 id: savedUser.id,
                 email: savedUser.email,
-                firstName: savedUser.firstName,
-                lastName: savedUser.lastName,
                 role: savedUser.role,
                 organizationId: savedOrganization.id,
-            },
-            organization: {
-                id: savedOrganization.id,
-                name: savedOrganization.name,
-                status: savedOrganization.status,
             },
         };
     }
@@ -368,12 +363,14 @@ AuthService = __decorate([
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __param(1, (0, typeorm_1.InjectRepository)(refresh_token_entity_1.RefreshToken)),
     __param(2, (0, typeorm_1.InjectRepository)(organization_entity_1.Organization)),
+    __param(6, (0, typeorm_1.InjectRepository)(user_settings_entity_1.UserSettings)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
         jwt_1.JwtService,
         users_service_1.UsersService,
-        config_1.ConfigService])
+        config_1.ConfigService,
+        typeorm_2.Repository])
 ], AuthService);
 exports.AuthService = AuthService;
 //# sourceMappingURL=auth.service.js.map

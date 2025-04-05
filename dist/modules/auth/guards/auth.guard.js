@@ -39,37 +39,29 @@ let AuthGuard = AuthGuard_1 = class AuthGuard {
             if (!token) {
                 if (isPublic)
                     return true;
-                throw new common_1.UnauthorizedException('No authentication token provided');
+                throw new common_1.UnauthorizedException('No token provided');
             }
             try {
-                // Verify and decode the token using JwtService directly
-                const payload = this.jwtService.verify(token, {
+                const payload = await this.jwtService.verifyAsync(token, {
                     secret: this.configService.get('JWT_SECRET')
                 });
-                // Check if token is blacklisted using existing method
-                if (this.authService.isTokenBlacklisted(token)) {
-                    throw new common_1.UnauthorizedException('Token has been revoked');
-                }
-                // Fetch user data using existing UsersService
-                const user = await this.usersService.findById(payload.sub);
+                const user = await this.usersService.findOne(payload.sub, payload.organizationId);
                 if (!user) {
                     throw new common_1.UnauthorizedException('User not found');
                 }
-                // Check if user is active
                 if (!user.isActive) {
                     throw new common_1.UnauthorizedException('User account is inactive');
                 }
-                // Check if email verification is required
-                if (this.authService.requireEmailVerification && !user.isEmailVerified) {
-                    throw new common_1.UnauthorizedException('Email verification required');
+                if (user.isLocked) {
+                    throw new common_1.UnauthorizedException('User account is locked');
                 }
-                // Attach user and token info to request for controllers to use
+                if (this.authService.requireEmailVerification) {
+                    const verification = await user.verification;
+                    if (!(verification === null || verification === void 0 ? void 0 : verification.isEmailVerified)) {
+                        throw new common_1.UnauthorizedException('Email verification required');
+                    }
+                }
                 request.user = user;
-                request.tokenMetadata = {
-                    token,
-                    iat: payload.iat,
-                    exp: payload.exp,
-                };
                 return true;
             }
             catch (error) {

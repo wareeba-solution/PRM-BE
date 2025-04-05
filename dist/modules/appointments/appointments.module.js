@@ -20,6 +20,7 @@ const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const refresh_token_entity_1 = require("../auth/entities/refresh-token.entity");
 const user_entity_1 = require("../users/entities/user.entity");
 const organization_entity_1 = require("../organizations/entities/organization.entity");
+const user_settings_entity_1 = require("../users/entities/user-settings.entity");
 const users_module_1 = require("../users/users.module");
 var AppointmentEventTypes;
 (function (AppointmentEventTypes) {
@@ -46,7 +47,7 @@ AppointmentsModule = __decorate([
                     },
                 }),
             }),
-            typeorm_1.TypeOrmModule.forFeature([user_entity_1.User, refresh_token_entity_1.RefreshToken, organization_entity_1.Organization]),
+            typeorm_1.TypeOrmModule.forFeature([user_entity_1.User, refresh_token_entity_1.RefreshToken, organization_entity_1.Organization, user_settings_entity_1.UserSettings]),
             users_module_1.UsersModule,
         ],
         controllers: [auth_controller_1.AuthController],

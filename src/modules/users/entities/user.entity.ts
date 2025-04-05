@@ -9,10 +9,14 @@ import {
     DeleteDateColumn,
     ManyToOne,
     OneToMany,
+    OneToOne,
     JoinColumn,
     Index,
+    BeforeInsert,
+    BeforeUpdate
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
 import { Role } from '../enums/role.enum';
 import { Organization } from '../../organizations/entities/organization.entity';
 import { Ticket } from '../../tickets/entities/ticket.entity';
@@ -20,27 +24,28 @@ import { Message } from '../../messages/entities/message.entity';
 import { Appointment } from '../../appointments/entities/appointment.entity';
 import { Notification } from '../../notifications/entities/notification.entity';
 import { UserActivity } from './user-activity.entity';
+import { UserProfile } from './user-profile.entity';
+import { UserVerification } from './user-verification.entity';
+import { UserSettings } from './user-settings.entity';
 
 @Entity('users')
 @Index(['organizationId', 'email'])
-@Index(['organizationId', 'phoneNumber'])
 @Index(['organizationId', 'role'])
 export class User {
     @ApiProperty()
     @PrimaryGeneratedColumn('uuid')
     id: string;
-    mobilePhone?: string; // added mobilePhone property
 
     @ApiProperty()
     @Column()
     organizationId: string;
 
     @ApiProperty()
-    @Column()
+    @Column({ length: 50 })
     firstName: string;
 
     @ApiProperty()
-    @Column()
+    @Column({ length: 50 })
     lastName: string;
 
     @ApiProperty()
@@ -49,11 +54,8 @@ export class User {
     email: string;
 
     @Column()
+    @Exclude()
     password: string;
-
-    @ApiProperty()
-    @Column({ nullable: true })
-    phoneNumber?: string;
 
     @ApiProperty()
     @Column({
@@ -64,80 +66,8 @@ export class User {
     role: Role;
 
     @ApiProperty()
-    @Column({ nullable: true })
-    title?: string;
-
-    @ApiProperty()
-    @Column({ nullable: true })
-    department?: string;
-
-    @ApiProperty()
-    @Column({ nullable: true })
-    employeeId?: string;
-
-    @ApiProperty()
-    @Column({ type: 'jsonb', nullable: true })
-    address?: {
-        street: string;
-        city: string;
-        state: string;
-        postalCode: string;
-        country: string;
-    };
-
-    @ApiProperty()
-    @Column({ type: 'jsonb', nullable: true })
-    emergencyContact?: {
-        name: string;
-        relationship: string;
-        phone: string;
-        address?: string;
-    };
-
-    @ApiProperty()
-    @Column({ nullable: true })
-    licenseNumber?: string;
-
-    @ApiProperty()
-    @Column({ nullable: true })
-    specialization?: string;
-
-    @ApiProperty()
-    @Column('simple-array', { nullable: true })
-    qualifications?: string[];
-
-    @ApiProperty()
-    @Column('simple-array', { nullable: true })
-    certifications?: string[];
-
-    @ApiProperty()
-    @Column({ default: false })
-    isOnCall: boolean;
-
-    @ApiProperty()
-    @Column('simple-array', { nullable: true })
-    languages?: string[];
-
-    @ApiProperty()
-    @Column({ default: true })
-    requirePasswordChange: boolean;
-
-    @ApiProperty()
-    @Column({ type: 'jsonb', nullable: true })
-    preferences?: {
-        theme?: string;
-        notifications?: {
-            email?: boolean;
-            sms?: boolean;
-            inApp?: boolean;
-        };
-        timezone?: string;
-        language?: string;
-    };
-
-    @ApiProperty()
-    @Column({ type: 'jsonb', nullable: true })
-    metadata?: Record<string, any>;
+    @Column({ type: 'simple-array', nullable: true })
+    permissions: string[];
 
     @ApiProperty()
     @Column({ default: true })
@@ -152,8 +82,8 @@ export class User {
     isEmailVerified: boolean;
 
     @ApiProperty()
-    @Column({ default: false })
-    isPhoneVerified: boolean;
+    @Column({ default: true })
+    requirePasswordChange: boolean;
 
     @ApiProperty()
     @Column({ nullable: true })
@@ -164,24 +94,28 @@ export class User {
     lastActiveAt?: Date;
 
     @ApiProperty()
-    @Column('simple-array', { nullable: true })
-    deviceTokens?: string[];
-
-    @ApiProperty()
-    @Column({ nullable: true })
-    avatar?: string;
-
-    @ApiProperty()
-    @Column({ nullable: true })
-    signature?: string;
-
-    @ApiProperty()
     @Column()
     createdById: string;
 
     @ApiProperty()
     @Column({ nullable: true })
     updatedById?: string;
+
+    @ApiProperty()
+    @Column({ nullable: true })
+    refreshToken?: string;
+
+    @ApiProperty()
+    @Column({ nullable: true, type: 'timestamp' })
+    refreshTokenExpiresAt?: Date;
+
+    @ApiProperty()
+    @Column({ nullable: true })
+    passwordResetToken?: string;
+
+    @ApiProperty()
+    @Column({ nullable: true, type: 'timestamp' })
+    passwordResetExpiresAt?: Date;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -204,19 +138,25 @@ export class User {
     @JoinColumn({ name: 'organizationId' })
     organization: Promise<Organization>;
 
-    // Change this to use lazy loading
     @ApiProperty({ type: () => User })
     @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'createdById' })
     createdBy: Promise<User>;
 
-    // Change this to use lazy loading
     @ApiProperty({ type: () => User, nullable: true })
     @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'updatedById' })
     updatedBy?: Promise<User>;
 
-    // Other relationships remain the same but add lazy loading
+    @OneToOne(() => UserProfile, { lazy: true })
+    profile: Promise<UserProfile>;
+
+    @OneToOne(() => UserVerification, { lazy: true })
+    verification: Promise<UserVerification>;
+
+    @OneToOne(() => UserSettings, { lazy: true })
+    settings: Promise<UserSettings>;
+
     @OneToMany(() => Ticket, ticket => ticket.assignee, { lazy: true })
     assignedTickets: Promise<Ticket[]>;
 
@@ -244,5 +184,13 @@ export class User {
     @ApiProperty()
     get isAvailable(): boolean {
         return this.isActive && !this.isLocked;
+    }
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    normalizeEmail() {
+        if (this.email) {
+            this.email = this.email.toLowerCase().trim();
+        }
     }
 }

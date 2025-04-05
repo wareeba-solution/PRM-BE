@@ -28,8 +28,9 @@ const push_subscription_entity_1 = require("../modules/notifications/entities/pu
 const email_service_1 = require("../modules/email/services/email.service");
 const sms_service_1 = require("../modules/sms/services/sms.service");
 const notification_priority_enum_1 = require("../modules/notifications/enums/notification-priority.enum");
+const users_service_1 = require("../modules/users/services/users.service");
 let NotificationJob = NotificationJob_1 = class NotificationJob {
-    constructor(notificationQueue, notificationRepository, userRepository, pushSubscriptionRepository, emailService, smsService, configService) {
+    constructor(notificationQueue, notificationRepository, userRepository, pushSubscriptionRepository, emailService, smsService, configService, usersService) {
         this.notificationQueue = notificationQueue;
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
@@ -37,6 +38,7 @@ let NotificationJob = NotificationJob_1 = class NotificationJob {
         this.emailService = emailService;
         this.smsService = smsService;
         this.configService = configService;
+        this.usersService = usersService;
         this.logger = new common_1.Logger(NotificationJob_1.name);
     }
     async processNotification(job) {
@@ -168,17 +170,17 @@ let NotificationJob = NotificationJob_1 = class NotificationJob {
             }, {});
             // Send SMS
             const smsPromises = Object.entries(userNotifications).map(async ([userId, userNotifs]) => {
-                const user = await this.userRepository.findOne({ where: { id: userId } });
-                if (!user || !user.mobilePhone)
+                var _a;
+                const user = await this.usersService.findOne(userId, notifications[0].organizationId);
+                if (!user)
                     return;
-                // Change this line:
-                // await this.smsService.sendSms(user.mobilePhone, {
-                //     notifications: userNotifs,
-                //     userName: `${user.firstName} ${user.lastName}`,
-                // });
-                // To this (which matches your SmsService.sendSms method signature):
-                const message = `You have ${userNotifs.length} new notification(s): ${userNotifs[0].title}${userNotifs.length > 1 ? ' and more...' : ''}`;
-                await this.smsService.sendSms(user.mobilePhone, message);
+                const settings = await user.settings;
+                if (!(settings === null || settings === void 0 ? void 0 : settings.phone) || !((_a = settings.notificationPreferences) === null || _a === void 0 ? void 0 : _a.sms))
+                    return;
+                const message = this.formatMessage(userNotifs[0], userNotifs);
+                if (!message)
+                    return;
+                await this.smsService.sendSms(settings.phone, message);
             });
             await Promise.all(smsPromises);
         }
@@ -186,6 +188,12 @@ let NotificationJob = NotificationJob_1 = class NotificationJob {
             this.logger.error('Failed to send SMS notifications:', error);
             throw error;
         }
+    }
+    formatMessage(notification, notifications) {
+        if (notifications) {
+            return `You have ${notifications.length} new notification(s): ${notification.title}${notifications.length > 1 ? ' and more...' : ''}`;
+        }
+        return `New notification: ${notification.title}`;
     }
     async sendPushNotifications(notifications) {
         try {
@@ -296,7 +304,8 @@ NotificationJob = NotificationJob_1 = __decorate([
         typeorm_2.Repository,
         email_service_1.EmailService,
         sms_service_1.SmsService,
-        config_1.ConfigService])
+        config_1.ConfigService,
+        users_service_1.UsersService])
 ], NotificationJob);
 exports.NotificationJob = NotificationJob;
 //# sourceMappingURL=notification.job.js.map

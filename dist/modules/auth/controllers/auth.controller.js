@@ -46,16 +46,13 @@ let AuthController = class AuthController {
         };
     }
     async register(registerDto, userAgent, ip) {
-        const result = await this.authService.register(registerDto, {
-            userAgent,
-            ip,
-        });
+        const result = await this.authService.register(registerDto, { userAgent, ip });
         return {
-            user: result.user,
-            organization: result.organization,
-            tokens: {
+            message: 'Registration successful',
+            data: {
                 accessToken: result.accessToken,
                 refreshToken: result.refreshToken,
+                user: result.user,
             },
         };
     }
@@ -118,8 +115,9 @@ __decorate([
 __decorate([
     (0, common_1.Post)('register'),
     (0, public_decorator_1.Public)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Register new user/organization' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.CREATED, description: 'Registration successful' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Register a new user and organization' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Successfully registered' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Bad request' }),
     openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Headers)('user-agent')),
