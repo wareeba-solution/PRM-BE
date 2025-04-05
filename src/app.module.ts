@@ -48,16 +48,12 @@ import { ThrottlerConfigService } from './config/throttler.config';
     // Database Module
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT, 10) || 5432,
-      username: process.env.DB_USERNAME || 'default_username',
-      password: process.env.DB_PASSWORD || 'default_password',
-      database: process.env.DB_NAME || 'default_database',
+      url: process.env.DATABASE_URL,
       schema: process.env.DB_SCHEMA || 'public',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: process.env.DB_SYNC === 'true',
       logging: false,
-      ssl: process.env.DB_SSL === 'true',
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
     }),
 
     // Rate Limiting
