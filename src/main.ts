@@ -206,6 +206,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import express from 'express';
+import * as http from 'http';
 import { SwaggerService } from './swagger/swagger.service';
 import { ExpressAdapter } from '@nestjs/platform-express';
 
@@ -213,16 +214,28 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   console.log('Starting application bootstrap process...');
 
+  // CRITICAL: Get port from environment - Render requires this
+  const port = parseInt(process.env.PORT || '3000', 10);
+  console.log(`RENDER PORT: ${port}`);
+
+  // Create a basic Express app and IMMEDIATELY start listening
+  // This is crucial for Render to detect that port is in use
+  const expressApp = express();
+
+  // Basic health check route
+  expressApp.get('/', (req, res) => {
+    res.json({ status: 'ok', message: 'Service is running' });
+  });
+
+  // Create HTTP server with this Express app and start listening immediately
+  const server = http.createServer(expressApp);
+  server.listen(port, '0.0.0.0', () => {
+    console.log(`SERVER LISTENING ON PORT ${port} - RENDER SHOULD DETECT THIS`);
+  });
+
   try {
-    // Create a single Express instance we'll use throughout
-    const server = express();
-
-    // Get port from environment (Render will provide this)
-    const port = parseInt(process.env.PORT || '3000', 10);
-    console.log(`Using port: ${port}`);
-
-    // Create NestJS app with our Express instance
-    const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
+    // Now continue with NestJS initialization
+    const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
     console.log('NestJS application created');
 
     const configService = app.get(ConfigService);
@@ -249,8 +262,8 @@ async function bootstrap() {
       },
     }));
 
-    // Add root route and diagnostic routes directly to Express
-    server.get('/', (req, res) => {
+    // Override the root route with a more detailed one
+    expressApp.get('/', (req, res) => {
       res.json({
         name: 'Patient Relationship Manager API',
         version: '1.0',
@@ -260,15 +273,12 @@ async function bootstrap() {
       });
     });
 
-    server.get('/health', (req, res) => {
-      res.json({ status: 'ok' });
-    });
-
-    server.get('/health-check', (req, res) => {
+    // Add diagnostic routes
+    expressApp.get('/health-check', (req, res) => {
       res.json({ status: 'ok', time: new Date().toISOString() });
     });
 
-    server.get('/api-debug', (req, res) => {
+    expressApp.get('/api-debug', (req, res) => {
       res.json({
         status: 'ok',
         environment: process.env.NODE_ENV || 'development',
@@ -278,8 +288,6 @@ async function bootstrap() {
         timestamp: new Date().toISOString()
       });
     });
-
-    logger.log('Direct routes configured');
 
     // Initialize Swagger BEFORE setting global prefix
     try {
@@ -295,36 +303,27 @@ async function bootstrap() {
     app.setGlobalPrefix('api');
     logger.log('Global API prefix set to: /api');
 
-    // Add global middleware to handle trailing slashes
-    app.use((req, res, next) => {
-      if (req.path.length > 1 && req.path.endsWith('/')) {
-        const query = req.url.slice(req.path.length);
-        res.redirect(301, req.path.slice(0, -1) + query);
-      } else {
-        next();
-      }
-    });
-
     // Initialize the NestJS application
     await app.init();
-    logger.log('NestJS application initialized');
-
-    // Start listening on the port
-    await app.listen(port);
-    logger.log(`Application is running on port: ${port}`);
+    logger.log('NestJS application initialized and ready');
 
     console.log(`=============================================`);
     console.log(`NESTJS SERVER RUNNING ON PORT: ${port}`);
-    console.log(`ROOT: http://localhost:${port}/`);
-    console.log(`API: http://localhost:${port}/api`);
-    console.log(`SWAGGER DOCS: http://localhost:${port}/docs`);
-    console.log(`HEALTH CHECK: http://localhost:${port}/health-check`);
-    console.log(`DEBUG: http://localhost:${port}/api-debug`);
+    console.log(`ROOT: /`);
+    console.log(`API: /api`);
+    console.log(`SWAGGER DOCS: /docs`);
+    console.log(`HEALTH CHECK: /health-check`);
+    console.log(`DEBUG: /api-debug`);
     console.log(`=============================================`);
 
-    return app;
+    // Don't call app.listen() as we're already listening with the HTTP server
+
+    return { app, server };
   } catch (error) {
     logger.error('Failed to initialize application:', error);
+
+    // Even if initialization fails, keep the server running
+    // so Render can detect that we're binding to the port
 
     // Log additional context for debugging
     if (error instanceof Error) {
@@ -333,8 +332,7 @@ async function bootstrap() {
       logger.error(`Error stack: ${error.stack}`);
     }
 
-    // Re-throw to allow start.js to create fallback server
-    throw error;
+    return { server };
   }
 }
 

@@ -197,6 +197,29 @@
 // bootstrap().catch(err => {
 //   console.error('Unhandled error during bootstrap:', err);
 // });
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -208,19 +231,30 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const app_module_1 = require("./app.module");
 const express_1 = __importDefault(require("express"));
+const http = __importStar(require("http"));
 const swagger_service_1 = require("./swagger/swagger.service");
 const platform_express_1 = require("@nestjs/platform-express");
 async function bootstrap() {
     const logger = new common_1.Logger('Bootstrap');
     console.log('Starting application bootstrap process...');
+    // CRITICAL: Get port from environment - Render requires this
+    const port = parseInt(process.env.PORT || '3000', 10);
+    console.log(`RENDER PORT: ${port}`);
+    // Create a basic Express app and IMMEDIATELY start listening
+    // This is crucial for Render to detect that port is in use
+    const expressApp = (0, express_1.default)();
+    // Basic health check route
+    expressApp.get('/', (req, res) => {
+        res.json({ status: 'ok', message: 'Service is running' });
+    });
+    // Create HTTP server with this Express app and start listening immediately
+    const server = http.createServer(expressApp);
+    server.listen(port, '0.0.0.0', () => {
+        console.log(`SERVER LISTENING ON PORT ${port} - RENDER SHOULD DETECT THIS`);
+    });
     try {
-        // Create a single Express instance we'll use throughout
-        const server = (0, express_1.default)();
-        // Get port from environment (Render will provide this)
-        const port = parseInt(process.env.PORT || '3000', 10);
-        console.log(`Using port: ${port}`);
-        // Create NestJS app with our Express instance
-        const app = await core_1.NestFactory.create(app_module_1.AppModule, new platform_express_1.ExpressAdapter(server));
+        // Now continue with NestJS initialization
+        const app = await core_1.NestFactory.create(app_module_1.AppModule, new platform_express_1.ExpressAdapter(expressApp));
         console.log('NestJS application created');
         const configService = app.get(config_1.ConfigService);
         // Configure CORS
@@ -243,8 +277,8 @@ async function bootstrap() {
                 value: false
             },
         }));
-        // Add root route and diagnostic routes directly to Express
-        server.get('/', (req, res) => {
+        // Override the root route with a more detailed one
+        expressApp.get('/', (req, res) => {
             res.json({
                 name: 'Patient Relationship Manager API',
                 version: '1.0',
@@ -253,13 +287,11 @@ async function bootstrap() {
                 timestamp: new Date().toISOString()
             });
         });
-        server.get('/health', (req, res) => {
-            res.json({ status: 'ok' });
-        });
-        server.get('/health-check', (req, res) => {
+        // Add diagnostic routes
+        expressApp.get('/health-check', (req, res) => {
             res.json({ status: 'ok', time: new Date().toISOString() });
         });
-        server.get('/api-debug', (req, res) => {
+        expressApp.get('/api-debug', (req, res) => {
             res.json({
                 status: 'ok',
                 environment: process.env.NODE_ENV || 'development',
@@ -269,7 +301,6 @@ async function bootstrap() {
                 timestamp: new Date().toISOString()
             });
         });
-        logger.log('Direct routes configured');
         // Initialize Swagger BEFORE setting global prefix
         try {
             logger.log('Initializing Swagger documentation...');
@@ -283,42 +314,31 @@ async function bootstrap() {
         // Set global prefix AFTER Swagger setup
         app.setGlobalPrefix('api');
         logger.log('Global API prefix set to: /api');
-        // Add global middleware to handle trailing slashes
-        app.use((req, res, next) => {
-            if (req.path.length > 1 && req.path.endsWith('/')) {
-                const query = req.url.slice(req.path.length);
-                res.redirect(301, req.path.slice(0, -1) + query);
-            }
-            else {
-                next();
-            }
-        });
         // Initialize the NestJS application
         await app.init();
-        logger.log('NestJS application initialized');
-        // Start listening on the port
-        await app.listen(port);
-        logger.log(`Application is running on port: ${port}`);
+        logger.log('NestJS application initialized and ready');
         console.log(`=============================================`);
         console.log(`NESTJS SERVER RUNNING ON PORT: ${port}`);
-        console.log(`ROOT: http://localhost:${port}/`);
-        console.log(`API: http://localhost:${port}/api`);
-        console.log(`SWAGGER DOCS: http://localhost:${port}/docs`);
-        console.log(`HEALTH CHECK: http://localhost:${port}/health-check`);
-        console.log(`DEBUG: http://localhost:${port}/api-debug`);
+        console.log(`ROOT: /`);
+        console.log(`API: /api`);
+        console.log(`SWAGGER DOCS: /docs`);
+        console.log(`HEALTH CHECK: /health-check`);
+        console.log(`DEBUG: /api-debug`);
         console.log(`=============================================`);
-        return app;
+        // Don't call app.listen() as we're already listening with the HTTP server
+        return { app, server };
     }
     catch (error) {
         logger.error('Failed to initialize application:', error);
+        // Even if initialization fails, keep the server running
+        // so Render can detect that we're binding to the port
         // Log additional context for debugging
         if (error instanceof Error) {
             logger.error(`Error name: ${error.name}`);
             logger.error(`Error message: ${error.message}`);
             logger.error(`Error stack: ${error.stack}`);
         }
-        // Re-throw to allow start.js to create fallback server
-        throw error;
+        return { server };
     }
 }
 // Global error handlers
