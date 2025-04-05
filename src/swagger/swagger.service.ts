@@ -334,9 +334,213 @@
 
 
 // src/swagger/swagger.service.ts
+// import { Logger } from '@nestjs/common';
+// import { INestApplication } from '@nestjs/common';
+// import { SwaggerModule as NestSwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+// import { ManualOpenAPIObject } from './interfaces/manual-api.interface';
+// import * as schemasModule from './schemas/index';
+// import * as pathsModule from './paths/index';
+// import { ConfigService } from '@nestjs/config';
+//
+// export class SwaggerService {
+//     private readonly logger = new Logger('SwaggerService');
+//
+//     setup(app: INestApplication): void {
+//         // Immediately log that we're entering the setup method
+//         console.log('SWAGGER_DEBUG: Starting Swagger setup process');
+//
+//         try {
+//             // Render-specific environment check
+//             if (process.env.RENDER) {
+//                 console.log('SWAGGER_DEBUG: Running in Render environment');
+//                 console.log('SWAGGER_DEBUG: PORT =', process.env.PORT);
+//                 console.log('SWAGGER_DEBUG: NODE_ENV =', process.env.NODE_ENV);
+//                 console.log('SWAGGER_DEBUG: RENDER_EXTERNAL_URL =', process.env.RENDER_EXTERNAL_URL);
+//                 console.log('SWAGGER_DEBUG: IS_RENDER =', true);
+//             }
+//
+//             // Get config service
+//             const configService = app.get(ConfigService);
+//             const isProduction = configService.get<string>('app.nodeEnv') === 'production';
+//             const globalPrefix = 'api';
+//
+//             console.log(`SWAGGER_DEBUG: Environment: ${isProduction ? 'Production' : 'Development'}`);
+//             console.log(`SWAGGER_DEBUG: Global API prefix: ${globalPrefix}`);
+//
+//             // Create the OpenAPI document
+//             console.log('SWAGGER_DEBUG: Creating OpenAPI document');
+//             const config = new DocumentBuilder()
+//                 .setTitle('Patient Relationship Manager API')
+//                 .setDescription('API Documentation for PRM')
+//                 .setVersion('1.0')
+//                 .addBearerAuth({
+//                     type: 'http',
+//                     scheme: 'bearer',
+//                     bearerFormat: 'JWT',
+//                     description: 'Enter JWT token',
+//                 })
+//                 .addTag('Auth', 'Authentication endpoints')
+//                 .addTag('Users', 'User management endpoints')
+//                 .addTag('Organizations', 'Organization management endpoints')
+//                 .addTag('Contacts', 'Contact management endpoints')
+//                 .addTag('Appointments', 'Appointment scheduling endpoints')
+//                 .addTag('Tickets', 'Support ticket endpoints')
+//                 .addTag('Messages', 'Messaging functionality endpoints')
+//                 .addTag('Notifications', 'Notification management endpoints')
+//                 .build();
+//             console.log('SWAGGER_DEBUG: OpenAPI document created successfully');
+//
+//             // Load paths and schemas with more explicit error handling
+//             let paths = {};
+//             let schemas = {};
+//
+//             try {
+//                 console.log('SWAGGER_DEBUG: Loading API paths');
+//                 if (!pathsModule.getAllPaths) {
+//                     console.log('SWAGGER_DEBUG: WARNING - getAllPaths function not found in pathsModule');
+//                 }
+//                 paths = pathsModule.getAllPaths ? pathsModule.getAllPaths() : {};
+//                 console.log(`SWAGGER_DEBUG: Loaded ${Object.keys(paths).length} API paths`);
+//             } catch (error) {
+//                 console.log('SWAGGER_DEBUG: Failed to load API paths:', error.message);
+//                 console.log('SWAGGER_DEBUG: Setting empty paths object');
+//                 paths = {};
+//             }
+//
+//             try {
+//                 console.log('SWAGGER_DEBUG: Loading API schemas');
+//                 if (!schemasModule.getAllSchemas) {
+//                     console.log('SWAGGER_DEBUG: WARNING - getAllSchemas function not found in schemasModule');
+//                 }
+//                 schemas = schemasModule.getAllSchemas ? schemasModule.getAllSchemas() : {};
+//                 console.log(`SWAGGER_DEBUG: Loaded ${Object.keys(schemas).length} schemas`);
+//             } catch (error) {
+//                 console.log('SWAGGER_DEBUG: Failed to load schemas:', error.message);
+//                 console.log('SWAGGER_DEBUG: Setting empty schemas object');
+//                 schemas = {};
+//             }
+//
+//             // Log debug info about paths and schemas
+//             if (Object.keys(paths).length === 0) {
+//                 console.log('SWAGGER_DEBUG: WARNING - No paths loaded for Swagger documentation!');
+//             } else {
+//                 console.log('SWAGGER_DEBUG: First few path keys:', Object.keys(paths).slice(0, 3));
+//             }
+//
+//             if (Object.keys(schemas).length === 0) {
+//                 console.log('SWAGGER_DEBUG: WARNING - No schemas loaded for Swagger documentation!');
+//             } else {
+//                 console.log('SWAGGER_DEBUG: First few schema keys:', Object.keys(schemas).slice(0, 3));
+//             }
+//
+//             // Create the OpenAPI document
+//             console.log('SWAGGER_DEBUG: Creating final OpenAPI document with paths and schemas');
+//             const document: ManualOpenAPIObject = {
+//                 ...config,
+//                 paths,
+//                 components: {
+//                     schemas,
+//                     securitySchemes: {
+//                         bearerAuth: {
+//                             type: 'http',
+//                             scheme: 'bearer',
+//                             bearerFormat: 'JWT'
+//                         }
+//                     }
+//                 }
+//             };
+//
+//             // Setup direct Express routes
+//             console.log('SWAGGER_DEBUG: Setting up direct Express routes');
+//             try {
+//                 const expressApp = app.getHttpAdapter().getInstance();
+//
+//                 // Route for direct health check and debugging
+//                 expressApp.get('/api-debug', (req, res) => {
+//                     res.json({
+//                         status: 'ok',
+//                         timestamp: new Date().toISOString(),
+//                         environment: {
+//                             isRender: !!process.env.RENDER,
+//                             nodeEnv: process.env.NODE_ENV,
+//                             port: process.env.PORT
+//                         },
+//                         stats: {
+//                             pathCount: Object.keys(paths).length,
+//                             schemaCount: Object.keys(schemas).length
+//                         }
+//                     });
+//                 });
+//                 console.log('SWAGGER_DEBUG: Created /api-debug endpoint');
+//             } catch (error) {
+//                 console.log('SWAGGER_DEBUG: Failed to set up direct Express routes:', error.message);
+//             }
+//
+//             // Try multiple approaches for setting up Swagger
+//             try {
+//                 console.log('SWAGGER_DEBUG: Setting up Swagger documentation using NestSwaggerModule');
+//
+//                 // First try: Standard approach with multiple paths
+//                 const swaggerPaths = ['swagger', 'docs', 'api-docs'];
+//                 for (const path of swaggerPaths) {
+//                     try {
+//                         console.log(`SWAGGER_DEBUG: Setting up Swagger at /${path}`);
+//                         NestSwaggerModule.setup(path, app, document, {
+//                             useGlobalPrefix: false, // Don't use global prefix
+//                             swaggerOptions: {
+//                                 docExpansion: 'none',
+//                                 filter: true,
+//                                 showExtensions: true,
+//                                 persistAuthorization: true
+//                             },
+//                             customSiteTitle: 'PRM API Documentation'
+//                         });
+//                         console.log(`SWAGGER_DEBUG: Swagger UI set up successfully at /${path}`);
+//                     } catch (e) {
+//                         console.log(`SWAGGER_DEBUG: Error setting up Swagger at /${path}:`, e.message);
+//                     }
+//                 }
+//
+//                 // Second try: Setup with global prefix explicitly included
+//                 const prefixedPaths = [`${globalPrefix}/swagger`, `${globalPrefix}/docs`];
+//                 for (const path of prefixedPaths) {
+//                     try {
+//                         console.log(`SWAGGER_DEBUG: Setting up Swagger at /${path}`);
+//                         NestSwaggerModule.setup(path, app, document, {
+//                             useGlobalPrefix: false, // Already included in path
+//                             swaggerOptions: {
+//                                 docExpansion: 'none',
+//                                 filter: true,
+//                                 showExtensions: true,
+//                                 persistAuthorization: true
+//                             },
+//                             customSiteTitle: 'PRM API Documentation'
+//                         });
+//                         console.log(`SWAGGER_DEBUG: Swagger UI set up successfully at /${path}`);
+//                     } catch (e) {
+//                         console.log(`SWAGGER_DEBUG: Error setting up Swagger at /${path}:`, e.message);
+//                     }
+//                 }
+//
+//             } catch (error) {
+//                 console.log('SWAGGER_DEBUG: Failed to set up Swagger:', error.message);
+//                 console.log('SWAGGER_DEBUG: Error stack:', error.stack);
+//             }
+//
+//             console.log('SWAGGER_DEBUG: Swagger setup process complete');
+//         } catch (error) {
+//             console.log('SWAGGER_DEBUG: Fatal error in Swagger setup:', error.message);
+//             console.log('SWAGGER_DEBUG: Error stack:', error.stack);
+//         }
+//     }
+// }
+
+
+
+// src/swagger/swagger.service.ts
 import { Logger } from '@nestjs/common';
 import { INestApplication } from '@nestjs/common';
-import { SwaggerModule as NestSwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { SwaggerModule as NestSwaggerModule, DocumentBuilder, OpenAPIObject } from '@nestjs/swagger';
 import { ManualOpenAPIObject } from './interfaces/manual-api.interface';
 import * as schemasModule from './schemas/index';
 import * as pathsModule from './paths/index';
@@ -346,191 +550,138 @@ export class SwaggerService {
     private readonly logger = new Logger('SwaggerService');
 
     setup(app: INestApplication): void {
-        // Immediately log that we're entering the setup method
-        console.log('SWAGGER_DEBUG: Starting Swagger setup process');
+        console.log('SWAGGER: Starting setup process');
 
         try {
-            // Render-specific environment check
-            if (process.env.RENDER) {
-                console.log('SWAGGER_DEBUG: Running in Render environment');
-                console.log('SWAGGER_DEBUG: PORT =', process.env.PORT);
-                console.log('SWAGGER_DEBUG: NODE_ENV =', process.env.NODE_ENV);
-                console.log('SWAGGER_DEBUG: RENDER_EXTERNAL_URL =', process.env.RENDER_EXTERNAL_URL);
-                console.log('SWAGGER_DEBUG: IS_RENDER =', true);
-            }
+            // Render-specific checks
+            console.log('SWAGGER: Environment variables:', {
+                NODE_ENV: process.env.NODE_ENV,
+                PORT: process.env.PORT,
+                RENDER: process.env.RENDER ? 'true' : 'false'
+            });
 
-            // Get config service
-            const configService = app.get(ConfigService);
-            const isProduction = configService.get<string>('app.nodeEnv') === 'production';
-            const globalPrefix = 'api';
+            const expressApp = app.getHttpAdapter().getInstance();
 
-            console.log(`SWAGGER_DEBUG: Environment: ${isProduction ? 'Production' : 'Development'}`);
-            console.log(`SWAGGER_DEBUG: Global API prefix: ${globalPrefix}`);
-
-            // Create the OpenAPI document
-            console.log('SWAGGER_DEBUG: Creating OpenAPI document');
-            const config = new DocumentBuilder()
+            // Create a proper DocumentBuilder with all necessary configuration
+            const document = new DocumentBuilder()
                 .setTitle('Patient Relationship Manager API')
                 .setDescription('API Documentation for PRM')
                 .setVersion('1.0')
-                .addBearerAuth({
-                    type: 'http',
-                    scheme: 'bearer',
-                    bearerFormat: 'JWT',
-                    description: 'Enter JWT token',
-                })
-                .addTag('Auth', 'Authentication endpoints')
-                .addTag('Users', 'User management endpoints')
-                .addTag('Organizations', 'Organization management endpoints')
-                .addTag('Contacts', 'Contact management endpoints')
-                .addTag('Appointments', 'Appointment scheduling endpoints')
-                .addTag('Tickets', 'Support ticket endpoints')
-                .addTag('Messages', 'Messaging functionality endpoints')
-                .addTag('Notifications', 'Notification management endpoints')
+                .addBearerAuth() // This properly sets up the security scheme
                 .build();
-            console.log('SWAGGER_DEBUG: OpenAPI document created successfully');
 
-            // Load paths and schemas with more explicit error handling
+            // Try to load paths and schemas safely
             let paths = {};
             let schemas = {};
 
             try {
-                console.log('SWAGGER_DEBUG: Loading API paths');
-                if (!pathsModule.getAllPaths) {
-                    console.log('SWAGGER_DEBUG: WARNING - getAllPaths function not found in pathsModule');
-                }
                 paths = pathsModule.getAllPaths ? pathsModule.getAllPaths() : {};
-                console.log(`SWAGGER_DEBUG: Loaded ${Object.keys(paths).length} API paths`);
+                console.log(`SWAGGER: Loaded ${Object.keys(paths).length} paths`);
             } catch (error) {
-                console.log('SWAGGER_DEBUG: Failed to load API paths:', error.message);
-                console.log('SWAGGER_DEBUG: Setting empty paths object');
-                paths = {};
+                console.error('SWAGGER: Failed to load paths:', error);
             }
 
             try {
-                console.log('SWAGGER_DEBUG: Loading API schemas');
-                if (!schemasModule.getAllSchemas) {
-                    console.log('SWAGGER_DEBUG: WARNING - getAllSchemas function not found in schemasModule');
-                }
                 schemas = schemasModule.getAllSchemas ? schemasModule.getAllSchemas() : {};
-                console.log(`SWAGGER_DEBUG: Loaded ${Object.keys(schemas).length} schemas`);
+                console.log(`SWAGGER: Loaded ${Object.keys(schemas).length} schemas`);
             } catch (error) {
-                console.log('SWAGGER_DEBUG: Failed to load schemas:', error.message);
-                console.log('SWAGGER_DEBUG: Setting empty schemas object');
-                schemas = {};
+                console.error('SWAGGER: Failed to load schemas:', error);
             }
 
-            // Log debug info about paths and schemas
+            // Add a simple health path if no paths were loaded
             if (Object.keys(paths).length === 0) {
-                console.log('SWAGGER_DEBUG: WARNING - No paths loaded for Swagger documentation!');
-            } else {
-                console.log('SWAGGER_DEBUG: First few path keys:', Object.keys(paths).slice(0, 3));
-            }
-
-            if (Object.keys(schemas).length === 0) {
-                console.log('SWAGGER_DEBUG: WARNING - No schemas loaded for Swagger documentation!');
-            } else {
-                console.log('SWAGGER_DEBUG: First few schema keys:', Object.keys(schemas).slice(0, 3));
-            }
-
-            // Create the OpenAPI document
-            console.log('SWAGGER_DEBUG: Creating final OpenAPI document with paths and schemas');
-            const document: ManualOpenAPIObject = {
-                ...config,
-                paths,
-                components: {
-                    schemas,
-                    securitySchemes: {
-                        bearerAuth: {
-                            type: 'http',
-                            scheme: 'bearer',
-                            bearerFormat: 'JWT'
+                console.log('SWAGGER: No paths loaded, adding a simple health path');
+                paths = {
+                    '/api/health': {
+                        get: {
+                            summary: 'Health check endpoint',
+                            responses: {
+                                '200': {
+                                    description: 'Service is healthy'
+                                }
+                            }
                         }
                     }
-                }
+                };
+            }
+
+            // Create the final document
+            const finalDocument: OpenAPIObject = {
+                ...document,
+                paths: paths
             };
 
-            // Setup direct Express routes
-            console.log('SWAGGER_DEBUG: Setting up direct Express routes');
-            try {
-                const expressApp = app.getHttpAdapter().getInstance();
+            if (Object.keys(schemas).length > 0) {
+                finalDocument.components = {
+                    ...finalDocument.components,
+                    schemas: schemas
+                };
+            }
 
-                // Route for direct health check and debugging
-                expressApp.get('/api-debug', (req, res) => {
-                    res.json({
-                        status: 'ok',
-                        timestamp: new Date().toISOString(),
-                        environment: {
-                            isRender: !!process.env.RENDER,
-                            nodeEnv: process.env.NODE_ENV,
-                            port: process.env.PORT
-                        },
-                        stats: {
-                            pathCount: Object.keys(paths).length,
-                            schemaCount: Object.keys(schemas).length
+            // Add a direct JSON endpoint for the API spec
+            expressApp.get('/swagger.json', (req, res) => {
+                res.json(finalDocument);
+                console.log('SWAGGER: Served /swagger.json');
+            });
+
+            // Add a simple HTML page that loads Swagger UI from CDN
+            expressApp.get('/swagger-ui', (req, res) => {
+                const html = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>API Documentation</title>
+                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.5.0/swagger-ui.css" />
+                    <style>
+                        html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
+                        body { margin: 0; background: #fafafa; }
+                    </style>
+                </head>
+                <body>
+                    <div id="swagger-ui"></div>
+                    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.5.0/swagger-ui-bundle.js"></script>
+                    <script>
+                        window.onload = function() {
+                            window.ui = SwaggerUIBundle({
+                                url: "/swagger.json",
+                                dom_id: '#swagger-ui',
+                                deepLinking: true,
+                                presets: [
+                                    SwaggerUIBundle.presets.apis
+                                ],
+                                layout: "BaseLayout"
+                            });
                         }
-                    });
-                });
-                console.log('SWAGGER_DEBUG: Created /api-debug endpoint');
-            } catch (error) {
-                console.log('SWAGGER_DEBUG: Failed to set up direct Express routes:', error.message);
-            }
+                    </script>
+                </body>
+                </html>
+                `;
+                res.setHeader('Content-Type', 'text/html');
+                res.send(html);
+                console.log('SWAGGER: Served /swagger-ui');
+            });
 
-            // Try multiple approaches for setting up Swagger
+            console.log('SWAGGER: Added direct routes for /swagger.json and /swagger-ui');
+
+            // Now try the standard NestJS setup with the properly typed document
             try {
-                console.log('SWAGGER_DEBUG: Setting up Swagger documentation using NestSwaggerModule');
-
-                // First try: Standard approach with multiple paths
-                const swaggerPaths = ['swagger', 'docs', 'api-docs'];
-                for (const path of swaggerPaths) {
-                    try {
-                        console.log(`SWAGGER_DEBUG: Setting up Swagger at /${path}`);
-                        NestSwaggerModule.setup(path, app, document, {
-                            useGlobalPrefix: false, // Don't use global prefix
-                            swaggerOptions: {
-                                docExpansion: 'none',
-                                filter: true,
-                                showExtensions: true,
-                                persistAuthorization: true
-                            },
-                            customSiteTitle: 'PRM API Documentation'
-                        });
-                        console.log(`SWAGGER_DEBUG: Swagger UI set up successfully at /${path}`);
-                    } catch (e) {
-                        console.log(`SWAGGER_DEBUG: Error setting up Swagger at /${path}:`, e.message);
-                    }
-                }
-
-                // Second try: Setup with global prefix explicitly included
-                const prefixedPaths = [`${globalPrefix}/swagger`, `${globalPrefix}/docs`];
-                for (const path of prefixedPaths) {
-                    try {
-                        console.log(`SWAGGER_DEBUG: Setting up Swagger at /${path}`);
-                        NestSwaggerModule.setup(path, app, document, {
-                            useGlobalPrefix: false, // Already included in path
-                            swaggerOptions: {
-                                docExpansion: 'none',
-                                filter: true,
-                                showExtensions: true,
-                                persistAuthorization: true
-                            },
-                            customSiteTitle: 'PRM API Documentation'
-                        });
-                        console.log(`SWAGGER_DEBUG: Swagger UI set up successfully at /${path}`);
-                    } catch (e) {
-                        console.log(`SWAGGER_DEBUG: Error setting up Swagger at /${path}:`, e.message);
-                    }
-                }
-
+                console.log('SWAGGER: Setting up via NestSwaggerModule');
+                NestSwaggerModule.setup('api-docs', app, finalDocument);
+                console.log('SWAGGER: Setup complete for /api-docs');
             } catch (error) {
-                console.log('SWAGGER_DEBUG: Failed to set up Swagger:', error.message);
-                console.log('SWAGGER_DEBUG: Error stack:', error.stack);
+                console.error('SWAGGER: Failed standard setup:', error);
             }
 
-            console.log('SWAGGER_DEBUG: Swagger setup process complete');
+            console.log('SWAGGER: Setup process complete');
+            console.log('SWAGGER: Try accessing:');
+            console.log('SWAGGER: - /swagger-ui (Direct HTML)');
+            console.log('SWAGGER: - /api-docs (NestJS Swagger)');
+            console.log('SWAGGER: - /swagger.json (Raw OpenAPI spec)');
+
         } catch (error) {
-            console.log('SWAGGER_DEBUG: Fatal error in Swagger setup:', error.message);
-            console.log('SWAGGER_DEBUG: Error stack:', error.stack);
+            console.error('SWAGGER: Fatal error in setup:', error);
         }
     }
 }
+
