@@ -8,6 +8,10 @@ import express from 'express';
 import * as http from 'http';
 import { SwaggerService } from './swagger/swagger.service';
 import { ExpressAdapter } from '@nestjs/platform-express';
+import * as dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -91,15 +95,24 @@ async function bootstrap() {
     // Log database connection details
     console.log('Database connection details:');
     if (process.env.DATABASE_URL) {
-      const url = new URL(process.env.DATABASE_URL);
-      console.log(`Database URL: ${url.protocol}//${url.username}:****@${url.hostname}:${url.port}${url.pathname}`);
+      try {
+        const url = new URL(process.env.DATABASE_URL);
+        console.log(`Database URL: ${url.protocol}//${url.username}:****@${url.hostname}:${url.port}${url.pathname}`);
+        console.log(`Database SSL: ${process.env.DB_SSL === 'true' ? 'Enabled' : 'Disabled'}`);
+      } catch (error) {
+        console.error('Error parsing DATABASE_URL:', error.message);
+        console.log('Using individual connection parameters instead');
+        console.log(`Host: ${process.env.DB_HOST}`);
+        console.log(`Port: ${process.env.DB_PORT}`);
+        console.log(`Username: ${process.env.DB_USERNAME}`);
+        console.log(`Database: ${process.env.DB_NAME}`);
+      }
     } else {
       console.log(`Host: ${process.env.DB_HOST}`);
       console.log(`Port: ${process.env.DB_PORT}`);
       console.log(`Username: ${process.env.DB_USERNAME}`);
       console.log(`Database: ${process.env.DB_NAME}`);
     }
-    console.log(`SSL: ${process.env.DB_SSL}`);
 
     // Initialize Swagger BEFORE setting global prefix
     try {
