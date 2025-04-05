@@ -359,8 +359,8 @@ async function bootstrap() {
           resolve();
         });
 
-        // Add error handler for the listen operation
-        httpServer.on('error', (err) => {
+        // Add error handler for the listen operation with proper typing
+        httpServer.on('error', (err: NodeJS.ErrnoException) => {
           if (err.code === 'EADDRINUSE') {
             console.error(`Port ${finalPort} is already in use! This may be because the temporary server wasn't closed properly.`);
           } else {
