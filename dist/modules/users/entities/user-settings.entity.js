@@ -15,7 +15,7 @@ const typeorm_1 = require("typeorm");
 const user_entity_1 = require("./user.entity");
 let UserSettings = class UserSettings {
     static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, userId: { required: true, type: () => String }, user: { required: true, type: () => require("./user.entity").User }, theme: { required: false, type: () => String }, language: { required: false, type: () => String }, timezone: { required: false, type: () => String }, phone: { required: false, type: () => String }, notificationPreferences: { required: false, type: () => ({ email: { required: false, type: () => Boolean }, sms: { required: false, type: () => Boolean }, inApp: { required: false, type: () => Boolean }, push: { required: false, type: () => Boolean } }) }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date } };
+        return { id: { required: true, type: () => String }, userId: { required: true, type: () => String }, user: { required: true, type: () => require("./user.entity").User }, theme: { required: false, type: () => String }, language: { required: false, type: () => String }, timezone: { required: false, type: () => String }, phone: { required: false, type: () => String }, notificationPreferences: { required: false, type: () => ({ email: { required: false, type: () => Boolean }, sms: { required: false, type: () => Boolean }, inApp: { required: false, type: () => Boolean }, push: { required: false, type: () => Boolean } }) }, metadata: { required: false, type: () => ({ platform: { required: false, type: () => String }, browser: { required: false, type: () => String }, lastLoginIp: { required: false, type: () => String }, lastUsed: { required: false, type: () => Date } }) }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date } };
     }
 };
 __decorate([
@@ -51,6 +51,10 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
     __metadata("design:type", Object)
 ], UserSettings.prototype, "notificationPreferences", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
+    __metadata("design:type", Object)
+], UserSettings.prototype, "metadata", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

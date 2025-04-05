@@ -124,14 +124,13 @@ let AuthService = class AuthService {
         return null;
     }
     async login(loginDto, metadata) {
-        var _a;
         const user = await this.validateUser(loginDto.email, loginDto.password);
         if (!user) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
         // Verify organization subscription status
         const organization = await this.organizationRepository.findOne({
-            where: { id: (_a = user.organization) === null || _a === void 0 ? void 0 : _a.id },
+            where: { id: user.organizationId },
         });
         if (!organization) {
             throw new common_1.UnauthorizedException('Organization not found');
@@ -166,30 +165,17 @@ let AuthService = class AuthService {
             where: { email: registerDto.user.email },
         });
         if (existingUser) {
-            throw new common_1.UnauthorizedException('Email already registered');
+            throw new common_1.UnauthorizedException('User with this email already exists');
         }
-        // Create organization first
+        // Create organization
         const organization = new organization_entity_1.Organization();
         organization.name = registerDto.organization.name;
+        organization.slug = this.generateSlug(registerDto.organization.name);
         organization.status = organization_entity_1.OrganizationStatus.ACTIVE;
         organization.isSubscriptionActive = true;
-        if (registerDto.organization.website) {
-            organization.website = registerDto.organization.website;
-        }
-        if (registerDto.organization.phone) {
-            organization.contactInfo = {
-                phone: registerDto.organization.phone
-            };
-        }
-        if (registerDto.organization.address) {
-            organization.contactInfo = Object.assign(Object.assign({}, organization.contactInfo), { address: {
-                    street: registerDto.organization.address.street,
-                    city: registerDto.organization.address.city,
-                    state: registerDto.organization.address.state,
-                    postalCode: registerDto.organization.address.postalCode,
-                    country: registerDto.organization.address.country,
-                } });
-        }
+        organization.subscriptionTier = organization_entity_1.SubscriptionTier.FREE;
+        organization.subscriptionExpiresAt = new Date();
+        organization.subscriptionExpiresAt.setFullYear(organization.subscriptionExpiresAt.getFullYear() + 1);
         const savedOrganization = await this.organizationRepository.save(organization);
         // Create user
         const user = new user_entity_1.User();
@@ -197,9 +183,12 @@ let AuthService = class AuthService {
         user.password = await (0, bcrypt_1.hash)(registerDto.user.password, 10);
         user.firstName = registerDto.user.firstName;
         user.lastName = registerDto.user.lastName;
-        user.role = role_enum_1.Role.ADMIN;
+        user.role = registerDto.user.role || role_enum_1.Role.ADMIN;
         user.organizationId = savedOrganization.id;
-        user.createdById = null; // System created
+        user.isActive = true;
+        user.isEmailVerified = false;
+        user.lastLoginAt = new Date();
+        // System created
         const savedUser = await this.userRepository.save(user);
         // Create user settings
         const settings = new user_settings_entity_1.UserSettings();
@@ -210,6 +199,12 @@ let AuthService = class AuthService {
             sms: !!registerDto.user.phone,
             inApp: true,
             push: false
+        };
+        settings.metadata = {
+            platform: this.extractPlatform(metadata.userAgent),
+            browser: this.extractBrowser(metadata.userAgent),
+            lastLoginIp: metadata.ip,
+            lastUsed: new Date()
         };
         await this.userSettingsRepository.save(settings);
         // Generate tokens
@@ -263,27 +258,17 @@ let AuthService = class AuthService {
         return { accessToken };
     }
     async generateRefreshToken(userId, metadata) {
-        // Create a unique token string
-        const tokenString = (0, uuid_1.v4)();
-        // Get the user to access the organization ID
-        const user = await this.userRepository.findOne({ where: { id: userId } });
-        if (!user) {
-            throw new common_1.UnauthorizedException('User not found');
-        }
-        // Create the refresh token entity
-        const token = new refresh_token_entity_1.RefreshToken();
-        token.userId = userId;
-        token.organizationId = user.organizationId;
-        token.token = tokenString;
-        token.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-        token.userAgent = metadata.userAgent;
-        token.ipAddress = metadata.ip;
-        token.metadata = {
-            platform: this.extractPlatform(metadata.userAgent),
-            browser: this.extractBrowser(metadata.userAgent),
-            lastUsed: new Date(),
-        };
-        return this.refreshTokenRepository.save(token);
+        const refreshToken = new refresh_token_entity_1.RefreshToken();
+        refreshToken.userId = userId;
+        refreshToken.token = (0, uuid_1.v4)();
+        refreshToken.expiresAt = new Date();
+        refreshToken.expiresAt.setDate(refreshToken.expiresAt.getDate() + 7); // 7 days
+        refreshToken.userAgent = metadata.userAgent;
+        refreshToken.ipAddress = metadata.ip;
+        refreshToken.isRevoked = false;
+        refreshToken.createdAt = new Date();
+        refreshToken.updatedAt = new Date();
+        return this.refreshTokenRepository.save(refreshToken);
     }
     async logout(userId) {
         await this.refreshTokenRepository.update({ userId }, { isRevoked: true, revokedAt: new Date(), revokedReason: 'User logout' });
@@ -300,49 +285,69 @@ let AuthService = class AuthService {
     generateSlug(name) {
         return name
             .toLowerCase()
-            .replace(/\s+/g, '-')
-            .replace(/[^a-z0-9-]/g, '')
-            .slice(0, 50) + '-' + Math.floor(Math.random() * 10000);
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)+/g, '');
     }
     extractPlatform(userAgent) {
         if (userAgent.includes('Windows'))
-            return 'Windows';
+            return 'windows';
         if (userAgent.includes('Mac'))
-            return 'Mac';
-        if (userAgent.includes('iPhone') || userAgent.includes('iPad'))
-            return 'iOS';
-        if (userAgent.includes('Android'))
-            return 'Android';
+            return 'mac';
         if (userAgent.includes('Linux'))
-            return 'Linux';
-        return 'Unknown';
+            return 'linux';
+        if (userAgent.includes('Android'))
+            return 'android';
+        if (userAgent.includes('iOS'))
+            return 'ios';
+        return 'unknown';
     }
     extractBrowser(userAgent) {
-        if (userAgent.includes('Chrome') && !userAgent.includes('Edg'))
-            return 'Chrome';
+        if (userAgent.includes('Chrome'))
+            return 'chrome';
         if (userAgent.includes('Firefox'))
-            return 'Firefox';
-        if (userAgent.includes('Safari') && !userAgent.includes('Chrome'))
-            return 'Safari';
-        if (userAgent.includes('Edg'))
-            return 'Edge';
-        if (userAgent.includes('Opera') || userAgent.includes('OPR'))
-            return 'Opera';
-        return 'Unknown';
+            return 'firefox';
+        if (userAgent.includes('Safari'))
+            return 'safari';
+        if (userAgent.includes('Edge'))
+            return 'edge';
+        if (userAgent.includes('Opera'))
+            return 'opera';
+        return 'unknown';
     }
     // Password reset methods
     async sendPasswordResetEmail(email) {
         const user = await this.userRepository.findOne({ where: { email } });
         if (!user) {
-            // Don't reveal if user exists for security
+            // Don't reveal that the user doesn't exist
             return;
         }
-        // Generate reset token, save it, and send email logic would go here
-        // This is a placeholder implementation
+        // Generate reset token
+        const resetToken = (0, uuid_1.v4)();
+        const resetTokenExpiry = new Date();
+        resetTokenExpiry.setHours(resetTokenExpiry.getHours() + 1); // 1 hour expiry
+        // Save reset token to user
+        user.passwordResetToken = resetToken;
+        user.passwordResetExpiresAt = resetTokenExpiry;
+        await this.userRepository.save(user);
+        // Send email with reset link
+        // This would typically use a mail service
+        console.log(`Password reset link: https://your-app.com/reset-password?token=${resetToken}`);
     }
     async changePassword(token, newPassword) {
-        // Validate token and update password logic would go here
-        // This is a placeholder implementation
+        const user = await this.userRepository.findOne({
+            where: { passwordResetToken: token },
+        });
+        if (!user) {
+            throw new common_1.UnauthorizedException('Invalid or expired reset token');
+        }
+        if (user.passwordResetExpiresAt < new Date()) {
+            throw new common_1.UnauthorizedException('Reset token has expired');
+        }
+        // Update password
+        user.password = await (0, bcrypt_1.hash)(newPassword, 10);
+        user.passwordResetToken = null;
+        user.passwordResetExpiresAt = null;
+        await this.userRepository.save(user);
     }
     // Email verification methods
     async confirmEmail(token) {

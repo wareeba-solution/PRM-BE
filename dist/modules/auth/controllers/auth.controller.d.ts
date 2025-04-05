@@ -10,9 +10,9 @@ export declare class AuthController {
     constructor(authService: AuthService);
     login(loginDto: LoginDto, userAgent: string, ip: string): Promise<{
         user: {
-            id: any;
-            email: any;
-            role: any;
+            id: string;
+            email: string;
+            role: import("../../users/enums/role.enum").Role;
             organizationId: string;
         };
         tokens: {

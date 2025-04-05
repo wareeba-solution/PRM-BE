@@ -79,15 +79,15 @@ AppModule = __decorate([
             typeorm_1.TypeOrmModule.forRoot({
                 type: 'postgres',
                 host: process.env.DB_HOST || 'localhost',
-                port: parseInt(process.env.DB_PORT, 10) || 5432,
-                username: process.env.DB_USERNAME || 'default_username',
-                password: process.env.DB_PASSWORD || 'default_password',
-                database: process.env.DB_NAME || 'default_database',
+                port: parseInt(process.env.DB_PORT || '5432', 10),
+                username: process.env.DB_USERNAME || 'postgres',
+                password: process.env.DB_PASSWORD || 'admin@123',
+                database: process.env.DB_NAME || 'prm_db',
                 schema: process.env.DB_SCHEMA || 'public',
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
                 synchronize: process.env.DB_SYNC === 'true',
                 logging: false,
-                ssl: process.env.DB_SSL === 'true',
+                ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
             }),
             // Rate Limiting
             throttler_1.ThrottlerModule.forRoot({

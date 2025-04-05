@@ -41,6 +41,14 @@ export class UserSettings {
         push?: boolean;
     };
 
+    @Column({ type: 'jsonb', nullable: true })
+    metadata?: {
+        platform?: string;
+        browser?: string;
+        lastLoginIp?: string;
+        lastUsed?: Date;
+    };
+
     @CreateDateColumn()
     createdAt: Date;
 

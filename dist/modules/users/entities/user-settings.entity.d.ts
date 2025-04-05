@@ -13,6 +13,12 @@ export declare class UserSettings {
         inApp?: boolean;
         push?: boolean;
     };
+    metadata?: {
+        platform?: string;
+        browser?: string;
+        lastLoginIp?: string;
+        lastUsed?: Date;
+    };
     createdAt: Date;
     updatedAt: Date;
 }

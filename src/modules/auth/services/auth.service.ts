@@ -9,7 +9,7 @@ import { RefreshToken } from '../entities/refresh-token.entity';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
 import { compare, hash } from 'bcrypt';
-import { Organization, OrganizationStatus } from '../../organizations/entities/organization.entity';
+import { Organization, OrganizationStatus, SubscriptionTier } from '../../organizations/entities/organization.entity';
 import { Role } from '../../users/enums/role.enum';
 import { JwtPayload } from '../../../interfaces/jwt-payload.interface';
 import { UsersService } from '../../users/services/users.service';
@@ -102,7 +102,7 @@ export class AuthService {
     return true; // or false based on the check
   }
 
-  async validateUser(email: string, password: string): Promise<any> {
+  async validateUser(email: string, password: string) {
     const user = await this.userRepository.findOne({
       where: { email },
       relations: ['organization'],
@@ -126,7 +126,7 @@ export class AuthService {
 
     // Verify organization subscription status
     const organization = await this.organizationRepository.findOne({
-      where: { id: user.organization?.id },
+      where: { id: user.organizationId },
     });
 
     if (!organization) {
@@ -164,41 +164,24 @@ export class AuthService {
   async register(registerDto: RegisterDto, metadata: { userAgent: string; ip: string }) {
     // Check if user with the same email already exists
     const existingUser = await this.userRepository.findOne({
-        where: { email: registerDto.user.email },
+      where: { email: registerDto.user.email },
     });
 
     if (existingUser) {
-        throw new UnauthorizedException('Email already registered');
+      throw new UnauthorizedException('User with this email already exists');
     }
 
-    // Create organization first
+    // Create organization
     const organization = new Organization();
     organization.name = registerDto.organization.name;
+    organization.slug = this.generateSlug(registerDto.organization.name);
     organization.status = OrganizationStatus.ACTIVE;
     organization.isSubscriptionActive = true;
-
-    if (registerDto.organization.website) {
-        organization.website = registerDto.organization.website;
-    }
-
-    if (registerDto.organization.phone) {
-        organization.contactInfo = {
-            phone: registerDto.organization.phone
-        };
-    }
-
-    if (registerDto.organization.address) {
-        organization.contactInfo = {
-            ...organization.contactInfo,
-            address: {
-                street: registerDto.organization.address.street,
-                city: registerDto.organization.address.city,
-                state: registerDto.organization.address.state,
-                postalCode: registerDto.organization.address.postalCode,
-                country: registerDto.organization.address.country,
-            },
-        };
-    }
+    organization.subscriptionTier = SubscriptionTier.FREE;
+    organization.subscriptionExpiresAt = new Date();
+    organization.subscriptionExpiresAt.setFullYear(
+      organization.subscriptionExpiresAt.getFullYear() + 1,
+    );
 
     const savedOrganization = await this.organizationRepository.save(organization);
 
@@ -208,10 +191,13 @@ export class AuthService {
     user.password = await hash(registerDto.user.password, 10);
     user.firstName = registerDto.user.firstName;
     user.lastName = registerDto.user.lastName;
-    user.role = Role.ADMIN;
+    user.role = registerDto.user.role || Role.ADMIN;
     user.organizationId = savedOrganization.id;
-    user.createdById = null; // System created
+    user.isActive = true;
+    user.isEmailVerified = false;
+    user.lastLoginAt = new Date();
 
+    // System created
     const savedUser = await this.userRepository.save(user);
 
     // Create user settings
@@ -219,35 +205,41 @@ export class AuthService {
     settings.userId = savedUser.id;
     settings.phone = registerDto.user.phone;
     settings.notificationPreferences = {
-        email: true,
-        sms: !!registerDto.user.phone,
-        inApp: true,
-        push: false
+      email: true,
+      sms: !!registerDto.user.phone,
+      inApp: true,
+      push: false
+    };
+    settings.metadata = {
+      platform: this.extractPlatform(metadata.userAgent),
+      browser: this.extractBrowser(metadata.userAgent),
+      lastLoginIp: metadata.ip,
+      lastUsed: new Date()
     };
     await this.userSettingsRepository.save(settings);
 
     // Generate tokens
     const payload: JwtPayload = {
-        sub: savedUser.id,
-        email: savedUser.email,
-        role: savedUser.role,
-        organizationId: savedOrganization.id,
-        permissions: [],
-        sessionId: uuidv4(),
+      sub: savedUser.id,
+      email: savedUser.email,
+      role: savedUser.role,
+      organizationId: savedOrganization.id,
+      permissions: [],
+      sessionId: uuidv4(),
     };
 
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = await this.generateRefreshToken(savedUser.id, metadata);
 
     return {
-        accessToken,
-        refreshToken: refreshToken.token,
-        user: {
-            id: savedUser.id,
-            email: savedUser.email,
-            role: savedUser.role,
-            organizationId: savedOrganization.id,
-        },
+      accessToken,
+      refreshToken: refreshToken.token,
+      user: {
+        id: savedUser.id,
+        email: savedUser.email,
+        role: savedUser.role,
+        organizationId: savedOrganization.id,
+      },
     };
   }
 
@@ -286,31 +278,19 @@ export class AuthService {
     return { accessToken };
   }
 
-  private async generateRefreshToken(userId: string, metadata: { userAgent: string; ip: string }): Promise<RefreshToken> {
-    // Create a unique token string
-    const tokenString = uuidv4();
+  private async generateRefreshToken(userId: string, metadata: { userAgent: string; ip: string }) {
+    const refreshToken = new RefreshToken();
+    refreshToken.userId = userId;
+    refreshToken.token = uuidv4();
+    refreshToken.expiresAt = new Date();
+    refreshToken.expiresAt.setDate(refreshToken.expiresAt.getDate() + 7); // 7 days
+    refreshToken.userAgent = metadata.userAgent;
+    refreshToken.ipAddress = metadata.ip;
+    refreshToken.isRevoked = false;
+    refreshToken.createdAt = new Date();
+    refreshToken.updatedAt = new Date();
 
-    // Get the user to access the organization ID
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
-
-    // Create the refresh token entity
-    const token = new RefreshToken();
-    token.userId = userId;
-    token.organizationId = user.organizationId;
-    token.token = tokenString;
-    token.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-    token.userAgent = metadata.userAgent;
-    token.ipAddress = metadata.ip;
-    token.metadata = {
-      platform: this.extractPlatform(metadata.userAgent),
-      browser: this.extractBrowser(metadata.userAgent),
-      lastUsed: new Date(),
-    };
-
-    return this.refreshTokenRepository.save(token);
+    return this.refreshTokenRepository.save(refreshToken);
   }
 
   async logout(userId: string) {
@@ -326,7 +306,6 @@ export class AuthService {
       where: { id: userId },
       relations: ['organization'],
     });
-
     return user?.organizationId === organizationId;
   }
 
@@ -334,44 +313,69 @@ export class AuthService {
   private generateSlug(name: string): string {
     return name
       .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9-]/g, '')
-      .slice(0, 50) + '-' + Math.floor(Math.random() * 10000);
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
   }
 
   private extractPlatform(userAgent: string): string {
-    if (userAgent.includes('Windows')) return 'Windows';
-    if (userAgent.includes('Mac')) return 'Mac';
-    if (userAgent.includes('iPhone') || userAgent.includes('iPad')) return 'iOS';
-    if (userAgent.includes('Android')) return 'Android';
-    if (userAgent.includes('Linux')) return 'Linux';
-    return 'Unknown';
+    if (userAgent.includes('Windows')) return 'windows';
+    if (userAgent.includes('Mac')) return 'mac';
+    if (userAgent.includes('Linux')) return 'linux';
+    if (userAgent.includes('Android')) return 'android';
+    if (userAgent.includes('iOS')) return 'ios';
+    return 'unknown';
   }
 
   private extractBrowser(userAgent: string): string {
-    if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) return 'Chrome';
-    if (userAgent.includes('Firefox')) return 'Firefox';
-    if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari';
-    if (userAgent.includes('Edg')) return 'Edge';
-    if (userAgent.includes('Opera') || userAgent.includes('OPR')) return 'Opera';
-    return 'Unknown';
+    if (userAgent.includes('Chrome')) return 'chrome';
+    if (userAgent.includes('Firefox')) return 'firefox';
+    if (userAgent.includes('Safari')) return 'safari';
+    if (userAgent.includes('Edge')) return 'edge';
+    if (userAgent.includes('Opera')) return 'opera';
+    return 'unknown';
   }
 
   // Password reset methods
   async sendPasswordResetEmail(email: string): Promise<void> {
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
-      // Don't reveal if user exists for security
+      // Don't reveal that the user doesn't exist
       return;
     }
 
-    // Generate reset token, save it, and send email logic would go here
-    // This is a placeholder implementation
+    // Generate reset token
+    const resetToken = uuidv4();
+    const resetTokenExpiry = new Date();
+    resetTokenExpiry.setHours(resetTokenExpiry.getHours() + 1); // 1 hour expiry
+
+    // Save reset token to user
+    user.passwordResetToken = resetToken;
+    user.passwordResetExpiresAt = resetTokenExpiry;
+    await this.userRepository.save(user);
+
+    // Send email with reset link
+    // This would typically use a mail service
+    console.log(`Password reset link: https://your-app.com/reset-password?token=${resetToken}`);
   }
 
   async changePassword(token: string, newPassword: string): Promise<void> {
-    // Validate token and update password logic would go here
-    // This is a placeholder implementation
+    const user = await this.userRepository.findOne({
+      where: { passwordResetToken: token },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid or expired reset token');
+    }
+
+    if (user.passwordResetExpiresAt < new Date()) {
+      throw new UnauthorizedException('Reset token has expired');
+    }
+
+    // Update password
+    user.password = await hash(newPassword, 10);
+    user.passwordResetToken = null;
+    user.passwordResetExpiresAt = null;
+    await this.userRepository.save(user);
   }
 
   // Email verification methods
@@ -385,7 +389,6 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
-
     // Generate verification token, save it, and send email logic would go here
     // This is a placeholder implementation
   }

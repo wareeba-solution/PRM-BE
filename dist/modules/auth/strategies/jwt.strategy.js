@@ -23,10 +23,14 @@ const typeorm_2 = require("typeorm");
 const user_entity_1 = require("../entities/user.entity");
 let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
     constructor(configService, userRepository) {
+        const secret = configService.get('JWT_SECRET');
+        if (!secret) {
+            throw new Error('JWT_SECRET environment variable is not set. Please set it in your environment variables.');
+        }
         super({
             jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: configService.get('JWT_SECRET'),
+            secretOrKey: secret,
         });
         this.configService = configService;
         this.userRepository = userRepository;

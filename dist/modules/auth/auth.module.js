@@ -30,12 +30,18 @@ AuthModule = __decorate([
             passport_1.PassportModule.register({ defaultStrategy: 'jwt' }),
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],
-                useFactory: async (configService) => ({
-                    secret: configService.get('JWT_SECRET'),
-                    signOptions: {
-                        expiresIn: configService.get('JWT_EXPIRATION', '15m'),
-                    },
-                }),
+                useFactory: async (configService) => {
+                    const secret = configService.get('JWT_SECRET');
+                    if (!secret) {
+                        throw new Error('JWT_SECRET environment variable is not set. Please set it in your environment variables.');
+                    }
+                    return {
+                        secret,
+                        signOptions: {
+                            expiresIn: configService.get('JWT_EXPIRATION', '15m'),
+                        },
+                    };
+                },
                 inject: [config_1.ConfigService],
             }),
             (0, common_1.forwardRef)(() => users_module_1.UsersModule),

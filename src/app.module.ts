@@ -48,7 +48,11 @@ import { ThrottlerConfigService } from './config/throttler.config';
     // Database Module
     TypeOrmModule.forRoot({
       type: 'postgres',
-      url: process.env.DATABASE_URL,
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432', 10),
+      username: process.env.DB_USERNAME || 'postgres',
+      password: process.env.DB_PASSWORD || 'admin@123',
+      database: process.env.DB_NAME || 'prm_db',
       schema: process.env.DB_SCHEMA || 'public',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: process.env.DB_SYNC === 'true',
