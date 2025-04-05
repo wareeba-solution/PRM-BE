@@ -1,3 +1,4 @@
+//
 // // src/swagger/swagger.service.ts
 // import { Logger } from '@nestjs/common';
 // import { INestApplication } from '@nestjs/common';
@@ -15,32 +16,13 @@
 //             // Get config service
 //             const configService = app.get(ConfigService);
 //             const isProduction = configService.get<string>('app.nodeEnv') === 'production';
-//             const globalPrefix = 'api'; // Match the global prefix in main.ts
+//             const globalPrefix = 'api';
 //
-//             // Production-specific debugging
-//             if (isProduction) {
-//                 this.logger.log('=== PRODUCTION MODE ENABLED ===');
-//                 this.logger.log('NODE_ENV:', process.env.NODE_ENV || 'not set');
-//                 this.logger.log('Production host:', process.env.HOST || 'not set');
-//                 this.logger.log('Production port:', process.env.PORT || 'not set');
-//                 this.logger.log('Base URL:', configService.get<string>('app.baseUrl', 'not configured'));
-//
-//                 // Fix for TypeScript error - use separate log statements
-//                 const swaggerDisabled = configService.get<boolean>('app.disableSwagger') === true;
-//                 this.logger.log('Swagger explicitly disabled?', swaggerDisabled ? 'Yes' : 'No');
-//             }
-//
-//             // Correctly handle the config check
-//             const swaggerDisabled = configService.get<boolean>('app.disableSwagger') === true;
-//             if (isProduction && swaggerDisabled) {
-//                 this.logger.log('Swagger documentation is disabled in production mode by configuration');
-//                 return;
-//             }
-//
+//             this.logger.log('=== SWAGGER SETUP STARTED ===');
 //             this.logger.log(`Environment: ${isProduction ? 'Production' : 'Development'}`);
 //             this.logger.log(`Global API prefix: ${globalPrefix}`);
-//             this.logger.log('Setting up Swagger documentation...');
 //
+//             // Create the OpenAPI document
 //             const config = new DocumentBuilder()
 //                 .setTitle('Patient Relationship Manager API')
 //                 .setDescription('API Documentation for PRM')
@@ -61,53 +43,25 @@
 //                 .addTag('Notifications', 'Notification management endpoints')
 //                 .build();
 //
-//             // Safely get paths and schemas with enhanced debugging
+//             // Load paths and schemas
 //             let paths = {};
 //             let schemas = {};
 //
 //             try {
-//                 this.logger.log('Loading API paths...');
 //                 paths = pathsModule.getAllPaths ? pathsModule.getAllPaths() : {};
-//                 const pathKeys = Object.keys(paths);
-//                 this.logger.log(`Loaded ${pathKeys.length} API paths`);
-//
-//                 if (pathKeys.length > 0) {
-//                     this.logger.log(`Path samples: ${pathKeys.slice(0, 5).join(', ')}${pathKeys.length > 5 ? '...' : ''}`);
-//                 } else {
-//                     this.logger.warn('No API paths were loaded!');
-//                 }
-//             } catch (pathError) {
-//                 this.logger.error('Failed to load paths:', pathError);
-//                 this.logger.error(pathError.stack);
+//                 this.logger.log(`Loaded ${Object.keys(paths).length} API paths`);
+//             } catch (error) {
+//                 this.logger.error('Failed to load API paths:', error.message);
 //             }
 //
 //             try {
-//                 this.logger.log('Loading API schemas...');
 //                 schemas = schemasModule.getAllSchemas ? schemasModule.getAllSchemas() : {};
-//                 const schemaKeys = Object.keys(schemas);
-//                 this.logger.log(`Loaded ${schemaKeys.length} schemas`);
-//
-//                 if (schemaKeys.length > 0) {
-//                     this.logger.log(`Schema samples: ${schemaKeys.slice(0, 5).join(', ')}${schemaKeys.length > 5 ? '...' : ''}`);
-//                 } else {
-//                     this.logger.warn('No schemas were loaded!');
-//                 }
-//             } catch (schemaError) {
-//                 this.logger.error('Failed to load schemas:', schemaError);
-//                 this.logger.error(schemaError.stack);
+//                 this.logger.log(`Loaded ${Object.keys(schemas).length} schemas`);
+//             } catch (error) {
+//                 this.logger.error('Failed to load schemas:', error.message);
 //             }
 //
-//             if (Object.keys(paths).length === 0) {
-//                 this.logger.warn('WARNING: No paths loaded for Swagger documentation!');
-//                 this.logger.warn('Check paths/index.ts and ensure getAllPaths() is properly implemented');
-//             }
-//
-//             if (Object.keys(schemas).length === 0) {
-//                 this.logger.warn('WARNING: No schemas loaded for Swagger documentation!');
-//                 this.logger.warn('Check schemas/index.ts and ensure getAllSchemas() is properly implemented');
-//             }
-//
-//             // Create a manual document
+//             // Create the OpenAPI document
 //             const document: ManualOpenAPIObject = {
 //                 ...config,
 //                 paths,
@@ -123,97 +77,42 @@
 //                 }
 //             };
 //
-//             // Check document serialization
-//             try {
-//                 JSON.stringify(document);
-//                 this.logger.log('Document can be serialized correctly.');
-//             } catch (err) {
-//                 this.logger.warn('Document has circular references or cannot be serialized!', err.message);
-//             }
-//
-//             // Create dedicated JSON endpoint
-//             app.use('/swagger-json', (req, res) => {
-//                 res.setHeader('Content-Type', 'application/json');
-//                 res.send(JSON.stringify(document));
+//             // Set up a direct health check endpoint to verify routing works
+//             const expressApp = app.getHttpAdapter().getInstance();
+//             expressApp.get('/health-check', (req, res) => {
+//                 res.json({ status: 'ok', timestamp: new Date().toISOString() });
 //             });
-//             this.logger.log('Swagger JSON endpoint created at /swagger-json');
+//             this.logger.log('Health check endpoint created at /health-check');
 //
-//             // Setup Swagger routes
+//             // Most important part: properly disable the global prefix for Swagger UI
+//             const options = {
+//                 customSiteTitle: 'PRM API Documentation',
+//                 swaggerOptions: { defaultModelsExpandDepth: 1 }
+//             };
+//
+//             // Try setting up Swagger without internal redirects
 //             try {
-//                 // Set up Swagger at various route combinations
-//                 const swaggerRoutes = [
-//                     'docs',                   // /docs
-//                     'swagger',                // /swagger
-//                     'api-docs',               // /api-docs
-//                     `${globalPrefix}/docs`,    // /api/docs
-//                     `${globalPrefix}/swagger`, // /api/swagger
-//                     `${globalPrefix}/api-docs`  // /api/api-docs
-//                 ];
+//                 // Non-prefixed route
+//                 NestSwaggerModule.setup('docs', app, document, options);
+//                 this.logger.log('Swagger UI set up at /docs');
 //
-//                 for (const route of swaggerRoutes) {
-//                     try {
-//                         this.logger.log(`Setting up Swagger at route: /${route}`);
-//
-//                         NestSwaggerModule.setup(route, app, document as any, {
-//                             explorer: true,
-//                             swaggerOptions: {
-//                                 persistAuthorization: true,
-//                                 docExpansion: 'none',
-//                                 filter: true,
-//                                 showExtensions: true,
-//                                 deepLinking: true,
-//                                 displayOperationId: true,
-//                                 defaultModelsExpandDepth: 0,
-//                                 defaultModelExpandDepth: 1,
-//                                 // Use custom-defined JSON URL
-//                                 url: '/swagger-json',
-//                                 // Production-specific options
-//                                 ...(isProduction ? {
-//                                     layout: 'StandaloneLayout',
-//                                     displayRequestDuration: true,
-//                                     authAction: {
-//                                         defaultSecurityScheme: 'bearerAuth'
-//                                     }
-//                                 } : {})
-//                             },
-//                             customSiteTitle: 'PRM API Documentation',
-//                             customfavIcon: '/favicon.ico'
-//                         });
-//
-//                         this.logger.log(`Swagger documentation setup successfully at /${route}`);
-//                     } catch (routeError) {
-//                         this.logger.error(`Failed to setup Swagger at /${route}:`, routeError);
-//                         this.logger.error(routeError.stack);
-//                     }
-//                 }
-//
-//                 // Get server address if possible
-//                 try {
-//                     const serverInstance = app.getHttpServer();
-//                     if (serverInstance && serverInstance.address) {
-//                         const address = serverInstance.address();
-//                         if (address && typeof address === 'object') {
-//                             const host = address.address === '::' ? 'localhost' : address.address;
-//                             const port = address.port;
-//                             this.logger.log(`Swagger UI available at: http://${host}:${port}/swagger`);
-//                         }
-//                     }
-//                 } catch (addrError) {
-//                     this.logger.warn('Unable to determine server address');
-//                 }
-//
-//                 this.logger.log('All Swagger routes setup complete');
-//             } catch (swaggerSetupError) {
-//                 this.logger.error('Failed to setup Swagger module:', swaggerSetupError);
-//                 this.logger.error(swaggerSetupError.stack);
-//                 throw swaggerSetupError;
+//                 // Create a redirect from api/docs to /docs
+//                 expressApp.get('/api/docs', (req, res) => {
+//                     res.redirect('/docs');
+//                 });
+//                 this.logger.log('Created redirect from /api/docs to /docs');
+//             } catch (error) {
+//                 this.logger.error('Failed to set up Swagger:', error);
 //             }
+//
+//             this.logger.log('Swagger setup complete - try accessing http://localhost:{port}/docs');
 //         } catch (error) {
-//             this.logger.error('Failed to set up Swagger:', error);
-//             throw error;
+//             this.logger.error('Swagger setup failed:', error);
 //         }
 //     }
 // }
+//
+
 
 
 
@@ -235,6 +134,15 @@ export class SwaggerService {
             const configService = app.get(ConfigService);
             const isProduction = configService.get<string>('app.nodeEnv') === 'production';
             const globalPrefix = 'api';
+
+            // Render-specific logging
+            if (process.env.RENDER) {
+                console.log('SWAGGER: Running in Render environment');
+                console.log('SWAGGER: PORT =', process.env.PORT);
+                console.log('SWAGGER: NODE_ENV =', process.env.NODE_ENV);
+                console.log('SWAGGER: HOST =', process.env.HOST || 'not set');
+                console.log('SWAGGER: RENDER_EXTERNAL_URL =', process.env.RENDER_EXTERNAL_URL || 'not set');
+            }
 
             this.logger.log('=== SWAGGER SETUP STARTED ===');
             this.logger.log(`Environment: ${isProduction ? 'Production' : 'Development'}`);
@@ -298,35 +206,126 @@ export class SwaggerService {
             // Set up a direct health check endpoint to verify routing works
             const expressApp = app.getHttpAdapter().getInstance();
             expressApp.get('/health-check', (req, res) => {
-                res.json({ status: 'ok', timestamp: new Date().toISOString() });
+                res.json({
+                    status: 'ok',
+                    timestamp: new Date().toISOString(),
+                    render: !!process.env.RENDER,
+                    version: '1.0'
+                });
             });
             this.logger.log('Health check endpoint created at /health-check');
 
-            // Most important part: properly disable the global prefix for Swagger UI
-            const options = {
+            // Create a diagnostics endpoint for troubleshooting
+            expressApp.get('/api-diagnostics', (req, res) => {
+                res.json({
+                    status: 'ok',
+                    timestamp: new Date().toISOString(),
+                    environment: {
+                        isRender: !!process.env.RENDER,
+                        nodeEnv: process.env.NODE_ENV,
+                        port: process.env.PORT,
+                        renderExternalUrl: process.env.RENDER_EXTERNAL_URL,
+                    },
+                    routes: {
+                        swagger: ['/docs', '/swagger', '/api-docs'],
+                        api: `/api`,
+                        health: ['/health-check', '/swagger-health']
+                    }
+                });
+            });
+            this.logger.log('API diagnostics endpoint created at /api-diagnostics');
+
+            // Try multiple approaches to ensure Swagger works
+            const swaggerOptions = {
+                explorer: true,
                 customSiteTitle: 'PRM API Documentation',
-                swaggerOptions: { defaultModelsExpandDepth: 1 }
+                swaggerOptions: {
+                    defaultModelsExpandDepth: 1,
+                    persistAuthorization: true
+                }
             };
 
-            // Try setting up Swagger without internal redirects
-            try {
-                // Non-prefixed route
-                NestSwaggerModule.setup('docs', app, document, options);
-                this.logger.log('Swagger UI set up at /docs');
+            // Try to setup Swagger at multiple common paths
+            const swaggerPaths = ['docs', 'swagger', 'api-docs'];
 
-                // Create a redirect from api/docs to /docs
-                expressApp.get('/api/docs', (req, res) => {
-                    res.redirect('/docs');
-                });
-                this.logger.log('Created redirect from /api/docs to /docs');
-            } catch (error) {
-                this.logger.error('Failed to set up Swagger:', error);
+            for (const path of swaggerPaths) {
+                try {
+                    this.logger.log(`Setting up Swagger at /${path}`);
+                    NestSwaggerModule.setup(path, app, document, swaggerOptions);
+                    this.logger.log(`Successfully set up Swagger at /${path}`);
+                } catch (err) {
+                    this.logger.error(`Failed to setup Swagger at /${path}:`, err.message);
+                }
             }
 
-            this.logger.log('Swagger setup complete - try accessing http://localhost:{port}/docs');
+            // Create explicit redirects from prefixed to non-prefixed paths
+            for (const path of swaggerPaths) {
+                try {
+                    const prefixedPath = `${globalPrefix}/${path}`;
+                    expressApp.get(`/${prefixedPath}`, (req, res) => {
+                        this.logger.log(`Redirecting from /${prefixedPath} to /${path}`);
+                        res.redirect(`/${path}`);
+                    });
+                    this.logger.log(`Created redirect from /${prefixedPath} to /${path}`);
+                } catch (err) {
+                    this.logger.error(`Failed to create redirect for /${path}:`, err.message);
+                }
+            }
+
+            // For Render: Create a root index page with links to all documentation
+            try {
+                const renderDocPage = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>PRM API Documentation</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; }
+                        h1 { color: #333; }
+                        ul { list-style-type: none; padding: 0; }
+                        li { margin-bottom: 10px; }
+                        a { color: #0066cc; text-decoration: none; }
+                        a:hover { text-decoration: underline; }
+                        .container { max-width: 800px; margin: 0 auto; }
+                        .card { border: 1px solid #ddd; border-radius: 4px; padding: 15px; margin-bottom: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>Patient Relationship Manager API</h1>
+                        <div class="card">
+                            <h2>API Documentation</h2>
+                            <ul>
+                                <li><a href="/docs">Swagger UI Documentation (/docs)</a></li>
+                                <li><a href="/swagger">Alternative Swagger UI (/swagger)</a></li>
+                                <li><a href="/api-docs">OpenAPI Documentation (/api-docs)</a></li>
+                            </ul>
+                        </div>
+                        <div class="card">
+                            <h2>API Endpoints</h2>
+                            <ul>
+                                <li><a href="/api">API Root (/api)</a></li>
+                                <li><a href="/health-check">Health Check (/health-check)</a></li>
+                                <li><a href="/api-diagnostics">API Diagnostics (/api-diagnostics)</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                `;
+
+                expressApp.get('/api-home', (req, res) => {
+                    res.setHeader('Content-Type', 'text/html');
+                    res.send(renderDocPage);
+                });
+                this.logger.log('API documentation home page created at /api-home');
+            } catch (err) {
+                this.logger.error('Failed to create API documentation home page:', err.message);
+            }
+
+            this.logger.log('Swagger setup complete - try accessing /docs, /swagger, or /api-docs');
         } catch (error) {
             this.logger.error('Swagger setup failed:', error);
         }
     }
 }
-
