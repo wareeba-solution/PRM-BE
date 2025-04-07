@@ -27,12 +27,17 @@ exports.setupSwagger = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
+// Import all DTOs for Swagger documentation
+const swagger_dto_1 = require("./swagger-dto");
 /**
  * Configures Swagger and ReDoc for the application
  * Implements a safe configuration to avoid circular dependency issues
  */
+/**
+ * Sets up Swagger documentation for the application
+ */
 function setupSwagger(app) {
-    var _a;
+    var _a, _b;
     // Ensure the public directory exists
     const publicDir = path.join(process.cwd(), 'public');
     if (!fs.existsSync(publicDir)) {
@@ -51,86 +56,94 @@ function setupSwagger(app) {
         description: 'Enter JWT token',
         in: 'header',
     }, 'JWT-auth')
-        .addTag('auth', 'Authentication endpoints')
-        .addTag('users', 'User management endpoints')
-        .addTag('organizations', 'Organization management endpoints')
-        .addTag('departments', 'Department management endpoints')
-        .addTag('tickets', 'Ticket management endpoints')
-        .addTag('messages', 'Message management endpoints')
-        .addTag('appointments', 'Appointment management endpoints')
-        .addTag('notifications', 'Notification management endpoints')
         .build();
-    // Create the Swagger document with safe options to avoid circular dependency issues
-    const document = swagger_1.SwaggerModule.createDocument(app, config, {
-        deepScanRoutes: false, // Prevent deep scanning which can cause circular dependency issues
-    });
-    // Filter out undefined models which can cause errors
-    const filteredDocument = Object.assign(Object.assign({}, document), { components: Object.assign(Object.assign({}, document.components), { schemas: Object.entries(((_a = document.components) === null || _a === void 0 ? void 0 : _a.schemas) || {})
-                .filter(([_, schema]) => schema !== undefined)
-                .reduce((acc, [key, value]) => (Object.assign(Object.assign({}, acc), { [key]: value })), {}) }) });
-    // Create the redoc HTML file
-    const redocHtmlPath = path.join(publicDir, 'redoc.html');
-    const redocHtml = `<!DOCTYPE html>
-<html>
-  <head>
-    <title>Patient Relationship Manager API Documentation</title>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        font-family: 'Roboto', sans-serif;
-      }
-      
-      .header {
-        background-color: #2d3748;
-        color: white;
-        padding: 20px;
-        text-align: center;
-      }
-      
-      .header h1 {
-        margin: 0;
-        font-family: 'Montserrat', sans-serif;
-      }
-      
-      .header p {
-        margin: 10px 0 0;
-        opacity: 0.8;
-      }
-      
-      redoc {
-        display: block;
-        height: calc(100vh - 80px);
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>Patient Relationship Manager API</h1>
-      <p>Interactive API documentation powered by ReDoc</p>
-    </div>
-    <redoc spec-url="/docs-json"></redoc>
-    <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"></script>
-  </body>
-</html>`;
-    fs.writeFileSync(redocHtmlPath, redocHtml);
-    // Setup ReDoc with NestJS
-    swagger_1.SwaggerModule.setup('docs', app, filteredDocument, {
-        useGlobalPrefix: false,
-        customSiteTitle: 'PRM API Documentation',
-    });
-    // Expose the OpenAPI JSON at /docs-json
-    const httpAdapter = app.getHttpAdapter();
-    httpAdapter.get('/docs-json', (req, res) => {
-        res.json(filteredDocument);
-    });
-    // Serve the ReDoc HTML file
-    httpAdapter.get('/docs', (req, res) => {
-        res.sendFile(path.join(process.cwd(), 'public', 'redoc.html'));
-    });
+    try {
+        // Create the Swagger document with safe options to avoid circular dependency issues
+        const document = swagger_1.SwaggerModule.createDocument(app, config, {
+            deepScanRoutes: false,
+            extraModels: [
+                swagger_dto_1.BaseDto,
+                swagger_dto_1.UserDto,
+                swagger_dto_1.OrganizationDto,
+                swagger_dto_1.TicketDto,
+                swagger_dto_1.ContactDto,
+                swagger_dto_1.ContactRelationshipDto,
+                swagger_dto_1.AppointmentDto,
+                swagger_dto_1.NotificationDto,
+                swagger_dto_1.MessageDto,
+                swagger_dto_1.DepartmentDto,
+                swagger_dto_1.DocumentDto,
+                swagger_dto_1.MedicalHistoryDto,
+                swagger_dto_1.MergedRecordDto
+            ]
+        });
+        // Manually add schemas if they're not being detected automatically
+        if (!document.components) {
+            document.components = {};
+        }
+        if (!document.components.schemas) {
+            document.components.schemas = {};
+        }
+        // Add DTOs to schemas explicitly
+        const schemaMap = {
+            BaseDto: swagger_dto_1.BaseDto,
+            UserDto: swagger_dto_1.UserDto,
+            OrganizationDto: swagger_dto_1.OrganizationDto,
+            TicketDto: swagger_dto_1.TicketDto,
+            ContactDto: swagger_dto_1.ContactDto,
+            ContactRelationshipDto: swagger_dto_1.ContactRelationshipDto,
+            AppointmentDto: swagger_dto_1.AppointmentDto,
+            NotificationDto: swagger_dto_1.NotificationDto,
+            MessageDto: swagger_dto_1.MessageDto,
+            DepartmentDto: swagger_dto_1.DepartmentDto,
+            DocumentDto: swagger_dto_1.DocumentDto,
+            MedicalHistoryDto: swagger_dto_1.MedicalHistoryDto,
+            MergedRecordDto: swagger_dto_1.MergedRecordDto
+        };
+        // Add each DTO to the schemas
+        Object.entries(schemaMap).forEach(([key, value]) => {
+            if (!document.components.schemas[key]) {
+                // Create a schema object with the correct type
+                const schemaObject = {
+                    type: 'object',
+                    properties: {}
+                };
+                // Extract properties from class metadata
+                const prototype = value.prototype;
+                if (prototype) {
+                    const properties = Reflect.getMetadata('swagger/apiProperties', prototype) || {};
+                    schemaObject.properties = properties;
+                }
+                // Add the schema to the document
+                document.components.schemas[key] = schemaObject;
+            }
+        });
+        // Filter out undefined models which can cause errors
+        const filteredDocument = Object.assign(Object.assign({}, document), { components: Object.assign(Object.assign({}, document.components), { schemas: Object.entries(((_a = document.components) === null || _a === void 0 ? void 0 : _a.schemas) || {})
+                    .filter(([_, schema]) => schema !== undefined)
+                    .reduce((acc, [key, value]) => (Object.assign(Object.assign({}, acc), { [key]: value })), {}) }) });
+        // Log available schemas for debugging
+        console.log('Available schemas:', Object.keys(((_b = filteredDocument.components) === null || _b === void 0 ? void 0 : _b.schemas) || {}).length);
+        // Setup Swagger with NestJS using the default setup
+        swagger_1.SwaggerModule.setup('docs', app, filteredDocument, {
+            useGlobalPrefix: false,
+            customSiteTitle: 'PRM API Documentation',
+            explorer: true,
+            swaggerOptions: {
+                docExpansion: 'none',
+                filter: true,
+                deepLinking: true,
+                defaultModelsExpandDepth: 1,
+                displayRequestDuration: true,
+                showExtensions: true,
+                showCommonExtensions: true
+            },
+        });
+        console.log('Swagger documentation setup successfully');
+    }
+    catch (error) {
+        console.error('Error setting up Swagger documentation:', error.message);
+    }
     console.log('ReDoc documentation setup successfully');
 }
 exports.setupSwagger = setupSwagger;
