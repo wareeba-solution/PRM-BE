@@ -1,5 +1,20 @@
 import { AppointmentType } from '../enums/appointment-type.enum';
 import { AppointmentPriority } from '../enums/appointment-priority.enum';
+declare class ReminderPreferencesDto {
+    email?: boolean;
+    sms?: boolean;
+    push?: boolean;
+    reminderTimes?: number[];
+}
+declare class AppointmentFormDataDto {
+    fields?: Record<string, any>;
+    templateId?: string;
+}
+declare class AppointmentMetadataDto {
+    customFields?: Record<string, any>;
+    externalRefs?: Record<string, string>;
+    tags?: string[];
+}
 export declare class CreateAppointmentDto {
     patientId: string;
     isRecurring?: boolean;
@@ -17,23 +32,5 @@ export declare class CreateAppointmentDto {
     reminderPreferences?: ReminderPreferencesDto;
     formData?: AppointmentFormDataDto;
     metadata?: AppointmentMetadataDto;
-}
-declare class ReminderPreferencesDto {
-    email?: boolean;
-    sms?: boolean;
-    whatsapp?: boolean;
-    reminderTimes?: number[];
-}
-declare class AppointmentFormDataDto {
-    chiefComplaint?: string;
-    symptoms?: string[];
-    duration?: string;
-    notes?: string;
-}
-declare class AppointmentMetadataDto {
-    referralSource?: string;
-    insurance?: string;
-    tags?: string[];
-    externalId?: string;
 }
 export {};

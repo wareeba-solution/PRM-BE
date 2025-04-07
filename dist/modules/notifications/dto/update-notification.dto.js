@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/notifications/dto/update-notification.dto.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,11 +11,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateNotificationDto = exports.NotificationStatus = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/notifications/dto/update-notification.dto.ts
-const swagger_1 = require("@nestjs/swagger");
 const create_notification_dto_1 = require("./create-notification.dto");
 const class_validator_1 = require("class-validator");
+const mapped_types_1 = require("@nestjs/mapped-types");
 var NotificationStatus;
 (function (NotificationStatus) {
     NotificationStatus["SCHEDULED"] = "SCHEDULED";
@@ -28,10 +27,7 @@ var NotificationStatus;
     NotificationStatus["PROCESSING"] = "PROCESSING";
     NotificationStatus["RETRY_PENDING"] = "RETRY_PENDING";
 })(NotificationStatus = exports.NotificationStatus || (exports.NotificationStatus = {}));
-class UpdateNotificationDto extends (0, swagger_1.PartialType)((0, swagger_1.OmitType)(create_notification_dto_1.CreateNotificationDto, ['type', 'recipients'])) {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { status: { required: false, enum: require("./update-notification.dto").NotificationStatus }, isDeleted: { required: false, type: () => Boolean }, read: { required: false, type: () => Boolean } };
-    }
+class UpdateNotificationDto extends (0, mapped_types_1.PartialType)((0, mapped_types_1.OmitType)(create_notification_dto_1.CreateNotificationDto, ['type', 'recipients'])) {
 }
 __decorate([
     (0, class_validator_1.IsOptional)(),

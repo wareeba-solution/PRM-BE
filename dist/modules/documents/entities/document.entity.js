@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/documents/entities/document.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Document = exports.DocumentStatus = exports.DocumentType = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/documents/entities/document.entity.ts
 const typeorm_1 = require("typeorm");
 const contact_entity_1 = require("../../contacts/entities/contact.entity");
 var DocumentType;
@@ -39,9 +38,6 @@ var DocumentStatus;
     DocumentStatus["ARCHIVED"] = "ARCHIVED";
 })(DocumentStatus = exports.DocumentStatus || (exports.DocumentStatus = {}));
 let Document = class Document {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, contactId: { required: true, type: () => String }, contact: { required: true, type: () => require("../../contacts/entities/contact.entity").Contact }, name: { required: true, type: () => String }, type: { required: true, enum: require("./document.entity").DocumentType }, fileName: { required: true, type: () => String }, fileType: { required: true, type: () => String }, fileSize: { required: true, type: () => Number }, filePath: { required: true, type: () => String }, fileUrl: { required: true, type: () => String }, description: { required: true, type: () => String }, status: { required: true, enum: require("./document.entity").DocumentStatus }, isPrivate: { required: true, type: () => Boolean }, documentDate: { required: true, type: () => Date }, expiryDate: { required: true, type: () => Date }, metadata: { required: true, type: () => ({ author: { required: false, type: () => String }, source: { required: false, type: () => String }, keywords: { required: false, type: () => [String] }, version: { required: false, type: () => String }, pageCount: { required: false, type: () => Number }, isOriginal: { required: false, type: () => Boolean }, relatedDocuments: { required: false, type: () => [String] }, customProperties: { required: false, type: () => Object } }) }, notes: { required: true, type: () => String }, tags: { required: true, type: () => [String] }, shareWith: { required: true, type: () => [String] }, appointmentId: { required: true, type: () => String }, medicalHistoryId: { required: true, type: () => String }, contentText: { required: true, type: () => String }, createdById: { required: true, type: () => String }, updatedById: { required: true, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, deletedAt: { required: true, type: () => Date } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),

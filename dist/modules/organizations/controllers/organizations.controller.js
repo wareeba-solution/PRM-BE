@@ -13,9 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrganizationsController = void 0;
-const openapi = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
-const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../../auth/guards/roles.guard");
 const roles_decorator_1 = require("../../../common/decorators/roles.decorator");
@@ -135,7 +133,6 @@ let OrganizationsController = class OrganizationsController {
 };
 __decorate([
     (0, common_1.Post)(),
-    openapi.ApiResponse({ status: 201, type: require("../entities/organization.entity").Organization }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -145,9 +142,6 @@ __decorate([
 __decorate([
     (0, common_1.Get)(),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.SUPER_ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Get all organizations' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return all organizations' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [organization_query_dto_1.OrganizationQueryDto]),
@@ -155,9 +149,6 @@ __decorate([
 ], OrganizationsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('current'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get current organization' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return current organization details' }),
-    openapi.ApiResponse({ status: 200, type: require("../entities/organization.entity").Organization }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -166,9 +157,6 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.SUPER_ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Get organization by id' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return organization details' }),
-    openapi.ApiResponse({ status: 200, type: require("../entities/organization.entity").Organization }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -176,9 +164,6 @@ __decorate([
 ], OrganizationsController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Put)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Update organization' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Organization updated successfully' }),
-    openapi.ApiResponse({ status: 200, type: require("../entities/organization.entity").Organization }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -189,9 +174,6 @@ __decorate([
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.SUPER_ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Delete organization' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.NO_CONTENT, description: 'Organization deleted successfully' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -200,9 +182,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)(':id/users'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Add user to organization' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.CREATED, description: 'User added successfully' }),
-    openapi.ApiResponse({ status: 201, type: require("../../users/entities/user.entity").User }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -213,9 +192,6 @@ __decorate([
 __decorate([
     (0, common_1.Delete)(':id/users/:userId'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Remove user from organization' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.NO_CONTENT, description: 'User removed successfully' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Param)('userId', common_1.ParseUUIDPipe)),
     __param(2, (0, common_1.Request)()),
@@ -226,9 +202,6 @@ __decorate([
 __decorate([
     (0, common_1.Put)(':id/subscription'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.SUPER_ADMIN, role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Update organization subscription' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Subscription updated successfully' }),
-    openapi.ApiResponse({ status: 200, type: require("../entities/organization.entity").Organization }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -239,9 +212,6 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id/statistics'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Get organization statistics' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return organization statistics' }),
-    openapi.ApiResponse({ status: 200, type: Object }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -251,9 +221,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)(':id/verify-domain'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Verify organization domain' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Domain verified successfully' }),
-    openapi.ApiResponse({ status: 201, type: Boolean }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)('domain')),
     __param(2, (0, common_1.Request)()),
@@ -264,9 +231,6 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id/audit-logs'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Get organization audit logs' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return organization audit logs' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Query)()),
     __param(2, (0, common_1.Request)()),
@@ -275,10 +239,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], OrganizationsController.prototype, "getAuditLogs", null);
 OrganizationsController = __decorate([
-    (0, swagger_1.ApiTags)('Organizations'),
     (0, common_1.Controller)('organizations'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [organizations_service_1.OrganizationsService])
 ], OrganizationsController);
 exports.OrganizationsController = OrganizationsController;

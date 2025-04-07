@@ -12,6 +12,7 @@ export declare class TicketEscalationService {
     private readonly configService;
     private readonly logger;
     private readonly escalationRules;
+    private readonly firstResponseThreshold;
     constructor(ticketRepository: Repository<Ticket>, activityRepository: Repository<TicketActivity>, notificationsService: NotificationsService, organizationsService: OrganizationsService, configService: ConfigService);
     /**
      * Check tickets for escalation
@@ -25,10 +26,7 @@ export declare class TicketEscalationService {
      * Check single ticket for escalation
      */
     private checkTicketEscalation;
-    /**
-     * Escalate a ticket to the next level
-     */
-    private escalateTicket;
+    private escalateTicketInternal;
     /**
      * Send escalation notifications
      */
@@ -60,4 +58,6 @@ export declare class TicketEscalationService {
      * Check if ticket needs auto-escalation due to SLA breach
      */
     checkSlaBreachEscalation(ticketId: string): Promise<void>;
+    checkFirstResponseTime(ticket: Ticket): Promise<boolean>;
+    escalateTicket(ticketId: string, reason: string): Promise<Ticket>;
 }

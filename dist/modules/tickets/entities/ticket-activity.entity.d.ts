@@ -3,14 +3,9 @@ import { User } from '../../users/entities/user.entity';
 import { TicketActivityType } from '../enums/ticket-activity-type.enum';
 export declare class TicketActivity {
     id: string;
-    organizationId: string;
-    userId: string;
-    action: string;
-    details: any;
     ticketId: string;
-    ticket: Ticket;
+    organizationId: string;
     performedById: string;
-    performedBy: User;
     type: TicketActivityType;
     data: Record<string, any>;
     metadata?: Record<string, any>;
@@ -24,7 +19,6 @@ export declare class TicketActivity {
     }[];
     tags?: string[];
     parentActivityId?: string;
-    parentActivity?: TicketActivity;
     context?: {
         location?: string;
         deviceInfo?: string;
@@ -77,4 +71,10 @@ export declare class TicketActivity {
         changedAt: Date;
         reason?: string;
     };
+    ticket: Promise<Ticket>;
+    performedBy: Promise<User>;
+    parentActivity?: Promise<TicketActivity>;
+    get userId(): string;
+    get action(): string;
+    get details(): Record<string, any>;
 }

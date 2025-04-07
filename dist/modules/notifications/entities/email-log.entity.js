@@ -10,15 +10,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailLog = void 0;
-const openapi = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
 const email_status_enum_1 = require("../enums/email-status.enum");
 const organization_entity_1 = require("../../organizations/entities/organization.entity");
-const email_template_entity_1 = require("./email-template.entity");
+const email_template_entity_1 = require("../../email/entities/email-template.entity");
+const email_content_entity_1 = require("./email-content.entity");
 let EmailLog = class EmailLog {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, organization: { required: true, type: () => require("../../organizations/entities/organization.entity").Organization }, templateId: { required: true, type: () => String }, template: { required: true, type: () => require("./email-template.entity").EmailTemplate }, recipient: { required: true, type: () => String }, subject: { required: true, type: () => String }, htmlContent: { required: true, type: () => String }, textContent: { required: true, type: () => String }, metadata: { required: true, type: () => Object }, status: { required: true, enum: require("../enums/email-status.enum").EmailStatus }, error: { required: true, type: () => String }, messageId: { required: true, type: () => String }, providerResponse: { required: true, type: () => String }, createdAt: { required: true, type: () => Date }, sentAt: { required: true, type: () => Date }, deliveredAt: { required: true, type: () => Date }, openedAt: { required: true, type: () => Date }, clickedAt: { required: true, type: () => Date } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
@@ -51,18 +48,6 @@ __decorate([
     __metadata("design:type", String)
 ], EmailLog.prototype, "subject", void 0);
 __decorate([
-    (0, typeorm_1.Column)('text', { nullable: true }),
-    __metadata("design:type", String)
-], EmailLog.prototype, "htmlContent", void 0);
-__decorate([
-    (0, typeorm_1.Column)('text', { nullable: true }),
-    __metadata("design:type", String)
-], EmailLog.prototype, "textContent", void 0);
-__decorate([
-    (0, typeorm_1.Column)('jsonb', { nullable: true }),
-    __metadata("design:type", Object)
-], EmailLog.prototype, "metadata", void 0);
-__decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
         enum: email_status_enum_1.EmailStatus,
@@ -74,10 +59,6 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], EmailLog.prototype, "error", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
-], EmailLog.prototype, "messageId", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
@@ -102,6 +83,10 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", Date)
 ], EmailLog.prototype, "clickedAt", void 0);
+__decorate([
+    (0, typeorm_1.OneToOne)(() => email_content_entity_1.EmailContent, content => content.emailLog, { cascade: true, nullable: true }),
+    __metadata("design:type", email_content_entity_1.EmailContent)
+], EmailLog.prototype, "content", void 0);
 EmailLog = __decorate([
     (0, typeorm_1.Entity)('email_logs')
 ], EmailLog);

@@ -10,12 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MessageContextDto = void 0;
-const openapi = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 class MessageContextDto {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { organizationId: { required: true, type: () => String, format: "uuid" }, userId: { required: true, type: () => String, format: "uuid" } };
-    }
 }
 __decorate([
     (0, class_validator_1.IsUUID)(),

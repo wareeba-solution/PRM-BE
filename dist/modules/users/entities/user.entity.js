@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/users/entities/user.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -11,10 +12,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var User_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/users/entities/user.entity.ts
 const typeorm_1 = require("typeorm");
-const swagger_1 = require("@nestjs/swagger");
 const class_transformer_1 = require("class-transformer");
 const role_enum_1 = require("../enums/role.enum");
 const organization_entity_1 = require("../../organizations/entities/organization.entity");
@@ -39,32 +37,24 @@ let User = User_1 = class User {
             this.email = this.email.toLowerCase().trim();
         }
     }
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, firstName: { required: true, type: () => String }, lastName: { required: true, type: () => String }, email: { required: true, type: () => String }, password: { required: true, type: () => String }, role: { required: true, enum: require("../enums/role.enum").Role }, permissions: { required: true, type: () => [String] }, isActive: { required: true, type: () => Boolean }, isLocked: { required: true, type: () => Boolean }, isEmailVerified: { required: true, type: () => Boolean }, requirePasswordChange: { required: true, type: () => Boolean }, lastLoginAt: { required: false, type: () => Date }, lastActiveAt: { required: false, type: () => Date }, createdById: { required: true, type: () => String }, updatedById: { required: false, type: () => String }, refreshToken: { required: false, type: () => String }, refreshTokenExpiresAt: { required: false, type: () => Date }, passwordResetToken: { required: false, type: () => String }, passwordResetExpiresAt: { required: false, type: () => Date }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, deletedAt: { required: false, type: () => Date }, organization: { required: true, type: () => require("../../organizations/entities/organization.entity").Organization }, createdBy: { required: true, type: () => require("./user.entity").User }, updatedBy: { required: false, type: () => require("./user.entity").User }, profile: { required: true, type: () => require("./user-profile.entity").UserProfile }, verification: { required: true, type: () => require("./user-verification.entity").UserVerification }, settings: { required: true, type: () => require("./user-settings.entity").UserSettings }, assignedTickets: { required: true, type: () => [require("../../tickets/entities/ticket.entity").Ticket] }, createdTickets: { required: true, type: () => [require("../../tickets/entities/ticket.entity").Ticket] }, messages: { required: true, type: () => [require("../../messages/entities/message.entity").Message] }, appointments: { required: true, type: () => [require("../../appointments/entities/appointment.entity").Appointment] }, notifications: { required: true, type: () => [require("../../notifications/entities/notification.entity").Notification] }, activities: { required: true, type: () => [require("./user-activity.entity").UserActivity] } };
-    }
 };
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
     __metadata("design:type", String)
 ], User.prototype, "id", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], User.prototype, "organizationId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({ length: 50 }),
     __metadata("design:type", String)
 ], User.prototype, "firstName", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({ length: 50 }),
     __metadata("design:type", String)
 ], User.prototype, "lastName", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({ unique: true }),
     (0, typeorm_1.Index)(),
     __metadata("design:type", String)
@@ -75,7 +65,6 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({
         type: 'enum',
         enum: role_enum_1.Role,
@@ -84,67 +73,54 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "role", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({ type: 'simple-array', nullable: true }),
     __metadata("design:type", Array)
 ], User.prototype, "permissions", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({ default: true }),
     __metadata("design:type", Boolean)
 ], User.prototype, "isActive", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({ default: false }),
     __metadata("design:type", Boolean)
 ], User.prototype, "isLocked", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({ default: false }),
     __metadata("design:type", Boolean)
 ], User.prototype, "isEmailVerified", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({ default: true }),
     __metadata("design:type", Boolean)
 ], User.prototype, "requirePasswordChange", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", Date)
 ], User.prototype, "lastLoginAt", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", Date)
 ], User.prototype, "lastActiveAt", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], User.prototype, "createdById", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "updatedById", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "refreshToken", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({ nullable: true, type: 'timestamp' }),
     __metadata("design:type", Date)
 ], User.prototype, "refreshTokenExpiresAt", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "passwordResetToken", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, typeorm_1.Column)({ nullable: true, type: 'timestamp' }),
     __metadata("design:type", Date)
 ], User.prototype, "passwordResetExpiresAt", void 0);
@@ -161,25 +137,16 @@ __decorate([
     __metadata("design:type", Date)
 ], User.prototype, "deletedAt", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        type: 'object',
-        properties: {
-            id: { type: 'string' },
-            name: { type: 'string' }
-        }
-    }),
     (0, typeorm_1.ManyToOne)(() => organization_entity_1.Organization, { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'organizationId' }),
     __metadata("design:type", Promise)
 ], User.prototype, "organization", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ type: () => User_1 }),
-    (0, typeorm_1.ManyToOne)(() => User_1, { lazy: true }),
+    (0, typeorm_1.ManyToOne)(() => User_1, user => user.createdTickets, { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'createdById' }),
     __metadata("design:type", Promise)
 ], User.prototype, "createdBy", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ type: () => User_1, nullable: true }),
     (0, typeorm_1.ManyToOne)(() => User_1, { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'updatedById' }),
     __metadata("design:type", Promise)
@@ -197,11 +164,11 @@ __decorate([
     __metadata("design:type", Promise)
 ], User.prototype, "settings", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => ticket_entity_1.Ticket, ticket => ticket.assignee, { lazy: true }),
+    (0, typeorm_1.OneToMany)(() => ticket_entity_1.Ticket, ticket => ticket.assigneeId, { lazy: true }),
     __metadata("design:type", Promise)
 ], User.prototype, "assignedTickets", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => ticket_entity_1.Ticket, ticket => ticket.createdBy, { lazy: true }),
+    (0, typeorm_1.OneToMany)(() => ticket_entity_1.Ticket, ticket => ticket.createdById, { lazy: true }),
     __metadata("design:type", Promise)
 ], User.prototype, "createdTickets", void 0);
 __decorate([
@@ -209,27 +176,17 @@ __decorate([
     __metadata("design:type", Promise)
 ], User.prototype, "messages", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => appointment_entity_1.Appointment, appointment => appointment.doctor, { lazy: true }),
+    (0, typeorm_1.OneToMany)(() => appointment_entity_1.Appointment, appointment => appointment.doctorId, { lazy: true }),
     __metadata("design:type", Promise)
 ], User.prototype, "appointments", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => notification_entity_1.Notification, notification => notification.recipient, { lazy: true }),
+    (0, typeorm_1.OneToMany)(() => notification_entity_1.Notification, notification => notification.userId, { lazy: true }),
     __metadata("design:type", Promise)
 ], User.prototype, "notifications", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => user_activity_entity_1.UserActivity, activity => activity.user, { lazy: true }),
     __metadata("design:type", Promise)
 ], User.prototype, "activities", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)(),
-    __metadata("design:type", String),
-    __metadata("design:paramtypes", [])
-], User.prototype, "fullName", null);
-__decorate([
-    (0, swagger_1.ApiProperty)(),
-    __metadata("design:type", Boolean),
-    __metadata("design:paramtypes", [])
-], User.prototype, "isAvailable", null);
 __decorate([
     (0, typeorm_1.BeforeInsert)(),
     (0, typeorm_1.BeforeUpdate)(),

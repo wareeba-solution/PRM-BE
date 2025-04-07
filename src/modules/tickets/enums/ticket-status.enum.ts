@@ -1,9 +1,12 @@
 // src/modules/tickets/enums/ticket-status.enum.ts
 
 export enum TicketStatus {
-    NEW = 'NEW',
     OPEN = 'OPEN',
     IN_PROGRESS = 'IN_PROGRESS',
+    PENDING = 'PENDING',
     RESOLVED = 'RESOLVED',
-    CLOSED = 'CLOSED'
-  }
+    CLOSED = 'CLOSED',
+    ESCALATED = 'ESCALATED',
+    REOPENED = 'REOPENED',
+    DELETED = 'DELETED',
+}

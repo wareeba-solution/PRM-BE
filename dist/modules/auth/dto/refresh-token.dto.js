@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/auth/dto/refresh-token.dto.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,20 +11,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RefreshTokenDto = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/auth/dto/refresh-token.dto.ts
-const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 class RefreshTokenDto {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { refreshToken: { required: true, type: () => String } };
-    }
 }
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        description: 'Refresh token for obtaining a new access token',
-        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-    }),
     (0, class_validator_1.IsNotEmpty)({ message: 'Refresh token is required' }),
     (0, class_validator_1.IsString)({ message: 'Refresh token must be a string' }),
     __metadata("design:type", String)

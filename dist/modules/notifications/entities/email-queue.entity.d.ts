@@ -1,6 +1,6 @@
 import { EmailStatus } from '../enums/email-status.enum';
 import { Organization } from '../../organizations/entities/organization.entity';
-import { EmailTemplate } from './email-template.entity';
+import { EmailTemplate } from '../../email/entities/email-template.entity';
 export declare class EmailQueue {
     id: string;
     priority: number;
@@ -24,4 +24,6 @@ export declare class EmailQueue {
     status: EmailStatus;
     scheduledFor: Date;
     processedAt: Date;
+    cc: string[];
+    bcc: string[];
 }

@@ -10,22 +10,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailQueue = void 0;
-const openapi = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
 const email_status_enum_1 = require("../enums/email-status.enum");
 const organization_entity_1 = require("../../organizations/entities/organization.entity");
-const email_template_entity_1 = require("./email-template.entity");
+const email_template_entity_1 = require("../../email/entities/email-template.entity");
 let EmailQueue = class EmailQueue {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, priority: { required: true, type: () => Number }, attempts: { required: true, type: () => Number }, maxAttempts: { required: true, type: () => Number }, lastError: { required: true, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, sentAt: { required: true, type: () => Date }, data: { required: true, type: () => Object }, organizationId: { required: true, type: () => String }, organization: { required: true, type: () => require("../../organizations/entities/organization.entity").Organization }, templateId: { required: true, type: () => String }, template: { required: true, type: () => require("./email-template.entity").EmailTemplate }, recipient: { required: true, type: () => String }, subject: { required: true, type: () => String }, htmlContent: { required: true, type: () => String }, textContent: { required: true, type: () => String }, variables: { required: true, type: () => Object }, metadata: { required: true, type: () => Object }, status: { required: true, enum: require("../enums/email-status.enum").EmailStatus }, scheduledFor: { required: true, type: () => Date }, processedAt: { required: true, type: () => Date } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
     __metadata("design:type", String)
 ], EmailQueue.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
     (0, typeorm_1.Column)(),
     __metadata("design:type", Number)
 ], EmailQueue.prototype, "priority", void 0);
@@ -115,6 +110,14 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", Date)
 ], EmailQueue.prototype, "processedAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)('simple-array', { nullable: true }),
+    __metadata("design:type", Array)
+], EmailQueue.prototype, "cc", void 0);
+__decorate([
+    (0, typeorm_1.Column)('simple-array', { nullable: true }),
+    __metadata("design:type", Array)
+], EmailQueue.prototype, "bcc", void 0);
 EmailQueue = __decorate([
     (0, typeorm_1.Entity)('email_queue')
 ], EmailQueue);

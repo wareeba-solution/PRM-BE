@@ -1,4 +1,10 @@
 import { ContactRelationship } from './contact-relationship.entity';
+import { Organization } from '../../organizations/entities/organization.entity';
+import { User } from '../../users/entities/user.entity';
+import { Appointment } from '../../appointments/entities/appointment.entity';
+import { Document } from '../../documents/entities/document.entity';
+import { MedicalHistory } from '../../medical-history/medical-history.entity';
+import { MergedRecord } from '../../merged-records/entities/merged-record.entity';
 export declare enum ContactType {
     PATIENT = "PATIENT",
     EMERGENCY_CONTACT = "EMERGENCY_CONTACT",
@@ -65,14 +71,14 @@ export declare class Contact {
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;
-    organization: any;
-    createdBy: Promise<any>;
-    updatedBy: Promise<any>;
-    appointments: any[];
-    documents: any[];
-    medicalHistory: any[];
-    relationships: ContactRelationship[];
-    mergedRecords: any[];
+    organization: Promise<Organization>;
+    createdBy: Promise<User>;
+    updatedBy: Promise<User>;
+    appointments: Promise<Appointment[]>;
+    documents: Promise<Document[]>;
+    medicalHistory: Promise<MedicalHistory[]>;
+    relationships: Promise<ContactRelationship[]>;
+    mergedRecords: Promise<MergedRecord[]>;
     get fullName(): string;
     get age(): number | null;
 }

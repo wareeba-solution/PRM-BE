@@ -1,8 +1,9 @@
 // src/modules/tickets/dto/update-ticket.dto.ts
 
-import { OmitType, PartialType } from '@nestjs/swagger';
-import { CreateTicketDto, TicketStatus } from './create-ticket.dto';
+import { CreateTicketDto } from './create-ticket.dto';
+import { TicketStatus } from '../enums/ticket-status.enum';
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import { PartialType, OmitType } from '@nestjs/mapped-types';
 
 export class UpdateTicketDto extends PartialType(
     OmitType(CreateTicketDto, ['type', 'source'] as const)

@@ -34,11 +34,12 @@ const organization_role_guard_1 = require("./guards/organization-role.guard");
 const domain_verification_service_1 = require("../domain/services/domain-verification.service");
 const email_service_1 = require("../../shared/services/email.service");
 const storage_service_1 = require("../storage/services/storage.service");
-const domain_1 = require("domain");
+const domain_entity_1 = require("../domain/entities/domain.entity");
 const domain_verification_token_entity_1 = require("../domain/entities/domain-verification-token.entity");
-const email_template_entity_1 = require("../notifications/entities/email-template.entity");
+const email_template_entity_1 = require("../email/entities/email-template.entity");
 const email_log_entity_1 = require("../notifications/entities/email-log.entity");
 const email_queue_entity_1 = require("../notifications/entities/email-queue.entity");
+const email_content_entity_1 = require("../notifications/entities/email-content.entity");
 let OrganizationsModule = class OrganizationsModule {
 };
 OrganizationsModule = __decorate([
@@ -50,13 +51,12 @@ OrganizationsModule = __decorate([
                 organization_audit_log_entity_1.OrganizationAuditLog,
                 user_entity_1.User,
                 audit_log_entity_1.AuditLog,
-                domain_1.Domain,
-                domain_verification_service_1.DomainVerificationService,
+                domain_entity_1.Domain,
                 domain_verification_token_entity_1.DomainVerificationToken,
+                email_content_entity_1.EmailContent,
                 email_template_entity_1.EmailTemplate,
                 email_log_entity_1.EmailLog,
-                email_queue_entity_1.EmailQueue,
-                email_service_1.EmailService,
+                email_queue_entity_1.EmailQueue
             ]),
             event_emitter_1.EventEmitterModule.forRoot({
                 wildcard: true,

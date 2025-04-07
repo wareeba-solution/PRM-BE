@@ -1,29 +1,33 @@
 // src/modules/users/dto/update-user.dto.ts
 
-import { ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
 import { CreateUserDto } from './create-user.dto';
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsBoolean, IsOptional, IsEnum, IsString } from 'class-validator';
+import { PickType } from '@nestjs/mapped-types';
+import { Role } from '../enums/role.enum';
 
-export class UpdateUserDto extends PartialType(
-    OmitType(CreateUserDto, ['password', 'email'] as const)
-) {
-    @ApiPropertyOptional()
+export class UpdateUserDto extends PickType(CreateUserDto, [
+    'firstName',
+    'lastName',
+    'phoneNumber',
+    'department'
+] as const) {
     @IsOptional()
     @IsBoolean()
     isActive?: boolean;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsBoolean()
     isLocked?: boolean;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsBoolean()
     isEmailVerified?: boolean;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsBoolean()
     isPhoneVerified?: boolean;
+    
+    @IsOptional()
+    @IsEnum(Role)
+    role?: Role;
 }

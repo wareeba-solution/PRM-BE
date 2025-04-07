@@ -3,14 +3,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CurrentOrganization = exports.CurrentUser = exports.RequireOrganization = exports.Public = exports.Auth = exports.AUTH_ORG_KEY = exports.AUTH_ROLES_KEY = void 0;
 const common_1 = require("@nestjs/common");
-const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../../modules/auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../../modules/auth/guards/roles.guard");
 exports.AUTH_ROLES_KEY = 'roles';
 exports.AUTH_ORG_KEY = 'requireOrganization';
 function Auth(options = {}) {
     const { roles = [], requireOrganization = true } = options;
-    return (0, common_1.applyDecorators)((0, common_1.SetMetadata)(exports.AUTH_ROLES_KEY, roles), (0, common_1.SetMetadata)(exports.AUTH_ORG_KEY, requireOrganization), (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard), (0, swagger_1.ApiBearerAuth)(), (0, swagger_1.ApiUnauthorizedResponse)({ description: 'Unauthorized' }));
+    return (0, common_1.applyDecorators)((0, common_1.SetMetadata)(exports.AUTH_ROLES_KEY, roles), (0, common_1.SetMetadata)(exports.AUTH_ORG_KEY, requireOrganization), (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard));
 }
 exports.Auth = Auth;
 // Public routes decorator

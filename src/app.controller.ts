@@ -1,17 +1,13 @@
 // src/app.controller.ts
 
 import { Controller, Get } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AppService } from './app.service';
 
-@ApiTags('System')
 @Controller()
 export class AppController {
     constructor(private readonly appService: AppService) {}
 
     @Get()
-    @ApiOperation({ summary: 'Get application info' })
-    @ApiResponse({ status: 200, description: 'Application info retrieved successfully' })
     getInfo() {
         return {
             name: 'Patient Relationship Manager',
@@ -24,8 +20,6 @@ export class AppController {
 
 
     @Get('health')
-    @ApiOperation({ summary: 'Health check endpoint' })
-    @ApiResponse({ status: 200, description: 'System is healthy' })
     async healthCheck() {
         const health = await this.appService.checkHealth();
         return {
@@ -38,8 +32,6 @@ export class AppController {
     }
 
     @Get('ping')
-    @ApiOperation({ summary: 'Simple ping endpoint' })
-    @ApiResponse({ status: 200, description: 'Pong' })
     ping() {
         return { message: 'pong', timestamp: new Date().toISOString() };
     }

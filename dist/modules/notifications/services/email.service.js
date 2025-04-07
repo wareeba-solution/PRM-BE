@@ -43,21 +43,20 @@ const typeorm_2 = require("typeorm");
 const config_1 = require("@nestjs/config");
 const nodemailer = __importStar(require("nodemailer"));
 const Handlebars = __importStar(require("handlebars"));
-const email_template_entity_1 = require("../entities/email-template.entity");
+const email_template_entity_1 = require("../../email/entities/email-template.entity");
 const email_queue_entity_1 = require("../entities/email-queue.entity");
 const email_log_entity_1 = require("../entities/email-log.entity");
+const email_content_entity_1 = require("../entities/email-content.entity");
 const email_status_enum_1 = require("../enums/email-status.enum");
+const mailer_1 = require("@nestjs-modules/mailer");
 let EmailService = EmailService_1 = class EmailService {
-    async sendAppointmentReminder(email, details) {
-        // Implementation for sending email reminder
-        // Example:
-        console.log(`Sending email to ${email} with details:`, details);
-    }
-    constructor(templateRepository, queueRepository, logRepository, configService) {
-        this.templateRepository = templateRepository;
-        this.queueRepository = queueRepository;
-        this.logRepository = logRepository;
+    constructor(emailTemplateRepository, emailQueueRepository, emailLogRepository, emailContentRepository, configService, mailerService) {
+        this.emailTemplateRepository = emailTemplateRepository;
+        this.emailQueueRepository = emailQueueRepository;
+        this.emailLogRepository = emailLogRepository;
+        this.emailContentRepository = emailContentRepository;
         this.configService = configService;
+        this.mailerService = mailerService;
         this.logger = new common_1.Logger(EmailService_1.name);
         this.transporter = nodemailer.createTransport({
             host: this.configService.get('SMTP_HOST'),
@@ -72,44 +71,27 @@ let EmailService = EmailService_1 = class EmailService {
     /**
      * Queue an email for sending
      */
-    async queueEmail(options) {
-        let htmlContent = options.htmlContent;
-        let textContent = options.textContent;
-        // If template is specified, fetch and compile it
-        if (options.template) {
-            const template = await this.templateRepository.findOne({
-                where: {
-                    name: options.template,
-                    organizationId: options.organizationId,
-                    isActive: true
-                }
-            });
-            if (template) {
-                htmlContent = this.compileTemplate(template.htmlContent, options.variables);
-                textContent = template.textContent ?
-                    this.compileTemplate(template.textContent, options.variables) :
-                    undefined;
-            }
-        }
-        // Create queue entry
-        const queueEntry = this.queueRepository.create({
-            recipient: Array.isArray(options.to) ? options.to.join(',') : options.to,
-            subject: options.subject,
-            htmlContent,
-            textContent,
-            variables: options.variables,
-            metadata: options.metadata,
-            organizationId: options.organizationId,
-            scheduledFor: options.scheduledFor,
+    async queueEmail(data) {
+        const emailQueue = this.emailQueueRepository.create({
+            recipient: data.recipient,
+            subject: data.subject,
+            templateId: data.templateId,
+            variables: data.variables || {},
+            organizationId: data.organizationId,
+            cc: data.cc,
+            bcc: data.bcc,
             status: email_status_enum_1.EmailStatus.PENDING,
+            priority: 1,
+            attempts: 0,
+            maxAttempts: 3
         });
-        return this.queueRepository.save(queueEntry);
+        return this.emailQueueRepository.save(emailQueue);
     }
     /**
      * Process queued emails
      */
     async processQueue(batchSize = 50) {
-        const queuedEmails = await this.queueRepository.find({
+        const queuedEmails = await this.emailQueueRepository.find({
             where: [
                 { status: email_status_enum_1.EmailStatus.PENDING, scheduledFor: (0, typeorm_2.IsNull)() },
                 {
@@ -133,42 +115,86 @@ let EmailService = EmailService_1 = class EmailService {
     /**
      * Send a single email
      */
-    async sendEmail(queuedEmail) {
-        // Update status to sending
-        await this.queueRepository.update(queuedEmail.id, {
-            status: email_status_enum_1.EmailStatus.SENDING,
-            attempts: () => '"attempts" + 1'
-        });
-        // Prepare email data
-        const mailOptions = {
-            from: this.configService.get('MAIL_FROM'),
-            to: queuedEmail.recipient,
-            subject: queuedEmail.subject,
-            html: queuedEmail.htmlContent,
-            text: queuedEmail.textContent,
-        };
+    async sendEmail(emailQueue) {
         try {
-            // Send email
-            const result = await this.transporter.sendMail(mailOptions);
-            // Create log entry
-            const logEntry = this.logRepository.create({
-                organizationId: queuedEmail.organizationId,
-                templateId: queuedEmail.templateId,
-                recipient: queuedEmail.recipient,
-                subject: queuedEmail.subject,
-                htmlContent: queuedEmail.htmlContent,
-                textContent: queuedEmail.textContent,
-                metadata: queuedEmail.metadata,
-                status: email_status_enum_1.EmailStatus.SENT,
-                messageId: result.messageId,
-                sentAt: new Date(),
+            // Update status to sending
+            emailQueue.status = email_status_enum_1.EmailStatus.SENDING;
+            await this.emailQueueRepository.save(emailQueue);
+            // Get template
+            const template = await this.emailTemplateRepository.findOne({
+                where: {
+                    id: emailQueue.templateId,
+                    status: email_template_entity_1.EmailTemplateStatus.ACTIVE
+                }
             });
-            await this.logRepository.save(logEntry);
-            // Remove from queue
-            await this.queueRepository.delete(queuedEmail.id);
+            if (!template) {
+                throw new Error(`Email template not found: ${emailQueue.templateId}`);
+            }
+            // Compile content
+            const htmlContent = this.compileTemplate(template.content, emailQueue.variables || {});
+            const textContent = template.plainTextContent ?
+                this.compileTemplate(template.plainTextContent, emailQueue.variables || {}) :
+                '';
+            // Send email
+            const mailResult = await this.mailerService.sendMail({
+                to: emailQueue.recipient,
+                subject: emailQueue.subject,
+                html: htmlContent,
+                text: textContent,
+                cc: emailQueue.cc,
+                bcc: emailQueue.bcc,
+                from: template.fromEmail || this.configService.get('mail.defaults.from'),
+            });
+            // Create email log (without messageId - it's now in content)
+            const emailLog = this.emailLogRepository.create({
+                organizationId: emailQueue.organizationId,
+                templateId: emailQueue.templateId,
+                recipient: emailQueue.recipient,
+                subject: emailQueue.subject,
+                status: email_status_enum_1.EmailStatus.SENT,
+                sentAt: new Date()
+            });
+            await this.emailLogRepository.save(emailLog);
+            // Save email content with metadata and messageId
+            const emailContent = this.emailContentRepository.create({
+                emailLogId: emailLog.id,
+                htmlContent,
+                textContent,
+                metadata: emailQueue.metadata || {},
+                messageId: (mailResult === null || mailResult === void 0 ? void 0 : mailResult.messageId) || null // Store messageId in content
+            });
+            await this.emailContentRepository.save(emailContent);
+            // Update queue status
+            emailQueue.status = email_status_enum_1.EmailStatus.SENT;
+            emailQueue.sentAt = new Date();
+            await this.emailQueueRepository.save(emailQueue);
+            return true;
         }
         catch (error) {
-            throw error;
+            this.logger.error(`Failed to send email: ${error.message}`, error.stack);
+            // Update queue status
+            emailQueue.status = email_status_enum_1.EmailStatus.FAILED;
+            emailQueue.lastError = error.message;
+            emailQueue.attempts += 1;
+            await this.emailQueueRepository.save(emailQueue);
+            // Create failed email log
+            const emailLog = this.emailLogRepository.create({
+                organizationId: emailQueue.organizationId,
+                templateId: emailQueue.templateId,
+                recipient: emailQueue.recipient,
+                subject: emailQueue.subject,
+                status: email_status_enum_1.EmailStatus.FAILED,
+                error: error.message
+            });
+            // Save log first to get ID
+            const savedLog = await this.emailLogRepository.save(emailLog);
+            // Create content with error details
+            const emailContent = this.emailContentRepository.create({
+                emailLogId: savedLog.id,
+                metadata: emailQueue.metadata || {}
+            });
+            await this.emailContentRepository.save(emailContent);
+            return false;
         }
     }
     /**
@@ -178,24 +204,28 @@ let EmailService = EmailService_1 = class EmailService {
         const maxAttempts = this.configService.get('EMAIL_MAX_ATTEMPTS', 3);
         if (email.attempts >= maxAttempts) {
             // Create failed log entry
-            const logEntry = this.logRepository.create({
+            const logEntry = this.emailLogRepository.create({
                 organizationId: email.organizationId,
                 templateId: email.templateId,
                 recipient: email.recipient,
                 subject: email.subject,
-                htmlContent: email.htmlContent,
-                textContent: email.textContent,
-                metadata: email.metadata,
                 status: email_status_enum_1.EmailStatus.FAILED,
                 error: error.message,
                 sentAt: new Date(),
             });
-            await this.logRepository.save(logEntry);
-            await this.queueRepository.delete(email.id);
+            // Save log first to get ID
+            const savedLog = await this.emailLogRepository.save(logEntry);
+            // Then save content with metadata
+            const emailContent = this.emailContentRepository.create({
+                emailLogId: savedLog.id,
+                metadata: email.metadata || {}
+            });
+            await this.emailContentRepository.save(emailContent);
+            await this.emailQueueRepository.delete(email.id);
         }
         else {
             // Update queue entry with error
-            await this.queueRepository.update(email.id, {
+            await this.emailQueueRepository.update(email.id, {
                 status: email_status_enum_1.EmailStatus.PENDING,
                 lastError: error.message,
             });
@@ -204,57 +234,60 @@ let EmailService = EmailService_1 = class EmailService {
     /**
      * Compile template with variables
      */
-    compileTemplate(template, variables = {}) {
-        const compiledTemplate = Handlebars.compile(template);
-        return compiledTemplate(variables);
+    compileTemplate(template, variables) {
+        try {
+            const compiledTemplate = Handlebars.compile(template);
+            return compiledTemplate(variables);
+        }
+        catch (error) {
+            this.logger.error(`Failed to compile template: ${error.message}`, error.stack);
+            throw error;
+        }
     }
     /**
      * Get email logs for an organization
      */
     async getEmailLogs(organizationId, options = {}) {
-        const query = this.logRepository.createQueryBuilder('log')
-            .where('log.organizationId = :organizationId', { organizationId });
+        const query = this.emailLogRepository.createQueryBuilder('emailLog')
+            .leftJoinAndSelect('emailLog.content', 'content')
+            .where('emailLog.organizationId = :organizationId', { organizationId });
         if (options.status) {
-            query.andWhere('log.status = :status', { status: options.status });
+            query.andWhere('emailLog.status = :status', { status: options.status });
         }
         if (options.from) {
-            query.andWhere('log.createdAt >= :from', { from: options.from });
+            query.andWhere('emailLog.createdAt >= :from', { from: options.from });
         }
         if (options.to) {
-            query.andWhere('log.createdAt <= :to', { to: options.to });
+            query.andWhere('emailLog.createdAt <= :to', { to: options.to });
         }
-        return query
-            .orderBy('log.createdAt', 'DESC')
-            .take(options.limit || 50)
-            .skip(options.offset || 0)
-            .getManyAndCount();
+        if (options.limit) {
+            query.take(options.limit);
+        }
+        if (options.offset) {
+            query.skip(options.offset);
+        }
+        return query.getManyAndCount();
     }
     /**
      * Update email tracking status
      */
     async updateTrackingStatus(messageId, status, metadata) {
-        const log = await this.logRepository.findOne({
-            where: { messageId }
+        // Find by messageId in the content table instead of the log table
+        const emailContent = await this.emailContentRepository.findOne({
+            where: { messageId },
+            relations: ['emailLog']
         });
-        if (!log) {
-            return;
+        if (!emailContent || !emailContent.emailLog) {
+            throw new Error(`Email log not found for messageId: ${messageId}`);
         }
-        const update = { status };
-        switch (status) {
-            case email_status_enum_1.EmailStatus.DELIVERED:
-                update.deliveredAt = new Date();
-                break;
-            case email_status_enum_1.EmailStatus.OPENED:
-                update.openedAt = new Date();
-                break;
-            case email_status_enum_1.EmailStatus.CLICKED:
-                update.clickedAt = new Date();
-                break;
-        }
+        const emailLog = emailContent.emailLog;
+        emailLog.status = status;
+        // Update metadata in content entity
         if (metadata) {
-            update.metadata = Object.assign(Object.assign({}, log.metadata), metadata);
+            emailContent.metadata = Object.assign(Object.assign({}, (emailContent.metadata || {})), metadata);
+            await this.emailContentRepository.save(emailContent);
         }
-        await this.logRepository.update(log.id, update);
+        await this.emailLogRepository.save(emailLog);
     }
 };
 EmailService = EmailService_1 = __decorate([
@@ -262,10 +295,13 @@ EmailService = EmailService_1 = __decorate([
     __param(0, (0, typeorm_1.InjectRepository)(email_template_entity_1.EmailTemplate)),
     __param(1, (0, typeorm_1.InjectRepository)(email_queue_entity_1.EmailQueue)),
     __param(2, (0, typeorm_1.InjectRepository)(email_log_entity_1.EmailLog)),
+    __param(3, (0, typeorm_1.InjectRepository)(email_content_entity_1.EmailContent)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
-        config_1.ConfigService])
+        typeorm_2.Repository,
+        config_1.ConfigService,
+        mailer_1.MailerService])
 ], EmailService);
 exports.EmailService = EmailService;
 //# sourceMappingURL=email.service.js.map

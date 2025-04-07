@@ -1,12 +1,14 @@
+import { User } from '../../users/entities/user.entity';
+import { Organization } from '../../organizations/entities/organization.entity';
 import { Appointment } from './appointment.entity';
 import { DayOfWeek } from '../enums/day-of-week.enum';
 export declare class DoctorSchedule {
     id: string;
     doctorId: string;
+    doctor: Promise<User>;
     organizationId: string;
+    organization: Promise<Organization>;
     dayOfWeek: DayOfWeek;
-    startTime: string;
-    endTime: string;
     workStart: Date;
     workEnd: Date;
     slotDuration: number;
@@ -26,19 +28,15 @@ export declare class DoctorSchedule {
     notes?: string;
     slotCapacity?: number;
     createdById?: string;
+    createdBy?: Promise<User>;
     updatedById?: string;
+    updatedBy?: Promise<User>;
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;
-    appointments?: Appointment[];
-    availableSlots?: {
-        startTime: Date;
-        endTime: Date;
-        available: boolean;
-        appointmentId?: string;
-    }[];
-    isTimeInRange(time: string): boolean;
+    appointments: Promise<Appointment[]>;
+    isTimeInRange(time: Date): boolean;
     isDateInValidRange(date: Date): boolean;
     getDayNumber(): number;
-    isBreakTime(time: string): boolean;
+    isBreakTime(time: Date): boolean;
 }

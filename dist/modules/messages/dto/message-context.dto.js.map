@@ -1,1 +1,1 @@
-{"version":3,"file":"message-context.dto.js","sourceRoot":"","sources":["../../../../src/modules/messages/dto/message-context.dto.ts"],"names":[],"mappings":";;;;;;;;;;;;;AAAA,qDAAyC;AAEzC,MAAa,iBAAiB;;;;CAM7B;AALG;IAAC,IAAA,wBAAM,GAAE;;yDACc;AAEvB;IAAC,IAAA,wBAAM,GAAE;;iDACM;AALnB,8CAMC"}
+{"version":3,"file":"message-context.dto.js","sourceRoot":"","sources":["../../../../src/modules/messages/dto/message-context.dto.ts"],"names":[],"mappings":";;;;;;;;;;;;AAAA,qDAAyC;AAEzC,MAAa,iBAAiB;CAM7B;AALG;IAAC,IAAA,wBAAM,GAAE;;yDACc;AAEvB;IAAC,IAAA,wBAAM,GAAE;;iDACM;AALnB,8CAMC"}

@@ -34,6 +34,7 @@ const contact_relationship_entity_1 = require("../entities/contact-relationship.
 const medical_history_entity_1 = require("../../medical-history/medical-history.entity");
 const appointment_entity_1 = require("../../appointments/entities/appointment.entity");
 const document_entity_1 = require("../../documents/entities/document.entity");
+const merged_record_entity_1 = require("../../merged-records/entities/merged-record.entity");
 /**
  * Gets the inverse relationship type for bidirectional relationships
  * @param type The original relationship type
@@ -59,8 +60,9 @@ function getInverseRelationshipType(type) {
     return inverseMap[type];
 }
 let ContactsService = class ContactsService {
-    constructor(contactRepository, relationshipRepository, medicalHistoryRepository, appointmentRepository, documentRepository, dataSource) {
+    constructor(contactRepository, mergedRecordRepository, relationshipRepository, medicalHistoryRepository, appointmentRepository, documentRepository, dataSource) {
         this.contactRepository = contactRepository;
+        this.mergedRecordRepository = mergedRecordRepository;
         this.relationshipRepository = relationshipRepository;
         this.medicalHistoryRepository = medicalHistoryRepository;
         this.appointmentRepository = appointmentRepository;
@@ -92,7 +94,7 @@ let ContactsService = class ContactsService {
             });
             // If documents exist, assign them to the contact
             if (documents.length > 0) {
-                contact.documents = documents;
+                contact.documents = Promise.resolve(documents);
             }
         }
         const savedContact = await this.contactRepository.save(contact);
@@ -219,12 +221,21 @@ let ContactsService = class ContactsService {
                 .createQueryBuilder()
                 .update(medical_history_entity_1.MedicalHistory)
                 .set({ contactId: primaryId })
-                .where("contactId = :secondaryId", { secondaryId });
-            primary.mergedRecords = [...(primary.mergedRecords || []), secondary];
-            // Add to merged records if the property exists
-            if ('mergedRecords' in primary) {
-                primary.mergedRecords = [...(primary.mergedRecords || []), secondary];
-            }
+                .where("contactId = :secondaryId", { secondaryId })
+                .execute();
+            // Get existing merged records or initialize as empty array
+            const existingMergedRecords = await primary.mergedRecords || [];
+            // Create a new merged record
+            const newMergedRecord = this.mergedRecordRepository.create({
+                organizationId: context.organizationId,
+                primaryContactId: primaryId,
+                secondaryContactId: secondaryId,
+                createdById: context.userId
+            });
+            // Save the new merged record
+            const savedMergedRecord = await queryRunner.manager.save(merged_record_entity_1.MergedRecord, newMergedRecord);
+            // Update the primary contact's merged records with Promise.resolve
+            primary.mergedRecords = Promise.resolve([...existingMergedRecords, savedMergedRecord]);
             // Mark secondary as inactive
             secondary.status = 'INACTIVE';
             await queryRunner.manager.save(contact_entity_1.Contact, primary);
@@ -577,15 +588,56 @@ let ContactsService = class ContactsService {
             data: exportData,
         };
     }
+    async addDocuments(contactId, documents) {
+        const contact = await this.contactRepository.findOne({ where: { id: contactId } });
+        if (!contact) {
+            throw new common_1.NotFoundException(`Contact with ID ${contactId} not found`);
+        }
+        contact.documents = Promise.resolve(documents);
+        return this.contactRepository.save(contact);
+    }
+    async mergeContacts(organizationId, primaryContactId, secondaryContactId, metadata) {
+        // Find both contacts first
+        const [primaryContact, secondaryContact] = await Promise.all([
+            this.contactRepository.findOneOrFail({
+                where: { id: primaryContactId, organizationId }
+            }).catch(() => {
+                throw new common_1.NotFoundException('Primary contact not found');
+            }),
+            this.contactRepository.findOneOrFail({
+                where: { id: secondaryContactId, organizationId }
+            }).catch(() => {
+                throw new common_1.NotFoundException('Secondary contact not found');
+            })
+        ]);
+        // Create new merged record
+        const mergedRecord = this.mergedRecordRepository.create({
+            organizationId,
+            primaryContactId,
+            secondaryContactId,
+            metadata
+        });
+        await this.mergedRecordRepository.save(mergedRecord);
+        // Get all merged records for this contact
+        const mergedRecords = await this.mergedRecordRepository.find({
+            where: { primaryContactId }
+        });
+        // Update the contact with the new merged records
+        primaryContact.mergedRecords = Promise.resolve(mergedRecords);
+        await this.contactRepository.save(primaryContact);
+        return primaryContact;
+    }
 };
 ContactsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(contact_entity_1.Contact)),
-    __param(1, (0, typeorm_1.InjectRepository)(contact_relationship_entity_1.ContactRelationship)),
-    __param(2, (0, typeorm_1.InjectRepository)(medical_history_entity_1.MedicalHistory)),
-    __param(3, (0, typeorm_1.InjectRepository)(appointment_entity_1.Appointment)),
-    __param(4, (0, typeorm_1.InjectRepository)(document_entity_1.Document)),
+    __param(1, (0, typeorm_1.InjectRepository)(merged_record_entity_1.MergedRecord)),
+    __param(2, (0, typeorm_1.InjectRepository)(contact_relationship_entity_1.ContactRelationship)),
+    __param(3, (0, typeorm_1.InjectRepository)(medical_history_entity_1.MedicalHistory)),
+    __param(4, (0, typeorm_1.InjectRepository)(appointment_entity_1.Appointment)),
+    __param(5, (0, typeorm_1.InjectRepository)(document_entity_1.Document)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,

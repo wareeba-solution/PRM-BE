@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/email/entities/email-template.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailTemplate = exports.EmailTemplateType = exports.EmailTemplateStatus = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/email/entities/email-template.entity.ts
 const typeorm_1 = require("typeorm");
 const organization_entity_1 = require("../../organizations/entities/organization.entity");
 /**
@@ -68,9 +67,6 @@ let EmailTemplate = class EmailTemplate {
             processedSubject = processedSubject.replace(regex, String(value !== null && value !== void 0 ? value : ''));
         }
         return processedSubject;
-    }
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, organization: { required: true, type: () => require("../../organizations/entities/organization.entity").Organization }, name: { required: true, type: () => String }, description: { required: false, type: () => String }, type: { required: true, enum: require("./email-template.entity").EmailTemplateType }, status: { required: true, enum: require("./email-template.entity").EmailTemplateStatus }, subject: { required: true, type: () => String }, content: { required: true, type: () => String }, plainTextContent: { required: false, type: () => String }, isDefault: { required: true, type: () => Boolean }, category: { required: false, type: () => String }, language: { required: false, type: () => String }, variables: { required: false, type: () => Object }, metadata: { required: false, type: () => Object }, previewText: { required: false, type: () => String }, fromEmail: { required: false, type: () => String }, fromName: { required: false, type: () => String }, replyToEmail: { required: false, type: () => String }, headerImageUrl: { required: false, type: () => String }, footerContent: { required: false, type: () => String }, createdById: { required: false, type: () => String }, updatedById: { required: false, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, deletedAt: { required: false, type: () => Date }, lastUsedAt: { required: false, type: () => Date }, useCount: { required: true, type: () => Number } };
     }
 };
 __decorate([

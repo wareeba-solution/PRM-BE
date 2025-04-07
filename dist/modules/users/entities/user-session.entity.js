@@ -10,7 +10,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserSession = exports.SessionStatus = void 0;
-const openapi = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("./user.entity");
 var SessionStatus;
@@ -98,9 +97,6 @@ let UserSession = class UserSession {
      */
     isSameDevice(deviceId) {
         return this.deviceId === deviceId;
-    }
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, userId: { required: true, type: () => String }, user: { required: true, type: () => require("./user.entity").User }, organizationId: { required: true, type: () => String }, token: { required: true, type: () => String }, refreshToken: { required: true, type: () => String }, status: { required: true, enum: require("./user-session.entity").SessionStatus }, expiresAt: { required: true, type: () => Date }, lastActivityAt: { required: true, type: () => Date }, ipAddress: { required: true, type: () => String }, userAgent: { required: true, type: () => String }, deviceId: { required: true, type: () => String }, deviceType: { required: true, type: () => String }, browser: { required: true, type: () => String }, operatingSystem: { required: true, type: () => String }, location: { required: true, type: () => String }, metadata: { required: true, type: () => Object }, isMobile: { required: true, type: () => Boolean }, isRemembered: { required: true, type: () => Boolean }, revokedAt: { required: true, type: () => Date }, revokedBy: { required: true, type: () => String }, revokedReason: { required: true, type: () => String }, tokenRotationCount: { required: true, type: () => Number }, lastTokenRotation: { required: true, type: () => Date }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date } };
     }
 };
 __decorate([

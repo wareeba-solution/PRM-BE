@@ -3,6 +3,8 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { EmailContent } from '../notifications/entities/email-content.entity';
+
 
 import { UsersController } from './controllers/users.controller';
 import { UsersService } from './services/users.service';
@@ -14,7 +16,7 @@ import { UserSession } from './entities/user-session.entity';
 import { UserProfile } from './entities/user-profile.entity';
 import { UserVerification } from './entities/user-verification.entity';
 import { UserSettings } from './entities/user-settings.entity';
-import { EmailTemplate } from '../notifications/entities/email-template.entity';
+import { EmailTemplate } from '../email/entities/email-template.entity';
 import { EmailLog } from '../notifications/entities/email-log.entity';
 import { EmailQueue } from '../notifications/entities/email-queue.entity';
 import { Domain } from '../domain/entities/domain.entity';
@@ -46,7 +48,8 @@ import { EmailTemplateService } from '../email/services/email-template.service';
             EmailQueue,
             Domain,
             DomainVerificationToken,
-            AuditLog
+            AuditLog,
+            EmailContent
         ]),
         EventEmitterModule.forRoot(),
 

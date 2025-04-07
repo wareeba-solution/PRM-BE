@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/notifications/controllers/notifications.controller.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -13,10 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationsController = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/notifications/controllers/notifications.controller.ts
 const common_1 = require("@nestjs/common");
-const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../../auth/guards/roles.guard");
 const roles_decorator_1 = require("../../auth/decorators/roles.decorator");
@@ -117,9 +115,6 @@ let NotificationsController = class NotificationsController {
 __decorate([
     (0, common_1.Post)(),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.STAFF),
-    (0, swagger_1.ApiOperation)({ summary: 'Create new notification' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.CREATED, description: 'Notification created successfully' }),
-    openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -128,9 +123,6 @@ __decorate([
 ], NotificationsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Get user notifications' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return user notifications' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Query)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -139,9 +131,6 @@ __decorate([
 ], NotificationsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('unread'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get unread notifications count' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return unread notifications count' }),
-    openapi.ApiResponse({ status: 200, type: Number }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -149,9 +138,6 @@ __decorate([
 ], NotificationsController.prototype, "getUnreadCount", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get notification by id' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return notification details' }),
-    openapi.ApiResponse({ status: 200, type: require("../entities/notification.entity").Notification }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -160,9 +146,6 @@ __decorate([
 ], NotificationsController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Put)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Update notification' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Notification updated successfully' }),
-    openapi.ApiResponse({ status: 200, type: require("../entities/notification.entity").Notification }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -172,9 +155,6 @@ __decorate([
 ], NotificationsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Delete notification' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.NO_CONTENT, description: 'Notification deleted successfully' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -183,9 +163,6 @@ __decorate([
 ], NotificationsController.prototype, "remove", null);
 __decorate([
     (0, common_1.Post)(':id/mark-read'),
-    (0, swagger_1.ApiOperation)({ summary: 'Mark notification as read' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Notification marked as read' }),
-    openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -194,9 +171,6 @@ __decorate([
 ], NotificationsController.prototype, "markAsRead", null);
 __decorate([
     (0, common_1.Post)('mark-all-read'),
-    (0, swagger_1.ApiOperation)({ summary: 'Mark all notifications as read' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'All notifications marked as read' }),
-    openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -204,9 +178,6 @@ __decorate([
 ], NotificationsController.prototype, "markAllAsRead", null);
 __decorate([
     (0, common_1.Get)('preferences'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get notification preferences' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return notification preferences' }),
-    openapi.ApiResponse({ status: 200, type: Object }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -214,9 +185,6 @@ __decorate([
 ], NotificationsController.prototype, "getPreferences", null);
 __decorate([
     (0, common_1.Put)('preferences'),
-    (0, swagger_1.ApiOperation)({ summary: 'Update notification preferences' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Preferences updated successfully' }),
-    openapi.ApiResponse({ status: 200, type: Object }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -226,9 +194,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)('test'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Send test notification' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.CREATED, description: 'Test notification sent successfully' }),
-    openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -237,19 +202,14 @@ __decorate([
 ], NotificationsController.prototype, "sendTestNotification", null);
 __decorate([
     (0, common_1.Get)('channels'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get available notification channels' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return available channels' }),
-    openapi.ApiResponse({ status: 200, type: Object }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], NotificationsController.prototype, "getChannels", null);
 NotificationsController = __decorate([
-    (0, swagger_1.ApiTags)('Notifications'),
     (0, common_1.Controller)('notifications'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [notifications_service_1.NotificationsService])
 ], NotificationsController);
 exports.NotificationsController = NotificationsController;

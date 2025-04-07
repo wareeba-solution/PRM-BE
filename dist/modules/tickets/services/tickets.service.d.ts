@@ -28,10 +28,7 @@ export declare class TicketsService {
         organizationId: string;
         reopenedBy: string;
     }): Promise<Ticket>;
-    create(data: CreateTicketDto & {
-        organizationId: string;
-        createdBy: string;
-    }): Promise<Ticket>;
+    create(data: CreateTicketDto): Promise<Ticket>;
     findAll(query: TicketQueryDto & {
         organizationId: string;
     }): Promise<import("nestjs-typeorm-paginate").Pagination<Ticket, import("nestjs-typeorm-paginate").IPaginationMeta>>;

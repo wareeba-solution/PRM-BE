@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/appointments/entities/doctor-schedule.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,14 +11,18 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DoctorSchedule = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/appointments/entities/doctor-schedule.entity.ts
 const typeorm_1 = require("typeorm");
+const user_entity_1 = require("../../users/entities/user.entity");
+const organization_entity_1 = require("../../organizations/entities/organization.entity");
+const appointment_entity_1 = require("./appointment.entity");
 const day_of_week_enum_1 = require("../enums/day-of-week.enum");
 let DoctorSchedule = class DoctorSchedule {
     // Helper methods
     isTimeInRange(time) {
-        return time >= this.startTime && time <= this.endTime;
+        const timeStr = time.toTimeString().slice(0, 5);
+        const startStr = this.workStart.toTimeString().slice(0, 5);
+        const endStr = this.workEnd.toTimeString().slice(0, 5);
+        return timeStr >= startStr && timeStr <= endStr;
     }
     isDateInValidRange(date) {
         if (!this.validFrom && !this.validTo)
@@ -44,10 +49,8 @@ let DoctorSchedule = class DoctorSchedule {
     isBreakTime(time) {
         if (!this.breakTimes || !this.breakTimes.length)
             return false;
-        return this.breakTimes.some(breakTime => time >= breakTime.startTime && time < breakTime.endTime);
-    }
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, doctorId: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, dayOfWeek: { required: true, enum: require("../enums/day-of-week.enum").DayOfWeek }, startTime: { required: true, type: () => String }, endTime: { required: true, type: () => String }, workStart: { required: true, type: () => Date }, workEnd: { required: true, type: () => Date }, slotDuration: { required: true, type: () => Number }, breakBetweenSlots: { required: true, type: () => Number }, isAvailable: { required: true, type: () => Boolean }, isActive: { required: true, type: () => Boolean }, validFrom: { required: false, type: () => Date }, validTo: { required: false, type: () => Date }, breakTimes: { required: false }, metadata: { required: false, type: () => Object }, location: { required: false, type: () => String }, virtualLink: { required: false, type: () => String }, notes: { required: false, type: () => String }, slotCapacity: { required: false, type: () => Number }, createdById: { required: false, type: () => String }, updatedById: { required: false, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, deletedAt: { required: false, type: () => Date }, appointments: { required: false, type: () => [require("./appointment.entity").Appointment] }, availableSlots: { required: false } };
+        const timeStr = time.toTimeString().slice(0, 5);
+        return this.breakTimes.some(breakTime => timeStr >= breakTime.startTime && timeStr < breakTime.endTime);
     }
 };
 __decorate([
@@ -60,22 +63,24 @@ __decorate([
     __metadata("design:type", String)
 ], DoctorSchedule.prototype, "doctorId", void 0);
 __decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { lazy: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'doctor_id' }),
+    __metadata("design:type", Promise)
+], DoctorSchedule.prototype, "doctor", void 0);
+__decorate([
     (0, typeorm_1.Column)(),
     (0, typeorm_1.Index)(),
     __metadata("design:type", String)
 ], DoctorSchedule.prototype, "organizationId", void 0);
 __decorate([
+    (0, typeorm_1.ManyToOne)(() => organization_entity_1.Organization, { lazy: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'organization_id' }),
+    __metadata("design:type", Promise)
+], DoctorSchedule.prototype, "organization", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: 'int', enum: day_of_week_enum_1.DayOfWeek }),
     __metadata("design:type", Number)
 ], DoctorSchedule.prototype, "dayOfWeek", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'time' }),
-    __metadata("design:type", String)
-], DoctorSchedule.prototype, "startTime", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'time' }),
-    __metadata("design:type", String)
-], DoctorSchedule.prototype, "endTime", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'timestamp' }),
     __metadata("design:type", Date)
@@ -137,9 +142,19 @@ __decorate([
     __metadata("design:type", String)
 ], DoctorSchedule.prototype, "createdById", void 0);
 __decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { lazy: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'created_by_id' }),
+    __metadata("design:type", Promise)
+], DoctorSchedule.prototype, "createdBy", void 0);
+__decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], DoctorSchedule.prototype, "updatedById", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { lazy: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'updated_by_id' }),
+    __metadata("design:type", Promise)
+], DoctorSchedule.prototype, "updatedBy", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
@@ -152,6 +167,10 @@ __decorate([
     (0, typeorm_1.DeleteDateColumn)(),
     __metadata("design:type", Date)
 ], DoctorSchedule.prototype, "deletedAt", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => appointment_entity_1.Appointment, appointment => appointment.doctor),
+    __metadata("design:type", Promise)
+], DoctorSchedule.prototype, "appointments", void 0);
 DoctorSchedule = __decorate([
     (0, typeorm_1.Entity)('doctor_schedules')
 ], DoctorSchedule);

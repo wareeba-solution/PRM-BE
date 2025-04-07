@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/auth/controllers/auth.controller.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -13,10 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/auth/controllers/auth.controller.ts
 const common_1 = require("@nestjs/common");
-const swagger_1 = require("@nestjs/swagger");
 const auth_service_1 = require("../services/auth.service");
 const login_dto_1 = require("../dto/login.dto");
 const register_dto_1 = require("../dto/register.dto");
@@ -101,10 +99,6 @@ __decorate([
     (0, common_1.Post)('login'),
     (0, public_decorator_1.Public)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
-    (0, swagger_1.ApiOperation)({ summary: 'User login' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Login successful' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.UNAUTHORIZED, description: 'Invalid credentials' }),
-    openapi.ApiResponse({ status: common_1.HttpStatus.OK }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Headers)('user-agent')),
     __param(2, (0, common_1.Ip)()),
@@ -115,10 +109,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)('register'),
     (0, public_decorator_1.Public)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Register a new user and organization' }),
-    (0, swagger_1.ApiResponse)({ status: 201, description: 'Successfully registered' }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'Bad request' }),
-    openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Headers)('user-agent')),
     __param(2, (0, common_1.Ip)()),
@@ -130,8 +120,6 @@ __decorate([
     (0, common_1.Post)('refresh-token'),
     (0, public_decorator_1.Public)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
-    (0, swagger_1.ApiOperation)({ summary: 'Refresh access token' }),
-    openapi.ApiResponse({ status: common_1.HttpStatus.OK }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [refresh_token_dto_1.RefreshTokenDto]),
@@ -141,9 +129,6 @@ __decorate([
     (0, common_1.Post)('logout'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'User logout' }),
-    openapi.ApiResponse({ status: common_1.HttpStatus.OK }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Headers)('authorization')),
     __metadata("design:type", Function),
@@ -154,8 +139,6 @@ __decorate([
     (0, common_1.Post)('forgot-password'),
     (0, public_decorator_1.Public)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
-    (0, swagger_1.ApiOperation)({ summary: 'Request password reset' }),
-    openapi.ApiResponse({ status: common_1.HttpStatus.OK }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [forgot_password_dto_1.ForgotPasswordDto]),
@@ -165,8 +148,6 @@ __decorate([
     (0, common_1.Post)('reset-password'),
     (0, public_decorator_1.Public)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
-    (0, swagger_1.ApiOperation)({ summary: 'Reset password' }),
-    openapi.ApiResponse({ status: common_1.HttpStatus.OK }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [reset_password_dto_1.ResetPasswordDto]),
@@ -175,9 +156,6 @@ __decorate([
 __decorate([
     (0, common_1.Get)('me'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Get current user profile' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [user_entity_1.User]),
@@ -187,8 +165,6 @@ __decorate([
     (0, common_1.Post)('verify-email'),
     (0, public_decorator_1.Public)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
-    (0, swagger_1.ApiOperation)({ summary: 'Verify email address' }),
-    openapi.ApiResponse({ status: common_1.HttpStatus.OK }),
     __param(0, (0, common_1.Body)('token')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -197,16 +173,12 @@ __decorate([
 __decorate([
     (0, common_1.Post)('resend-verification'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Resend verification email' }),
-    openapi.ApiResponse({ status: 201 }),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [user_entity_1.User]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "resendVerification", null);
 AuthController = __decorate([
-    (0, swagger_1.ApiTags)('Authentication'),
     (0, common_1.Controller)('auth'),
     (0, common_1.UseGuards)(rate_limit_guard_1.RateLimitGuard),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

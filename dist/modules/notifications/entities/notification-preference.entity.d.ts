@@ -1,6 +1,8 @@
 import { NotificationChannel } from '../enums/notification-channel.enum';
 import { NotificationCategory } from '../enums/notification-category.enum';
 import { NotificationFrequency } from '../enums/notification-frequency.enum';
+import { Organization } from '../../organizations/entities/organization.entity';
+import { User } from '../../users/entities/user.entity';
 export { NotificationChannel, NotificationCategory, NotificationFrequency };
 export declare class NotificationPreference {
     id: string;
@@ -89,8 +91,8 @@ export declare class NotificationPreference {
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;
-    organization: any;
-    user: Promise<any>;
-    createdBy: Promise<any>;
-    updatedBy?: Promise<any>;
+    organization: Promise<Organization>;
+    user: Promise<User>;
+    createdBy: Promise<User>;
+    updatedBy?: Promise<User>;
 }

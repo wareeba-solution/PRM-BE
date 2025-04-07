@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/tickets/dto/update-ticket.dto.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,19 +11,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateTicketDto = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/tickets/dto/update-ticket.dto.ts
-const swagger_1 = require("@nestjs/swagger");
 const create_ticket_dto_1 = require("./create-ticket.dto");
+const ticket_status_enum_1 = require("../enums/ticket-status.enum");
 const class_validator_1 = require("class-validator");
-class UpdateTicketDto extends (0, swagger_1.PartialType)((0, swagger_1.OmitType)(create_ticket_dto_1.CreateTicketDto, ['type', 'source'])) {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { status: { required: false, enum: require("./create-ticket.dto").TicketStatus }, statusNote: { required: false, type: () => String, maxLength: 1000 }, resolution: { required: false, type: () => String, maxLength: 1000 } };
-    }
+const mapped_types_1 = require("@nestjs/mapped-types");
+class UpdateTicketDto extends (0, mapped_types_1.PartialType)((0, mapped_types_1.OmitType)(create_ticket_dto_1.CreateTicketDto, ['type', 'source'])) {
 }
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsEnum)(create_ticket_dto_1.TicketStatus),
+    (0, class_validator_1.IsEnum)(ticket_status_enum_1.TicketStatus),
     __metadata("design:type", String)
 ], UpdateTicketDto.prototype, "status", void 0);
 __decorate([

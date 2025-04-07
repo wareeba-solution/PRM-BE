@@ -6,17 +6,7 @@
     "deleteOutDir": true,
     "webpack": false,
     "tsConfigPath": "tsconfig.json",
-    "plugins": [
-      {
-        "name": "@nestjs/swagger",
-        "options": {
-          "classValidatorShim": true,
-          "introspectComments": true,
-          "dtoFileNameSuffix": [".dto.ts", ".entity.ts"],
-          "controllerFileNameSuffix": [".controller.ts"]
-        }
-      }
-    ],
+    "plugins": [],
     "module": "ESNext",
     "moduleResolution": "node"
   },

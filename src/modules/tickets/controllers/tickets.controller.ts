@@ -14,7 +14,6 @@ import {
     NotFoundException,
     BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { OrganizationGuard } from '../../../common/guards/organization.guard'; // Adjusted path
@@ -28,16 +27,12 @@ import { TicketAssignmentDto } from '../dto/ticket-assignment.dto';
 import { TicketQueryDto } from '../dto/ticket-query.dto';
 import { OrganizationRequest } from '../../../interfaces/request.interface'; // Adjusted path
 
-@ApiTags('Tickets')
 @Controller('tickets')
 @UseGuards(JwtAuthGuard, RolesGuard, OrganizationGuard) // Added OrganizationGuard
-@ApiBearerAuth()
 export class TicketsController {
     constructor(private readonly ticketsService: TicketsService) { }
 
     @Post()
-    @ApiOperation({ summary: 'Create new ticket' })
-    @ApiResponse({ status: HttpStatus.CREATED, description: 'Ticket created successfully' })
     async create(
         @Body() createTicketDto: CreateTicketDto,
         @Request() req: OrganizationRequest,
@@ -50,8 +45,6 @@ export class TicketsController {
     }
 
     @Get()
-    @ApiOperation({ summary: 'Get all tickets' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return all tickets' })
     async findAll(
         @Query() query: TicketQueryDto,
         @Request() req: OrganizationRequest,
@@ -63,8 +56,6 @@ export class TicketsController {
     }
 
     @Get('dashboard')
-    @ApiOperation({ summary: 'Get tickets dashboard data' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return tickets dashboard data' })
     async getDashboard(
         @Request() req: OrganizationRequest,
     ) {
@@ -72,8 +63,6 @@ export class TicketsController {
     }
 
     @Get('assigned')
-    @ApiOperation({ summary: 'Get tickets assigned to current user' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return assigned tickets' })
     async getAssignedTickets(
         @Query() query: TicketQueryDto,
         @Request() req: OrganizationRequest,
@@ -86,8 +75,6 @@ export class TicketsController {
     }
 
     @Get(':id')
-    @ApiOperation({ summary: 'Get ticket by id' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return ticket details' })
     async findOne(
         @Param('id', ParseUUIDPipe) id: string,
         @Request() req: OrganizationRequest,
@@ -100,8 +87,6 @@ export class TicketsController {
     }
 
     @Put(':id')
-    @ApiOperation({ summary: 'Update ticket' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Ticket updated successfully' })
     async update(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() updateTicketDto: UpdateTicketDto,
@@ -116,8 +101,6 @@ export class TicketsController {
 
     @Delete(':id')
     @Roles(Role.ADMIN)
-    @ApiOperation({ summary: 'Delete ticket' })
-    @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Ticket deleted successfully' })
     async remove(
         @Param('id', ParseUUIDPipe) id: string,
         @Request() req: OrganizationRequest,
@@ -126,8 +109,6 @@ export class TicketsController {
     }
 
     @Post(':id/comments')
-    @ApiOperation({ summary: 'Add comment to ticket' })
-    @ApiResponse({ status: HttpStatus.CREATED, description: 'Comment added successfully' })
     async addComment(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() commentDto: CreateTicketCommentDto,
@@ -142,8 +123,6 @@ export class TicketsController {
 
     @Put(':id/assign')
     @Roles(Role.ADMIN, Role.STAFF)
-    @ApiOperation({ summary: 'Assign ticket' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Ticket assigned successfully' })
     async assignTicket(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() assignmentDto: TicketAssignmentDto,
@@ -159,8 +138,6 @@ export class TicketsController {
 
     @Post(':id/escalate')
     @Roles(Role.ADMIN, Role.STAFF)
-    @ApiOperation({ summary: 'Escalate ticket' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Ticket escalated successfully' })
     async escalateTicket(
         @Param('id', ParseUUIDPipe) id: string,
         @Body('reason') reason: string,
@@ -174,8 +151,6 @@ export class TicketsController {
     }
 
     @Post(':id/resolve')
-    @ApiOperation({ summary: 'Resolve ticket' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Ticket resolved successfully' })
     async resolveTicket(
         @Param('id', ParseUUIDPipe) id: string,
         @Body('resolution') resolution: string,
@@ -189,8 +164,6 @@ export class TicketsController {
     }
 
     @Post(':id/reopen')
-    @ApiOperation({ summary: 'Reopen ticket' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Ticket reopened successfully' })
     async reopenTicket(
         @Param('id', ParseUUIDPipe) id: string,
         @Body('reason') reason: string,
@@ -205,8 +178,6 @@ export class TicketsController {
 
 
     @Get(':id/timeline')
-    @ApiOperation({ summary: 'Get ticket timeline' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return ticket timeline' })
     async getTimeline(
         @Param('id', ParseUUIDPipe) id: string,
         @Request() req: OrganizationRequest,
@@ -215,8 +186,6 @@ export class TicketsController {
     }
 
     @Get(':id/related')
-    @ApiOperation({ summary: 'Get related tickets' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return related tickets' })
     async getRelatedTickets(
         @Param('id', ParseUUIDPipe) id: string,
         @Request() req: OrganizationRequest,

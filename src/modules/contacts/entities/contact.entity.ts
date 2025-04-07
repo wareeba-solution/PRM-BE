@@ -14,8 +14,13 @@ import {
     Index,
     JoinColumn
 } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
 import { ContactRelationship } from './contact-relationship.entity';
+import { Organization } from '../../organizations/entities/organization.entity';
+import { User } from '../../users/entities/user.entity';
+import { Appointment } from '../../appointments/entities/appointment.entity';
+import { Document } from '../../documents/entities/document.entity';
+import { MedicalHistory } from '../../medical-history/medical-history.entity';
+import { MergedRecord } from '../../merged-records/entities/merged-record.entity';
 
 export enum ContactType {
     PATIENT = 'PATIENT',
@@ -47,72 +52,55 @@ export enum BloodType {
 @Index(['organizationId', 'email'])
 @Index(['organizationId', 'phoneNumber'])
 export class Contact {
-    @ApiProperty()
     @PrimaryGeneratedColumn('uuid')
     id: string;
     
-    @ApiProperty()
     @Column({ nullable: true })
     status: string;
     
-    @ApiProperty()
     @Column({ type: 'jsonb', nullable: true })
     metadata?: Record<string, any>;
     
-    @ApiProperty()
     @Column({ nullable: true })
     phone: string;
 
-    @ApiProperty()
     @Column()
     organizationId: string;
 
-    @ApiProperty()
     @Column({ type: 'enum', enum: ContactType, default: ContactType.PATIENT })
     type: ContactType;
 
-    @ApiProperty()
     @Column()
     firstName: string;
 
-    @ApiProperty()
     @Column()
     lastName: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     middleName?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     preferredName?: string;
 
-    @ApiProperty()
     @Column({ unique: true, nullable: true })
     @Index()
     email?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     phoneNumber?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     alternativePhoneNumber?: string;
 
-    @ApiProperty()
     @Column({ type: 'enum', enum: Gender, nullable: true })
     gender?: Gender;
 
-    @ApiProperty()
     @Column({ type: 'date', nullable: true })
     dateOfBirth?: Date;
 
-    @ApiProperty()
     @Column({ type: 'enum', enum: BloodType, default: BloodType.UNKNOWN })
     bloodType: BloodType;
 
-    @ApiProperty()
     @Column({ type: 'jsonb', nullable: true })
     address?: {
         street: string;
@@ -122,7 +110,6 @@ export class Contact {
         country: string;
     };
 
-    @ApiProperty()
     @Column({ type: 'jsonb', nullable: true })
     emergencyContact?: {
         name: string;
@@ -131,43 +118,33 @@ export class Contact {
         address?: string;
     };
 
-    @ApiProperty()
     @Column({ type: 'simple-array', nullable: true })
     allergies?: string[];
 
-    @ApiProperty()
     @Column({ type: 'simple-array', nullable: true })
     medications?: string[];
 
-    @ApiProperty()
     @Column({ nullable: true })
     occupation?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     notes?: string;
 
-    @ApiProperty()
     @Column({ type: 'jsonb', nullable: true })
     customFields?: Record<string, any>;
 
-    @ApiProperty()
     @Column({ default: true })
     isActive: boolean;
 
-    @ApiProperty()
     @Column({ nullable: true })
     lastVisitDate?: Date;
 
-    @ApiProperty()
     @Column({ nullable: true })
     nextAppointmentDate?: Date;
 
-    @ApiProperty()
     @Column()
     createdById: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     updatedById?: string;
 
@@ -181,45 +158,38 @@ export class Contact {
     deletedAt?: Date;
 
     // Relations - all using string references to avoid circular dependencies
-    @ManyToOne('Organization')
+    @ManyToOne(() => Organization, { lazy: true })
     @JoinColumn({ name: 'organizationId' })
-    organization: any;
+    organization: Promise<Organization>;
 
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'createdById' })
-    createdBy: Promise<any>;
+    createdBy: Promise<User>;
 
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'updatedById' })
-    updatedBy: Promise<any>;
+    updatedBy: Promise<User>;
 
-    @OneToMany('Appointment', 'contact')
-    appointments: any[];
+    @OneToMany(() => Appointment, appointment => appointment.patient, { lazy: true })
+    appointments: Promise<Appointment[]>;
 
-    @OneToMany('Document', 'contact')
-    documents: any[];
+    @OneToMany(() => Document, document => document.contact, { lazy: true })
+    documents: Promise<Document[]>;
 
-    @OneToMany('MedicalHistory', 'contact')
-    medicalHistory: any[];
+    @OneToMany(() => MedicalHistory, medicalHistory => medicalHistory.contact, { lazy: true })
+    medicalHistory: Promise<MedicalHistory[]>;
 
-    @OneToMany(() => ContactRelationship, relationship => relationship.contact)
-    relationships: ContactRelationship[];
+    @OneToMany(() => ContactRelationship, relationship => relationship.contact, { lazy: true })
+    relationships: Promise<ContactRelationship[]>;
 
-    @ManyToMany('Contact')
-    @JoinTable({
-        name: 'contact_merged_records',
-        joinColumn: { name: 'primary_contact_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'merged_contact_id', referencedColumnName: 'id' },
-    })
-    mergedRecords: any[];
+    @OneToMany(() => MergedRecord, mergedRecord => mergedRecord.primaryContact, { lazy: true })
+    mergedRecords: Promise<MergedRecord[]>;
 
     // Virtual properties
-    @ApiProperty()
     get fullName(): string {
         return `${this.firstName} ${this.lastName}`;
     }
 
-    @ApiProperty()
     get age(): number | null {
         if (!this.dateOfBirth) return null;
         const today = new Date();

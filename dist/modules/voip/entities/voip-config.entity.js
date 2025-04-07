@@ -10,13 +10,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VoipConfig = void 0;
-const openapi = require("@nestjs/swagger");
 // src/modules/voip/entities/voip-config.entity.ts
 const typeorm_1 = require("typeorm");
 let VoipConfig = class VoipConfig {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => Number }, name: { required: true, type: () => String }, provider: { required: true, type: () => String }, host: { required: true, type: () => String }, port: { required: true, type: () => Number }, password: { required: true, type: () => String }, configJson: { required: true, type: () => String }, isActive: { required: true, type: () => Boolean }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),

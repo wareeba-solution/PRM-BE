@@ -10,13 +10,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrganizationAuditLog = void 0;
-const openapi = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
 const organization_entity_1 = require("./organization.entity");
 let OrganizationAuditLog = class OrganizationAuditLog {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, organization: { required: true, type: () => require("./organization.entity").Organization }, eventType: { required: true, type: () => String }, data: { required: true, type: () => Object }, performedBy: { required: true, type: () => String }, timestamp: { required: true, type: () => Date }, metadata: { required: false, type: () => Object }, ipAddress: { required: false, type: () => String }, userAgent: { required: false, type: () => String }, resourceType: { required: false, type: () => String }, resourceId: { required: false, type: () => String }, actionType: { required: false, type: () => String }, status: { required: false, type: () => Object }, errorMessage: { required: false, type: () => String }, changes: { required: false, type: () => ({ before: { required: true, type: () => Object }, after: { required: true, type: () => Object } }) }, tags: { required: false, type: () => [String] }, isSensitive: { required: true, type: () => Boolean }, duration: { required: false, type: () => Number }, sessionId: { required: false, type: () => String }, requestId: { required: false, type: () => String }, environment: { required: false, type: () => String }, version: { required: false, type: () => String }, performedByEmail: { required: false, type: () => String }, performedByRole: { required: false, type: () => String }, resourceName: { required: false, type: () => String }, retainOnDelete: { required: false, type: () => Boolean }, complianceMetadata: { required: false, type: () => ({ dataRetentionPeriod: { required: false, type: () => Number }, dataClassification: { required: false, type: () => String }, regulatoryRequirements: { required: false, type: () => [String] }, piiInvolved: { required: false, type: () => Boolean } }) } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),

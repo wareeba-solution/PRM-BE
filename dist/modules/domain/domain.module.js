@@ -13,6 +13,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const domain_entity_1 = require("./entities/domain.entity");
 const dns_record_entity_1 = require("./entities/dns-record.entity");
 const domain_verification_token_entity_1 = require("./entities/domain-verification-token.entity");
+const domain_verification_service_1 = require("./services/domain-verification.service");
 let DomainModule = class DomainModule {
 };
 DomainModule = __decorate([
@@ -25,8 +26,8 @@ DomainModule = __decorate([
             ]),
         ],
         controllers: [],
-        providers: [],
-        exports: [typeorm_1.TypeOrmModule],
+        providers: [domain_verification_service_1.DomainVerificationService],
+        exports: [typeorm_1.TypeOrmModule, domain_verification_service_1.DomainVerificationService],
     })
 ], DomainModule);
 exports.DomainModule = DomainModule;

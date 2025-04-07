@@ -10,19 +10,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TicketAttachment = void 0;
-const openapi = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
 const ticket_entity_1 = require("./ticket.entity");
 const user_entity_1 = require("../../users/entities/user.entity");
+const ticket_comment_entity_1 = require("./ticket-comment.entity");
 let TicketAttachment = class TicketAttachment {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, fileName: { required: true, type: () => String }, fileSize: { required: true, type: () => Number }, mimeType: { required: true, type: () => String }, storageKey: { required: true, type: () => String }, description: { required: true, type: () => String }, ticketId: { required: true, type: () => String }, ticket: { required: true, type: () => require("./ticket.entity").Ticket }, commentId: { required: true, type: () => String }, comment: { required: true, type: () => Object }, uploadedById: { required: true, type: () => String }, uploadedBy: { required: true, type: () => require("../../users/entities/user.entity").User }, metadata: { required: true, type: () => Object }, createdAt: { required: true, type: () => Date }, isPrivate: { required: true, type: () => Boolean }, isActive: { required: true, type: () => Boolean } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
     __metadata("design:type", String)
 ], TicketAttachment.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.Column)('uuid'),
+    __metadata("design:type", String)
+], TicketAttachment.prototype, "organizationId", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
@@ -57,9 +58,9 @@ __decorate([
     __metadata("design:type", String)
 ], TicketAttachment.prototype, "commentId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)('TicketComment', 'attachments', { nullable: true }),
+    (0, typeorm_1.ManyToOne)(() => ticket_comment_entity_1.TicketComment, comment => comment.attachments, { nullable: true }),
     (0, typeorm_1.JoinColumn)({ name: 'commentId' }),
-    __metadata("design:type", Object)
+    __metadata("design:type", ticket_comment_entity_1.TicketComment)
 ], TicketAttachment.prototype, "comment", void 0);
 __decorate([
     (0, typeorm_1.Column)('uuid'),

@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/notifications/entities/push-subscription.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,15 +11,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PushSubscription = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/notifications/entities/push-subscription.entity.ts
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../../users/entities/user.entity");
 const organization_entity_1 = require("../../organizations/entities/organization.entity");
 let PushSubscription = class PushSubscription {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, userId: { required: true, type: () => String }, user: { required: true, type: () => require("../../users/entities/user.entity").User }, organizationId: { required: true, type: () => String }, organization: { required: true, type: () => require("../../organizations/entities/organization.entity").Organization }, subscription: { required: true, type: () => String, description: "The stringified push subscription object from the browser\nContains endpoint, keys (p256dh, auth), etc." }, endpoint: { required: true, type: () => String, description: "The unique endpoint URL for this subscription\nUsed for querying and updating subscriptions" }, userAgent: { required: true, type: () => String, description: "User agent information of the device/browser" }, active: { required: true, type: () => Boolean, description: "Whether this subscription is currently active" }, lastUsed: { required: true, type: () => Date, description: "Last time a notification was successfully sent to this subscription" }, createdAt: { required: true, type: () => Date, description: "Creation timestamp" }, updatedAt: { required: true, type: () => Date, description: "Last update timestamp" } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),

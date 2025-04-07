@@ -1,7 +1,7 @@
 import { MessageType, MessagePriority, MessageStatus } from '../dto/create-message.dto';
 import { Organization } from '../../organizations/entities/organization.entity';
-import type { User } from '../../users/entities/user.entity';
-import type { Contact } from '../../contacts/entities/contact.entity';
+import { User } from '../../users/entities/user.entity';
+import { Contact } from '../../contacts/entities/contact.entity';
 import { MessageTemplate } from './message-template.entity';
 import { MessageAttachment } from './message-attachment.entity';
 export declare class Message {
@@ -45,13 +45,13 @@ export declare class Message {
     deletedAt?: Date;
     organization: Promise<Organization>;
     sender: Promise<User>;
+    recipient: Promise<Contact>;
+    template: Promise<MessageTemplate>;
+    attachments: Promise<MessageAttachment[]>;
     updatedBy?: Promise<User>;
     confirmedBy?: Promise<User>;
-    contact: Promise<Contact>;
-    template?: Promise<MessageTemplate>;
     parentMessage?: Promise<Message>;
     replies?: Promise<Message[]>;
-    attachments?: Promise<MessageAttachment[]>;
     get isRead(): boolean;
     get isConfirmed(): boolean;
     get isDelivered(): boolean;

@@ -1,74 +1,21 @@
-export declare enum TicketType {
-    GENERAL = "GENERAL",
-    TECHNICAL = "TECHNICAL",
-    BILLING = "BILLING",
-    MEDICAL = "MEDICAL",
-    APPOINTMENT = "APPOINTMENT",
-    ACCESS = "ACCESS",
-    COMPLAINT = "COMPLAINT",
-    FEEDBACK = "FEEDBACK"
-}
-export declare enum TicketPriority {
-    LOW = "LOW",
-    NORMAL = "NORMAL",
-    HIGH = "HIGH",
-    URGENT = "URGENT"
-}
-export declare enum TicketStatus {
-    OPEN = "OPEN",
-    IN_PROGRESS = "IN_PROGRESS",
-    PENDING = "PENDING",
-    RESOLVED = "RESOLVED",
-    CLOSED = "CLOSED",
-    ESCALATED = "ESCALATED",
-    REOPENED = "REOPENED",
-    DELETED = "DELETED"
-}
-export declare enum TicketSource {
-    WEB = "WEB",
-    MOBILE = "MOBILE",
-    EMAIL = "EMAIL",
-    PHONE = "PHONE",
-    CHAT = "CHAT",
-    SYSTEM = "SYSTEM"
-}
-export declare class TicketAttachment {
-    fileName: string;
-    fileType: string;
-    fileUrl: string;
-    fileSize?: string;
-    description?: string;
-}
+import { TicketType } from '../enums/ticket-type.enum';
+import { TicketPriority } from '../enums/ticket-priority.enum';
+import { TicketSource } from '../enums/ticket-source.enum';
+import { TicketCategory } from '../enums/ticket-category.enum';
+import { TicketAttachment } from '../entities/ticket-attachment.entity';
 export declare class CreateTicketDto {
+    organizationId: string;
+    createdBy: string;
     title: string;
     description: string;
     type: TicketType;
     priority?: TicketPriority;
     source?: TicketSource;
-    contactId?: string;
-    departmentId?: string;
+    category?: TicketCategory;
     assigneeId?: string;
-    category?: string;
-    subCategory?: string;
-    attachments?: TicketAttachment[];
     tags?: string[];
-    referenceNumber?: string;
-    relatedTicketId?: string;
-    customFields?: {
-        patientId?: string;
-        appointmentId?: string;
-        medicalRecordId?: string;
-        insuranceInfo?: {
-            provider?: string;
-            policyNumber?: string;
-        };
-        deviceInfo?: {
-            type?: string;
-            model?: string;
-            serialNumber?: string;
-        };
-        [key: string]: any;
-    };
-    isPrivate?: boolean;
+    attachments?: TicketAttachment[];
+    dueDate?: Date;
+    metadata?: Record<string, any>;
     internalNotes?: string;
 }

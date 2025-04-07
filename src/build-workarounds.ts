@@ -28,16 +28,6 @@ declare global {
 //   // Add any runtime polyfills if needed
 // }
 
-export const fixSwaggerCircularDependencies = () => {
-  // Monkey patch SwaggerModule to handle circular dependencies
-  try {
-    // This is just a placeholder - we handle this in main.ts
-    console.log('Applied circular dependency fixes for Swagger');
-  } catch (e) {
-    console.warn('Failed to apply Swagger fixes:', e);
-  }
-};
-
 export default {
-  fixSwaggerCircularDependencies,
+  // Add any exported utilities here
 };

@@ -10,10 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserQueryDto = void 0;
-const openapi = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
-const swagger_1 = require("@nestjs/swagger");
 const role_enum_1 = require("../enums/role.enum");
 class UserQueryDto {
     constructor() {
@@ -21,67 +19,75 @@ class UserQueryDto {
         this.skip = 0;
         this.take = 10;
     }
-    static _OPENAPI_METADATA_FACTORY() {
-        return { search: { required: false, type: () => String }, role: { required: false, enum: require("../enums/role.enum").Role }, isActive: { required: false, type: () => Boolean }, department: { required: false, type: () => String }, page: { required: false, type: () => Number }, limit: { required: false, type: () => Number }, roles: { required: false, enum: require("../enums/role.enum").Role, isArray: true }, departmentIds: { required: false, type: () => [String] }, hasVerifiedEmail: { required: false, type: () => Boolean }, relations: { required: false, type: () => [String] }, orderBy: { required: false, type: () => String }, orderDirection: { required: false, type: () => Object, default: "DESC" }, skip: { required: false, type: () => Number, default: 0, minimum: 0 }, take: { required: false, type: () => Number, default: 10, minimum: 1, maximum: 100 } };
-    }
 }
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UserQueryDto.prototype, "search", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ enum: role_enum_1.Role, isArray: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(role_enum_1.Role),
+    __metadata("design:type", String)
+], UserQueryDto.prototype, "role", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    (0, class_transformer_1.Type)(() => Boolean),
+    __metadata("design:type", Boolean)
+], UserQueryDto.prototype, "isActive", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UserQueryDto.prototype, "department", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], UserQueryDto.prototype, "page", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], UserQueryDto.prototype, "limit", void 0);
+__decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.IsEnum)(role_enum_1.Role, { each: true }),
     __metadata("design:type", Array)
 ], UserQueryDto.prototype, "roles", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)({ each: true }),
     (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
     __metadata("design:type", Array)
 ], UserQueryDto.prototype, "departmentIds", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)(),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsBoolean)(),
-    (0, class_transformer_1.Type)(() => Boolean),
-    (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),
     (0, class_transformer_1.Type)(() => Boolean),
     __metadata("design:type", Boolean)
 ], UserQueryDto.prototype, "hasVerifiedEmail", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.IsString)({ each: true }),
     __metadata("design:type", Array)
 ], UserQueryDto.prototype, "relations", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        description: 'Order by field (e.g., "firstName", "lastName", "createdAt")'
-    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UserQueryDto.prototype, "orderBy", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        enum: ['ASC', 'DESC'],
-        default: 'DESC'
-    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UserQueryDto.prototype, "orderDirection", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ default: 0 }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_transformer_1.Type)(() => Number),
@@ -89,7 +95,6 @@ __decorate([
     __metadata("design:type", Number)
 ], UserQueryDto.prototype, "skip", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ default: 10 }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_transformer_1.Type)(() => Number),

@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/sms/entities/sms-log.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SmsLog = exports.SmsStatus = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/sms/entities/sms-log.entity.ts
 const typeorm_1 = require("typeorm");
 const sms_template_entity_1 = require("../entities/sms-template.entity");
 /**
@@ -30,9 +29,6 @@ var SmsStatus;
  * Entity to log all SMS communications
  */
 let SmsLog = class SmsLog {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, to: { required: true, type: () => String }, from: { required: true, type: () => String }, message: { required: true, type: () => String }, status: { required: true, enum: require("./sms-log.entity").SmsStatus }, statusMessage: { required: true, type: () => String }, externalId: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, appointmentId: { required: true, type: () => String }, contactId: { required: true, type: () => String }, templateId: { required: true, type: () => String }, template: { required: true, type: () => require("./sms-template.entity").SmsTemplate }, provider: { required: true, type: () => String }, variables: { required: true, type: () => Object }, providerResponse: { required: true, type: () => Object }, segments: { required: true, type: () => Number }, cost: { required: true, type: () => Number }, currency: { required: true, type: () => String }, ipAddress: { required: true, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, deliveredAt: { required: true, type: () => Date }, createdById: { required: true, type: () => String }, metadata: { required: true, type: () => Object, description: "Optional metadata for additional properties" } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),

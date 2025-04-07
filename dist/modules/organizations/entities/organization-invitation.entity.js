@@ -10,7 +10,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrganizationInvitation = exports.InvitationStatus = void 0;
-const openapi = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
 const organization_entity_1 = require("./organization.entity");
 const user_entity_1 = require("../../users/entities/user.entity");
@@ -49,9 +48,6 @@ let OrganizationInvitation = class OrganizationInvitation {
      */
     canBeRevoked() {
         return this.status === InvitationStatus.PENDING;
-    }
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, organization: { required: true, type: () => require("./organization.entity").Organization }, email: { required: true, type: () => String }, roles: { required: true, type: () => [String] }, invitedById: { required: true, type: () => String }, invitedBy: { required: true, type: () => require("../../users/entities/user.entity").User }, invitedUserId: { required: true, type: () => String }, invitedUser: { required: true, type: () => require("../../users/entities/user.entity").User }, token: { required: true, type: () => String }, expiresAt: { required: true, type: () => Date }, status: { required: true, enum: require("./organization-invitation.entity").InvitationStatus }, departmentIds: { required: true, type: () => [String] }, acceptedAt: { required: true, type: () => Date }, declinedAt: { required: true, type: () => Date }, revokedAt: { required: true, type: () => Date }, revokedById: { required: true, type: () => String }, revokedBy: { required: true, type: () => require("../../users/entities/user.entity").User }, message: { required: true, type: () => String }, metadata: { required: true, type: () => Object }, isResent: { required: true, type: () => Boolean }, lastResentAt: { required: true, type: () => Date }, resendCount: { required: true, type: () => Number }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date } };
     }
 };
 __decorate([

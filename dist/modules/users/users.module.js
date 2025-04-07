@@ -11,6 +11,7 @@ exports.UsersModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const event_emitter_1 = require("@nestjs/event-emitter");
+const email_content_entity_1 = require("../notifications/entities/email-content.entity");
 const users_controller_1 = require("./controllers/users.controller");
 const users_service_1 = require("./services/users.service");
 const user_activity_service_1 = require("./services/user-activity.service");
@@ -20,7 +21,7 @@ const user_session_entity_1 = require("./entities/user-session.entity");
 const user_profile_entity_1 = require("./entities/user-profile.entity");
 const user_verification_entity_1 = require("./entities/user-verification.entity");
 const user_settings_entity_1 = require("./entities/user-settings.entity");
-const email_template_entity_1 = require("../notifications/entities/email-template.entity");
+const email_template_entity_1 = require("../email/entities/email-template.entity");
 const email_log_entity_1 = require("../notifications/entities/email-log.entity");
 const email_queue_entity_1 = require("../notifications/entities/email-queue.entity");
 const domain_entity_1 = require("../domain/entities/domain.entity");
@@ -52,7 +53,8 @@ UsersModule = __decorate([
                 email_queue_entity_1.EmailQueue,
                 domain_entity_1.Domain,
                 domain_verification_token_entity_1.DomainVerificationToken,
-                audit_log_entity_1.AuditLog
+                audit_log_entity_1.AuditLog,
+                email_content_entity_1.EmailContent
             ]),
             event_emitter_1.EventEmitterModule.forRoot(),
             (0, common_1.forwardRef)(() => notifications_module_1.NotificationsModule),

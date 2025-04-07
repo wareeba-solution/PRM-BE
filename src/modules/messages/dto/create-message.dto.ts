@@ -14,7 +14,6 @@ import {
     IsObject,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum MessageType {
     SMS = 'SMS',
@@ -43,125 +42,102 @@ export enum MessageStatus {
 }
 
 export class Attachment {
-    @ApiProperty()
     @IsString()
     @IsNotEmpty()
     fileName: string;
 
-    @ApiProperty()
     @IsString()
     @IsNotEmpty()
     fileType: string;
 
-    @ApiProperty()
     @IsString()
     @IsNotEmpty()
     fileUrl: string;
 
-    @ApiProperty()
     @IsOptional()
     @IsString()
     fileSize?: string;
 }
 
 export class EmailOptions {
-    @ApiProperty()
     @IsString()
     @IsNotEmpty()
     subject: string;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     cc?: string;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     bcc?: string;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsBoolean()
     trackOpens?: boolean;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsBoolean()
     trackClicks?: boolean;
 }
 
 export class CreateMessageDto {
-    @ApiProperty({ enum: MessageType })
     @IsEnum(MessageType)
     type: MessageType;
 
-    @ApiProperty()
     @IsUUID()
     contactId: string;
 
-    @ApiProperty()
     @IsString()
     @IsNotEmpty()
     @MaxLength(5000)
     content: string;
 
-    @ApiPropertyOptional({ enum: MessagePriority })
     @IsOptional()
     @IsEnum(MessagePriority)
     priority?: MessagePriority = MessagePriority.NORMAL;
 
-    @ApiPropertyOptional({ enum: MessageStatus })
     @IsOptional()
     @IsEnum(MessageStatus)
     status?: MessageStatus = MessageStatus.QUEUED;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsISO8601()
     scheduledFor?: string;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @ValidateNested()
     @Type(() => EmailOptions)
     emailOptions?: EmailOptions;
 
-    @ApiPropertyOptional({ type: [Attachment] })
     @IsOptional()
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => Attachment)
     attachments?: Attachment[];
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     templateId?: string;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsBoolean()
     requireConfirmation?: boolean;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     @MaxLength(500)
     notes?: string;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     externalId?: string;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsString()
     subject?: string;
 
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsObject()
     metadata?: Record<string, any>;

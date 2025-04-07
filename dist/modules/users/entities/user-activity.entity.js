@@ -10,7 +10,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserActivity = exports.ActivityType = void 0;
-const openapi = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
 const organization_entity_1 = require("../../organizations/entities/organization.entity");
 var ActivityType;
@@ -37,9 +36,6 @@ var ActivityType;
     ActivityType["PHONE_VERIFICATION"] = "PHONE_VERIFICATION";
 })(ActivityType = exports.ActivityType || (exports.ActivityType = {}));
 let UserActivity = class UserActivity {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, userId: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, action: { required: true, type: () => String }, performedById: { required: true, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, type: { required: true, type: () => String }, description: { required: true, type: () => String }, metadata: { required: true, type: () => Object }, ipAddress: { required: true, type: () => String }, userAgent: { required: true, type: () => String }, referrer: { required: true, type: () => String }, status: { required: true, type: () => String }, failureReason: { required: true, type: () => String }, activityType: { required: true, enum: require("./user-activity.entity").ActivityType }, details: { required: true, type: () => ({ resourceId: { required: false, type: () => String }, resourceType: { required: false, type: () => String }, oldValue: { required: false, type: () => Object }, newValue: { required: false, type: () => Object }, description: { required: false, type: () => String }, additionalInfo: { required: false, type: () => Object } }) }, isSuccess: { required: true, type: () => Boolean }, errorMessage: { required: false, type: () => String }, context: { required: true, type: () => ({ module: { required: false, type: () => String }, action: { required: false, type: () => String }, target: { required: false, type: () => String }, result: { required: false, type: () => String }, severity: { required: false, type: () => Object } }) }, organization: { required: true, type: () => require("../../organizations/entities/organization.entity").Organization }, user: { required: true, type: () => require("./user.entity").User } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),

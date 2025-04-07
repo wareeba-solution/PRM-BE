@@ -1,5 +1,6 @@
-import { CreateTicketDto, TicketStatus } from './create-ticket.dto';
-declare const UpdateTicketDto_base: import("@nestjs/common").Type<Partial<Omit<CreateTicketDto, "type" | "source">>>;
+import { CreateTicketDto } from './create-ticket.dto';
+import { TicketStatus } from '../enums/ticket-status.enum';
+declare const UpdateTicketDto_base: import("@nestjs/mapped-types").MappedType<Partial<Omit<CreateTicketDto, "type" | "source">>>;
 export declare class UpdateTicketDto extends UpdateTicketDto_base {
     status?: TicketStatus;
     statusNote?: string;

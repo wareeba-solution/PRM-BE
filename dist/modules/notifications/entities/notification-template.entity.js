@@ -10,14 +10,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationTemplate = void 0;
-const openapi = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
-const swagger_1 = require("@nestjs/swagger");
 const organization_entity_1 = require("../../organizations/entities/organization.entity");
 let NotificationTemplate = class NotificationTemplate {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, name: { required: true, type: () => String }, description: { required: true, type: () => String }, subject: { required: true, type: () => String }, content: { required: true, type: () => String }, metadata: { required: true, type: () => Object }, channels: { required: true, type: () => [String] }, isActive: { required: true, type: () => Boolean }, organizationId: { required: true, type: () => String }, organization: { required: true, type: () => require("../../organizations/entities/organization.entity").Organization }, variables: { required: true }, channelSpecificContent: { required: true, type: () => ({ email: { required: false, type: () => ({ htmlTemplate: { required: false, type: () => String }, plainTextTemplate: { required: false, type: () => String } }) }, sms: { required: false, type: () => ({ template: { required: true, type: () => String } }) }, push: { required: false, type: () => ({ title: { required: true, type: () => String }, body: { required: true, type: () => String } }) }, webhook: { required: false, type: () => ({ payload: { required: true, type: () => Object } }) } }) }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, lastUsedAt: { required: true, type: () => Date }, useCount: { required: true, type: () => Number } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
@@ -44,11 +39,6 @@ __decorate([
     __metadata("design:type", Object)
 ], NotificationTemplate.prototype, "metadata", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        type: 'array',
-        items: { type: 'string' },
-        description: 'Supported notification channels'
-    }),
     (0, typeorm_1.Column)('simple-array'),
     __metadata("design:type", Array)
 ], NotificationTemplate.prototype, "channels", void 0);
@@ -66,64 +56,10 @@ __decorate([
     __metadata("design:type", organization_entity_1.Organization)
 ], NotificationTemplate.prototype, "organization", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        type: 'array',
-        items: {
-            type: 'object',
-            properties: {
-                name: { type: 'string' },
-                type: { type: 'string', enum: ['string', 'number', 'boolean', 'date'] },
-                required: { type: 'boolean' },
-                defaultValue: { type: 'string', nullable: true }
-            },
-            additionalProperties: false
-        },
-        nullable: true
-    }),
     (0, typeorm_1.Column)('json', { nullable: true }),
     __metadata("design:type", Array)
 ], NotificationTemplate.prototype, "variables", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        type: 'object',
-        properties: {
-            email: {
-                type: 'object',
-                properties: {
-                    htmlTemplate: { type: 'string' },
-                    plainTextTemplate: { type: 'string' }
-                },
-                additionalProperties: true
-            },
-            sms: {
-                type: 'object',
-                properties: {
-                    template: { type: 'string' }
-                },
-                additionalProperties: true
-            },
-            push: {
-                type: 'object',
-                properties: {
-                    title: { type: 'string' },
-                    body: { type: 'string' }
-                },
-                additionalProperties: true
-            },
-            webhook: {
-                type: 'object',
-                properties: {
-                    payload: {
-                        type: 'object',
-                        additionalProperties: true
-                    }
-                },
-                additionalProperties: true
-            }
-        },
-        additionalProperties: true,
-        nullable: true
-    }),
     (0, typeorm_1.Column)('json', { nullable: true }),
     __metadata("design:type", Object)
 ], NotificationTemplate.prototype, "channelSpecificContent", void 0);

@@ -10,13 +10,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CallLog = void 0;
-const openapi = require("@nestjs/swagger");
 // src/modules/voip/entities/call-log.entity.ts
 const typeorm_1 = require("typeorm");
 let CallLog = class CallLog {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => Number }, callUuid: { required: true, type: () => String }, callerNumber: { required: true, type: () => String }, destinationNumber: { required: true, type: () => String }, provider: { required: true, type: () => String }, status: { required: true, type: () => String }, startTime: { required: true, type: () => Date }, answerTime: { required: true, type: () => Date }, endTime: { required: true, type: () => Date }, duration: { required: true, type: () => Number }, hangupCause: { required: true, type: () => String }, recordingUrl: { required: true, type: () => String }, callDirection: { required: true, type: () => String }, appointmentId: { required: true, type: () => Number }, contactId: { required: true, type: () => Number }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),

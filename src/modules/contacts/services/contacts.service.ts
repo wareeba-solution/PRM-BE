@@ -17,6 +17,7 @@ import { ContactRelationship, RelationshipType } from '../entities/contact-relat
 import { MedicalHistory } from '../../medical-history/medical-history.entity';
 import { Appointment } from '../../appointments/entities/appointment.entity';
 import { Document } from '../../documents/entities/document.entity';
+import { MergedRecord } from '../../merged-records/entities/merged-record.entity';
 
 // Define interfaces directly in the service to avoid import issues
 export interface CreateContactRelationshipDto {
@@ -67,15 +68,13 @@ function getInverseRelationshipType(type: RelationshipType): RelationshipType | 
     return inverseMap[type];
 }
 
-interface MergedRecord {
-    id: string;
-}
-
 @Injectable()
 export class ContactsService {
     constructor(
         @InjectRepository(Contact)
         private readonly contactRepository: Repository<Contact>,
+        @InjectRepository(MergedRecord)
+        private readonly mergedRecordRepository: Repository<MergedRecord>,
         @InjectRepository(ContactRelationship)
         private readonly relationshipRepository: Repository<ContactRelationship>,
         @InjectRepository(MedicalHistory)
@@ -86,8 +85,6 @@ export class ContactsService {
         private readonly documentRepository: Repository<Document>,
         private readonly dataSource: DataSource,
     ) { }
-
-
 
     async create(data: CreateContactDto & { organizationId: string; createdBy: string }): Promise<Contact> {
         const existingContact = await this.contactRepository.findOne({
@@ -120,15 +117,13 @@ export class ContactsService {
 
             // If documents exist, assign them to the contact
             if (documents.length > 0) {
-                contact.documents = documents;
+                contact.documents = Promise.resolve(documents);
             }
         }
 
         const savedContact = await this.contactRepository.save(contact);
         return savedContact;
     }
-
-
 
     async findAll(query: ContactQueryDto & { organizationId: string }): Promise<Pagination<Contact>> {
         const { organizationId, search, type, isActive, page = 1, limit = 10, ...filters } = query as { organizationId: string, search?: string, type?: string, isActive?: boolean, page?: number, limit?: number, [key: string]: any };
@@ -294,12 +289,24 @@ export class ContactsService {
                 .update(MedicalHistory)
                 .set({ contactId: primaryId })
                 .where("contactId = :secondaryId", { secondaryId })
-                primary.mergedRecords = [...(primary.mergedRecords || []), secondary];
+                .execute();
 
-            // Add to merged records if the property exists
-            if ('mergedRecords' in primary) {
-                primary.mergedRecords = [...(primary.mergedRecords || []), secondary];
-            }
+            // Get existing merged records or initialize as empty array
+            const existingMergedRecords = await primary.mergedRecords || [];
+            
+            // Create a new merged record
+            const newMergedRecord = this.mergedRecordRepository.create({
+                organizationId: context.organizationId,
+                primaryContactId: primaryId,
+                secondaryContactId: secondaryId,
+                createdById: context.userId
+            });
+            
+            // Save the new merged record
+            const savedMergedRecord = await queryRunner.manager.save(MergedRecord, newMergedRecord);
+            
+            // Update the primary contact's merged records with Promise.resolve
+            primary.mergedRecords = Promise.resolve([...existingMergedRecords, savedMergedRecord]);
 
             // Mark secondary as inactive
             secondary.status = 'INACTIVE';
@@ -732,5 +739,55 @@ export class ContactsService {
             exported: exportData.length,
             data: exportData,
         };
+    }
+
+    async addDocuments(contactId: string, documents: Document[]): Promise<Contact> {
+        const contact = await this.contactRepository.findOne({ where: { id: contactId } });
+        if (!contact) {
+            throw new NotFoundException(`Contact with ID ${contactId} not found`);
+        }
+        contact.documents = Promise.resolve(documents);
+        return this.contactRepository.save(contact);
+    }
+
+    async mergeContacts(
+        organizationId: string,
+        primaryContactId: string,
+        secondaryContactId: string,
+        metadata?: Record<string, any>
+    ): Promise<Contact> {
+        // Find both contacts first
+        const [primaryContact, secondaryContact] = await Promise.all([
+            this.contactRepository.findOneOrFail({
+                where: { id: primaryContactId, organizationId }
+            }).catch(() => {
+                throw new NotFoundException('Primary contact not found');
+            }),
+            this.contactRepository.findOneOrFail({
+                where: { id: secondaryContactId, organizationId }
+            }).catch(() => {
+                throw new NotFoundException('Secondary contact not found');
+            })
+        ]);
+
+        // Create new merged record
+        const mergedRecord = this.mergedRecordRepository.create({
+            organizationId,
+            primaryContactId,
+            secondaryContactId,
+            metadata
+        });
+        await this.mergedRecordRepository.save(mergedRecord);
+
+        // Get all merged records for this contact
+        const mergedRecords = await this.mergedRecordRepository.find({
+            where: { primaryContactId }
+        });
+
+        // Update the contact with the new merged records
+        primaryContact.mergedRecords = Promise.resolve(mergedRecords);
+        await this.contactRepository.save(primaryContact);
+
+        return primaryContact;
     }
 }

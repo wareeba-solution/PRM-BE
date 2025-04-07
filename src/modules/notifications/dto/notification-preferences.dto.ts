@@ -1,4 +1,3 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
     IsEnum,
     IsBoolean,
@@ -53,57 +52,43 @@ export class NotificationPreferencesDto {
     reminderInterval?: number;
     maxReminders?: number;
     
-    // Changed from @Column decorator to ApiProperty
-    @ApiProperty({ 
-        enum: NotificationChannel, 
-        isArray: true,
-        default: [NotificationChannel.EMAIL, NotificationChannel.IN_APP],
-        description: 'Enabled notification channels'
-    })
+    // Column configuration
     enabledChannels: NotificationChannel[];
 }
 
 export class CreateNotificationPreferenceDto {
-    @ApiProperty({ enum: NotificationCategory })
     @IsEnum(NotificationCategory)
     category: NotificationCategory;
 
-    @ApiProperty({ enum: NotificationChannel, isArray: true })
     @IsArray()
     @IsEnum(NotificationChannel, { each: true })
     @ArrayMinSize(1)
     channels: NotificationChannel[];
 
-    @ApiProperty({ enum: NotificationFrequency })
     @IsEnum(NotificationFrequency)
     frequency: NotificationFrequency;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsBoolean()
     enabled?: boolean;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
         message: 'Start time must be in HH:mm format'
     })
     startTime?: string;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
         message: 'End time must be in HH:mm format'
     })
     endTime?: string;
 
-    @ApiPropertyOptional({ type: [String] })
     @IsOptional()
     @IsArray()
     @IsString({ each: true })
     workDays?: string[];
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsObject()
     @ValidateNested()
@@ -114,13 +99,11 @@ export class CreateNotificationPreferenceDto {
         timezone: string;
     };
 
-    @ApiPropertyOptional()
     @IsOptional()
     @ValidateNested()
     @Type(() => ChannelSettingsDto)
     channelSpecificSettings?: ChannelSettingsDto;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsObject()
     @ValidateNested()
@@ -134,24 +117,20 @@ export class CreateNotificationPreferenceDto {
         excludeKeywords?: string[];
     };
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsInt()
     @Min(0)
     @Max(100)
     importanceThreshold?: number;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsBoolean()
     muteAll?: boolean;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsDateString()
     muteUntil?: Date;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsObject()
     @ValidateNested()
@@ -163,25 +142,21 @@ export class CreateNotificationPreferenceDto {
         format?: string;
     };
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsBoolean()
     allowReminders?: boolean;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsInt()
     @Min(1)
     reminderInterval?: number;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsInt()
     @Min(0)
     @Max(10)
     maxReminders?: number;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsObject()
     metadata?: Record<string, any>;
@@ -258,48 +233,40 @@ class DigestSettingsDto {
 }
 
 export class UpdateNotificationPreferenceDto {
-    @ApiPropertyOptional({ enum: NotificationCategory })
     @IsOptional()
     @IsEnum(NotificationCategory)
     category?: NotificationCategory;
 
-    @ApiPropertyOptional({ enum: NotificationChannel, isArray: true })
     @IsOptional()
     @IsArray()
     @IsEnum(NotificationChannel, { each: true })
     channels?: NotificationChannel[];
 
-    @ApiPropertyOptional({ enum: NotificationFrequency })
     @IsOptional()
     @IsEnum(NotificationFrequency)
     frequency?: NotificationFrequency;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsBoolean()
     enabled?: boolean;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
         message: 'Start time must be in HH:mm format'
     })
     startTime?: string;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
         message: 'End time must be in HH:mm format'
     })
     endTime?: string;
 
-    @ApiPropertyOptional({ type: [String] })
     @IsOptional()
     @IsArray()
     @IsString({ each: true })
     workDays?: string[];
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsObject()
     @ValidateNested()
@@ -310,13 +277,11 @@ export class UpdateNotificationPreferenceDto {
         timezone: string;
     };
 
-    @ApiPropertyOptional()
     @IsOptional()
     @ValidateNested()
     @Type(() => ChannelSettingsDto)
     channelSpecificSettings?: ChannelSettingsDto;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsObject()
     @ValidateNested()
@@ -330,24 +295,20 @@ export class UpdateNotificationPreferenceDto {
         excludeKeywords?: string[];
     };
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsInt()
     @Min(0)
     @Max(100)
     importanceThreshold?: number;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsBoolean()
     muteAll?: boolean;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsDateString()
     muteUntil?: Date;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsObject()
     @ValidateNested()
@@ -359,25 +320,21 @@ export class UpdateNotificationPreferenceDto {
         format?: string;
     };
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsBoolean()
     allowReminders?: boolean;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsInt()
     @Min(1)
     reminderInterval?: number;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsInt()
     @Min(0)
     @Max(10)
     maxReminders?: number;
 
-    @ApiPropertyOptional()
     @IsOptional()
     @IsObject()
     metadata?: Record<string, any>;

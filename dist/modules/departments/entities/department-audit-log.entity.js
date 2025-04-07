@@ -10,7 +10,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DepartmentAuditLog = exports.DepartmentAuditAction = void 0;
-const openapi = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
 const department_entity_1 = require("./department.entity");
 const user_entity_1 = require("../../users/entities/user.entity");
@@ -27,9 +26,6 @@ var DepartmentAuditAction;
     DepartmentAuditAction["REORDERED"] = "REORDERED";
 })(DepartmentAuditAction = exports.DepartmentAuditAction || (exports.DepartmentAuditAction = {}));
 let DepartmentAuditLog = class DepartmentAuditLog {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, departmentId: { required: true, type: () => String }, department: { required: true, type: () => require("./department.entity").Department }, organizationId: { required: true, type: () => String }, action: { required: true, enum: require("./department-audit-log.entity").DepartmentAuditAction }, changes: { required: true, type: () => Object }, metadata: { required: true, type: () => Object }, performedById: { required: true, type: () => String }, performedBy: { required: true, type: () => require("../../users/entities/user.entity").User }, ipAddress: { required: true, type: () => String }, userAgent: { required: true, type: () => String }, createdAt: { required: true, type: () => Date }, affectedUserId: { required: true, type: () => String }, affectedUser: { required: true, type: () => require("../../users/entities/user.entity").User } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),

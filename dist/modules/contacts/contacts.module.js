@@ -17,6 +17,7 @@ const contact_relationship_entity_1 = require("./entities/contact-relationship.e
 const medical_history_entity_1 = require("../medical-history/medical-history.entity");
 const appointment_entity_1 = require("../appointments/entities/appointment.entity");
 const document_entity_1 = require("../documents/entities/document.entity");
+const merged_record_entity_1 = require("../merged-records/entities/merged-record.entity");
 const auth_module_1 = require("../auth/auth.module");
 const users_module_1 = require("../users/users.module");
 const organizations_module_1 = require("../organizations/organizations.module");
@@ -30,7 +31,8 @@ ContactsModule = __decorate([
                 contact_relationship_entity_1.ContactRelationship,
                 medical_history_entity_1.MedicalHistory,
                 appointment_entity_1.Appointment,
-                document_entity_1.Document
+                document_entity_1.Document,
+                merged_record_entity_1.MergedRecord
             ]),
             auth_module_1.AuthModule,
             users_module_1.UsersModule,

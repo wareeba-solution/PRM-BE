@@ -1,8 +1,8 @@
 // src/modules/notifications/dto/update-notification.dto.ts
 
-import { OmitType, PartialType } from '@nestjs/swagger';
 import { CreateNotificationDto } from './create-notification.dto';
 import { IsBoolean, IsEnum, IsOptional } from 'class-validator';
+import { PartialType, OmitType } from '@nestjs/mapped-types';
 
 export enum NotificationStatus {
     SCHEDULED = 'SCHEDULED',

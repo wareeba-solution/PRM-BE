@@ -32,6 +32,7 @@ let TicketEscalationService = TicketEscalationService_1 = class TicketEscalation
         this.organizationsService = organizationsService;
         this.configService = configService;
         this.logger = new common_1.Logger(TicketEscalationService_1.name);
+        this.firstResponseThreshold = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
         // Initialize escalation rules from config
         this.escalationRules = {
             HIGH: {
@@ -112,7 +113,7 @@ let TicketEscalationService = TicketEscalationService_1 = class TicketEscalation
     getCurrentEscalationLevel(ticket) {
         var _a, _b;
         // Try to find the most recent escalation activity
-        const escalationActivities = ((_a = ticket.activities) === null || _a === void 0 ? void 0 : _a.filter(activity => activity.type === ticket_activity_type_enum_1.TicketActivityType.ESCALATION)) || [];
+        const escalationActivities = ((_a = ticket.metadata) === null || _a === void 0 ? void 0 : _a.escalationActivities) || [];
         if (escalationActivities.length > 0) {
             // Sort by created date, descending
             const latestEscalation = escalationActivities.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
@@ -125,45 +126,50 @@ let TicketEscalationService = TicketEscalationService_1 = class TicketEscalation
      * Check single ticket for escalation
      */
     async checkTicketEscalation(ticket) {
-        const rule = this.escalationRules[ticket.priority];
-        if (!rule)
-            return;
-        const timeElapsed = this.getHoursElapsed(ticket.createdAt);
-        const currentLevel = this.getCurrentEscalationLevel(ticket);
-        // Find next escalation level
-        const nextEscalation = rule.escalationLevels.find(level => level.level === currentLevel + 1 && timeElapsed >= level.timeThreshold);
-        if (nextEscalation) {
-            await this.escalateTicket(ticket, nextEscalation);
-        }
-    }
-    /**
-     * Escalate a ticket to the next level
-     */
-    async escalateTicket(ticket, escalation) {
         try {
-            // Instead of updating a non-existent escalation level field,
-            // we'll track this in the activity metadata
-            // Create activity log for the escalation
-            // Create with only the fields that exist on TicketActivity
-            const activityData = {
-                ticket,
-                type: ticket_activity_type_enum_1.TicketActivityType.ESCALATION,
-                // Using metadata to store all the custom information
-                metadata: {
-                    description: `Ticket escalated to level ${escalation.level}`,
-                    previousLevel: this.getCurrentEscalationLevel(ticket),
-                    newLevel: escalation.level,
-                    reason: 'SLA breach'
-                }
-            };
-            const activity = this.activityRepository.create(activityData);
-            await this.activityRepository.save(activity);
-            // Notify relevant staff
-            await this.notifyEscalation(ticket, escalation);
+            // Get activities using the repository
+            const activities = await this.activityRepository.find({
+                where: { ticketId: ticket.id }
+            });
+            if (!activities || activities.length === 0)
+                return;
+            const escalationActivities = activities.filter(activity => activity.type === ticket_activity_type_enum_1.TicketActivityType.ESCALATED);
+            const currentLevel = this.getCurrentEscalationLevel(ticket);
+            const rule = this.escalationRules[ticket.priority];
+            if (!rule) {
+                this.logger.warn(`No escalation rule found for priority ${ticket.priority}`);
+                return;
+            }
+            const nextLevel = rule.escalationLevels.find(level => level.level === currentLevel + 1);
+            if (!nextLevel) {
+                this.logger.debug(`No next escalation level found for ticket ${ticket.id}`);
+                return;
+            }
+            const timeElapsed = this.getHoursElapsed(ticket.createdAt);
+            if (timeElapsed >= nextLevel.timeThreshold) {
+                await this.escalateTicketInternal(ticket, nextLevel);
+            }
         }
         catch (error) {
-            this.logger.error(`Failed to escalate ticket ${ticket.id}:`, error);
+            this.logger.error(`Error checking ticket escalation for ticket ${ticket.id}:`, error);
         }
+    }
+    async escalateTicketInternal(ticket, escalation) {
+        const activityData = {
+            ticketId: ticket.id,
+            organizationId: ticket.organizationId,
+            performedById: ticket.createdById,
+            type: ticket_activity_type_enum_1.TicketActivityType.ESCALATED,
+            data: {
+                description: `Ticket escalated to level ${escalation.level}`,
+                previousLevel: this.getCurrentEscalationLevel(ticket),
+                newLevel: escalation.level,
+                reason: 'Time threshold exceeded'
+            }
+        };
+        const activity = this.activityRepository.create(activityData);
+        await this.activityRepository.save(activity);
+        await this.notifyEscalation(ticket, escalation);
     }
     /**
      * Send escalation notifications
@@ -225,16 +231,19 @@ let TicketEscalationService = TicketEscalationService_1 = class TicketEscalation
      */
     async getTicketSlaStatus(ticketId) {
         const ticket = await this.ticketRepository.findOne({
-            where: { id: ticketId },
-            relations: ['activities']
+            where: { id: ticketId }
         });
         if (!ticket) {
             throw new Error('Ticket not found');
         }
+        // Get activities using the repository
+        const activities = await this.activityRepository.find({
+            where: { ticketId }
+        });
         const rule = this.escalationRules[ticket.priority];
         // Check for RESPONSE and RESOLUTION activity types
-        const firstResponse = ticket.activities.find(a => a.type === ticket_activity_type_enum_1.TicketActivityType.RESPONSE);
-        const resolution = ticket.activities.find(a => a.type === ticket_activity_type_enum_1.TicketActivityType.RESOLUTION);
+        const firstResponse = activities.find(a => a.type === ticket_activity_type_enum_1.TicketActivityType.RESPONSE);
+        const resolution = activities.find(a => a.type === ticket_activity_type_enum_1.TicketActivityType.RESOLUTION);
         return {
             responseTime: {
                 target: rule.responseTime,
@@ -269,9 +278,53 @@ let TicketEscalationService = TicketEscalationService_1 = class TicketEscalation
             // Find appropriate escalation level based on breach severity
             const nextLevel = rule.escalationLevels.find(level => level.level === currentLevel + 1);
             if (nextLevel) {
-                await this.escalateTicket(ticket, nextLevel);
+                await this.escalateTicketInternal(ticket, nextLevel);
             }
         }
+    }
+    async checkFirstResponseTime(ticket) {
+        try {
+            // Get activities using the repository
+            const activities = await this.activityRepository.find({
+                where: { ticketId: ticket.id }
+            });
+            if (!activities || activities.length === 0)
+                return false;
+            const firstResponse = activities.find(activity => activity.type === ticket_activity_type_enum_1.TicketActivityType.RESPONSE);
+            if (!firstResponse) {
+                const timeElapsed = Date.now() - ticket.createdAt.getTime();
+                return timeElapsed > this.firstResponseThreshold;
+            }
+            const resolution = activities.find(activity => activity.type === ticket_activity_type_enum_1.TicketActivityType.RESOLUTION);
+            if (!resolution) {
+                const timeElapsed = Date.now() - firstResponse.timestamp.getTime();
+                return timeElapsed > this.firstResponseThreshold;
+            }
+            return false;
+        }
+        catch (error) {
+            this.logger.error(`Error checking first response time for ticket ${ticket.id}:`, error);
+            return false;
+        }
+    }
+    async escalateTicket(ticketId, reason) {
+        const ticket = await this.ticketRepository.findOne({ where: { id: ticketId } });
+        if (!ticket) {
+            throw new common_1.NotFoundException(`Ticket with ID ${ticketId} not found`);
+        }
+        const currentLevel = this.getCurrentEscalationLevel(ticket);
+        const rule = this.escalationRules[ticket.priority];
+        if (!rule) {
+            this.logger.warn(`No escalation rule found for priority ${ticket.priority}`);
+            return ticket;
+        }
+        const nextLevel = rule.escalationLevels.find(level => level.level === currentLevel + 1);
+        if (!nextLevel) {
+            this.logger.debug(`No next escalation level found for ticket ${ticket.id}`);
+            return ticket;
+        }
+        await this.escalateTicketInternal(ticket, nextLevel);
+        return ticket;
     }
 };
 TicketEscalationService = TicketEscalationService_1 = __decorate([

@@ -12,14 +12,16 @@ import { Ticket } from '../entities/ticket.entity';
 import { TicketComment } from '../entities/ticket-comment.entity';
 import { TicketAttachment } from '../entities/ticket-attachment.entity';
 import { TicketActivity } from '../entities/ticket-activity.entity';
-import { CreateTicketDto, TicketStatus } from '../dto/create-ticket.dto';
+import { CreateTicketDto } from '../dto/create-ticket.dto';
+import { TicketStatus } from '../enums/ticket-status.enum';
 import { UpdateTicketDto } from '../dto/update-ticket.dto';
-import { CreateTicketCommentDto } from '../dto/ticket-comment.dto'; // Fixed import
-import { BulkTicketAssignmentDto } from '../dto/ticket-assignment.dto'; // Updated import
+import { CreateTicketCommentDto } from '../dto/ticket-comment.dto';
+import { BulkTicketAssignmentDto } from '../dto/ticket-assignment.dto';
 import { TicketQueryDto } from '../dto/ticket-query.dto';
 import { NotificationsService } from '../../notifications/services/notifications.service';
 import { User } from '../../users/entities/user.entity';
 import { paginate } from 'nestjs-typeorm-paginate';
+import { TicketActivityType } from '../enums/ticket-activity-type.enum';
 
 
 // Define a simplified assignment DTO for single assignment operations
@@ -82,83 +84,47 @@ export class TicketsService {
         return ticket;
     }
 
-    async create(data: CreateTicketDto & { organizationId: string; createdBy: string }): Promise<Ticket> {
-        const queryRunner = this.dataSource.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
+    async create(data: CreateTicketDto): Promise<Ticket> {
+        const createdByUser = await this.userRepository.findOne({ where: { id: data.createdBy } });
+        if (!createdByUser) {
+            throw new NotFoundException('User not found');
+        }
 
-        try {
-            // Create ticket
-            const createdByUser = await this.userRepository.findOne({ where: { id: data.createdBy } });
-            if (!createdByUser) {
-                throw new NotFoundException('User not found');
-            }
+        const assigneeUser = data.assigneeId ? await this.userRepository.findOne({ where: { id: data.assigneeId } }) : null;
 
-            const ticket = this.ticketRepository.create({
-                ...data,
-                status: TicketStatus.OPEN,
-                createdBy: Promise.resolve(createdByUser),
-                attachments: data.attachments?.map(attachmentData => {
-                    const attachment = new TicketAttachment();
-                    Object.assign(attachment, attachmentData);
-                    attachment.organizationId = data.organizationId;
-                    attachment.uploadedById = data.createdBy;
-                    return attachment;
-                }),
+        const ticket = this.ticketRepository.create({
+            organizationId: data.organizationId,
+            title: data.title,
+            description: data.description,
+            type: data.type,
+            priority: data.priority,
+            category: data.category,
+            status: TicketStatus.OPEN,
+            createdBy: Promise.resolve(createdByUser),
+            attachments: Promise.resolve([]),
+            assigneeId: data.assigneeId,
+            tags: data.tags,
+            metadata: data.metadata,
+        });
+
+        const savedTicket = await this.ticketRepository.save(ticket);
+
+        if (data.attachments?.length) {
+            const attachments = data.attachments.map(attachmentData => {
+                const attachment = new TicketAttachment();
+                Object.assign(attachment, attachmentData);
+                attachment.ticketId = savedTicket.id;
+                attachment.organizationId = data.organizationId;
+                attachment.uploadedById = data.createdBy;
+                return attachment;
             });
 
-            await queryRunner.manager.save(ticket);
-
-            // Handle attachments if any
-            if (data.attachments?.length) {
-                for (const attachmentData of data.attachments) {
-                    const attachment = new TicketAttachment();
-
-                    // Copy properties from attachment data (filename, fileType, etc.)
-                    Object.assign(attachment, attachmentData);
-
-                    // Set the relationships explicitly
-                    attachment.ticketId = ticket.id;
-                    attachment.organizationId = data.organizationId;
-                    attachment.uploadedById = data.createdBy;
-
-                    await queryRunner.manager.save(attachment);
-                }
-            }
-
-            // Create activity record
-            const activity = new TicketActivity();
-            activity.ticketId = ticket.id;
-            activity.organizationId = data.organizationId;
-            activity.userId = data.createdBy;
-            activity.action = 'CREATED';
-            activity.details = { status: ticket.status };
-
-            await queryRunner.manager.save(activity);
-
-            await queryRunner.commitTransaction();
-
-            // Send notifications
-            if (ticket.assigneeId) {
-                await this.notificationsService.create({
-                    type: 'TICKET_ASSIGNED',
-                    title: 'New Ticket Assigned',
-                    content: `Ticket #${ticket.referenceNumber} has been assigned to you: ${ticket.title}`,
-                    recipients: ticket.assigneeId ? [{ userId: ticket.assigneeId }] : [],
-                    organizationId: data.organizationId,
-                    senderId: data.createdBy,
-                });
-            }
-
-            this.eventEmitter.emit('ticket.created', ticket);
-
-            return ticket;
-        } catch (error) {
-            await queryRunner.rollbackTransaction();
-            throw error;
-        } finally {
-            await queryRunner.release();
+            await this.attachmentRepository.save(attachments);
+            savedTicket.attachments = Promise.resolve(attachments);
+            await this.ticketRepository.save(savedTicket);
         }
+
+        return savedTicket;
     }
 
     async findAll(query: TicketQueryDto & { organizationId: string }) {
@@ -276,16 +242,16 @@ export class TicketsService {
 
             // Create activity record for status change
             if (data.status && data.status !== oldStatus) {
-                const activity = new TicketActivity();
-                activity.ticketId = ticket.id;
-                activity.organizationId = data.organizationId;
-                activity.userId = data.updatedBy;
-                activity.action = 'STATUS_CHANGED';
-                activity.details = {
-                    oldStatus,
-                    newStatus: data.status,
-                    note: data.statusNote,
-                };
+                const activity = this.activityRepository.create({
+                    ticketId: id,
+                    organizationId: data.organizationId,
+                    performedById: data.updatedBy,
+                    type: TicketActivityType.STATUS_CHANGED,
+                    data: {
+                        status: data.status,
+                        note: data.statusNote
+                    }
+                });
 
                 await queryRunner.manager.save(activity);
 
@@ -329,16 +295,16 @@ export class TicketsService {
         await this.ticketRepository.save(ticket);
     
         // Create activity record
-        const activity = new TicketActivity();
-        activity.ticketId = ticket.id;
-        activity.organizationId = data.organizationId;
-        activity.userId = data.assignedBy;
-        activity.action = 'ASSIGNED';
-        activity.details = {
-            oldAssigneeId,
-            newAssigneeId: data.assigneeId,
-            note: data.note,
-        };
+        const activity = this.activityRepository.create({
+            ticketId: id,
+            organizationId: data.organizationId,
+            performedById: data.assignedBy,
+            type: TicketActivityType.ASSIGNED,
+            data: {
+                assigneeId: data.assigneeId,
+                note: data.note
+            }
+        });
         
         await this.activityRepository.save(activity);
     
@@ -367,7 +333,7 @@ export class TicketsService {
         Object.assign(comment, data);
         comment.ticketId = ticket.id;
         comment.organizationId = data.organizationId;
-        comment.userId = data.userId;
+        comment.authorId = data.userId; // Changed from userId to authorId
 
         await this.commentRepository.save(comment);
 
@@ -376,12 +342,13 @@ export class TicketsService {
         await this.ticketRepository.save(ticket);
 
         // Create activity record
-        const activity = new TicketActivity();
-        activity.ticketId = ticket.id;
-        activity.organizationId = data.organizationId;
-        activity.userId = data.userId;
-        activity.action = 'COMMENTED';
-        activity.details = { commentId: comment.id };
+        const activity = this.activityRepository.create({
+            ticketId: id,
+            organizationId: data.organizationId,
+            performedById: data.userId,
+            type: TicketActivityType.COMMENT_ADDED,
+            data: { commentId: comment.id }
+        });
 
         await this.activityRepository.save(activity);
 
@@ -419,12 +386,13 @@ export class TicketsService {
         await this.ticketRepository.save(ticket);
 
         // Create activity record
-        const activity = new TicketActivity();
-        activity.ticketId = ticket.id;
-        activity.organizationId = data.organizationId;
-        activity.userId = data.escalatedBy;
-        activity.action = 'ESCALATED';
-        activity.details = { reason: data.reason };
+        const activity = this.activityRepository.create({
+            ticketId: id,
+            organizationId: data.organizationId,
+            performedById: data.escalatedBy,
+            type: TicketActivityType.ESCALATED,
+            data: { reason: data.reason }
+        });
 
         await this.activityRepository.save(activity);
 
@@ -461,12 +429,13 @@ export class TicketsService {
         await this.ticketRepository.save(ticket);
 
         // Create activity record
-        const activity = new TicketActivity();
-        activity.ticketId = ticket.id;
-        activity.organizationId = data.organizationId;
-        activity.userId = data.resolvedBy;
-        activity.action = 'RESOLVED';
-        activity.details = { resolution: data.resolution };
+        const activity = this.activityRepository.create({
+            ticketId: id,
+            organizationId: data.organizationId,
+            performedById: data.resolvedBy,
+            type: TicketActivityType.RESOLUTION,
+            data: { resolution: data.resolution }
+        });
 
         await this.activityRepository.save(activity);
 

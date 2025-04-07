@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/medical-history/entities/medical-history.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MedicalHistory = exports.HealthcareProviderType = exports.EncounterType = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/medical-history/entities/medical-history.entity.ts
 const typeorm_1 = require("typeorm");
 const contact_entity_1 = require("../contacts/entities/contact.entity");
 var EncounterType;
@@ -38,9 +37,6 @@ var HealthcareProviderType;
     HealthcareProviderType["OTHER"] = "OTHER";
 })(HealthcareProviderType = exports.HealthcareProviderType || (exports.HealthcareProviderType = {}));
 let MedicalHistory = class MedicalHistory {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, contactId: { required: true, type: () => String }, contact: { required: true, type: () => require("../contacts/entities/contact.entity").Contact }, encounterType: { required: true, enum: require("./medical-history.entity").EncounterType }, date: { required: true, type: () => Date }, description: { required: true, type: () => String }, diagnosis: { required: true, type: () => String }, treatment: { required: true, type: () => String }, medications: { required: true, type: () => String }, symptoms: { required: true, type: () => String }, vitalSigns: { required: true, type: () => ({ bloodPressure: { required: false, type: () => String }, temperature: { required: false, type: () => Number }, heartRate: { required: false, type: () => Number }, respiratoryRate: { required: false, type: () => Number }, oxygenSaturation: { required: false, type: () => Number }, height: { required: false, type: () => Number }, weight: { required: false, type: () => Number }, bmi: { required: false, type: () => Number } }) }, notes: { required: true, type: () => String }, referrals: { required: true }, attachments: { required: true }, labResults: { required: true }, isFlagged: { required: true, type: () => Boolean }, flaggedReason: { required: true, type: () => String }, requiresFollowUp: { required: true, type: () => Boolean }, followUpDate: { required: true, type: () => Date }, providerName: { required: true, type: () => String }, providerType: { required: true, enum: require("./medical-history.entity").HealthcareProviderType }, facilityName: { required: true, type: () => String }, facilityLocation: { required: true, type: () => String }, isInsuranceClaim: { required: true, type: () => Boolean }, insuranceClaimNumber: { required: true, type: () => String }, costAmount: { required: true, type: () => Number }, costCurrency: { required: true, type: () => String }, customFields: { required: true, type: () => Object }, createdById: { required: true, type: () => String }, updatedById: { required: true, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, deletedAt: { required: true, type: () => Date } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),

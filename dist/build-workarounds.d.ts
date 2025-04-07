@@ -8,8 +8,5 @@ declare global {
         finally?: any;
     }
 }
-export declare const fixSwaggerCircularDependencies: () => void;
-declare const _default: {
-    fixSwaggerCircularDependencies: () => void;
-};
+declare const _default: {};
 export default _default;

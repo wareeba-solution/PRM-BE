@@ -1,7 +1,6 @@
 // src/common/decorators/auth.decorator.ts
 
 import { applyDecorators, SetMetadata, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../modules/auth/guards/roles.guard';
 import { Role } from '../../modules/users/enums/role.enum';
@@ -20,9 +19,7 @@ export function Auth(options: AuthOptions = {}) {
     return applyDecorators(
         SetMetadata(AUTH_ROLES_KEY, roles),
         SetMetadata(AUTH_ORG_KEY, requireOrganization),
-        UseGuards(JwtAuthGuard, RolesGuard),
-        ApiBearerAuth(),
-        ApiUnauthorizedResponse({ description: 'Unauthorized' })
+        UseGuards(JwtAuthGuard, RolesGuard)
     );
 }
 

@@ -44,19 +44,21 @@ const typeorm_2 = require("typeorm");
 const nodemailer = __importStar(require("nodemailer"));
 const util_1 = require("util");
 const dns = __importStar(require("dns"));
-const email_template_entity_1 = require("../../modules/notifications/entities/email-template.entity");
+const email_template_entity_1 = require("../../modules/email/entities/email-template.entity");
 const email_log_entity_1 = require("../../modules/notifications/entities/email-log.entity");
 const email_queue_entity_1 = require("../../modules/notifications/entities/email-queue.entity");
+const email_content_entity_1 = require("../../modules/notifications/entities/email-content.entity");
 const email_status_enum_1 = require("../../modules/notifications/enums/email-status.enum");
 const domain_verification_status_enum_1 = require("../../modules/domain/enums/domain-verification-status.enum");
 const domain_verification_service_1 = require("../../modules/domain/services/domain-verification.service");
+const Handlebars = __importStar(require("handlebars"));
 let EmailService = EmailService_1 = class EmailService {
-    constructor(configService, domainVerificationService, templateRepository, logRepository, queueRepository) {
+    constructor(configService, domainVerificationService, emailTemplateRepository, logRepository, queueRepository, contentRepository) {
         this.configService = configService;
-        this.domainVerificationService = domainVerificationService;
-        this.templateRepository = templateRepository;
+        this.emailTemplateRepository = emailTemplateRepository;
         this.logRepository = logRepository;
         this.queueRepository = queueRepository;
+        this.contentRepository = contentRepository;
         this.logger = new common_1.Logger(EmailService_1.name);
         this.maxRetries = 3;
         this.resolveTxt = (0, util_1.promisify)(dns.resolveTxt);
@@ -73,13 +75,14 @@ let EmailService = EmailService_1 = class EmailService {
             rateDelta: 1000,
             rateLimit: 5,
         });
+        this.domainVerificationService = domainVerificationService;
     }
     async send(notification) {
         // Implement notification-specific email sending
         return this.sendEmail({
             to: notification.recipient,
             subject: notification.title,
-            template: notification.template,
+            template: notification.templateId,
             context: notification.data,
             metadata: { notificationId: notification.id }
         });
@@ -89,13 +92,17 @@ let EmailService = EmailService_1 = class EmailService {
             let htmlContent = '';
             let textContent = '';
             if (options.template) {
-                const template = await this.templateRepository.findOne({
-                    where: { name: options.template }
+                const template = await this.emailTemplateRepository.findOne({
+                    where: {
+                        type: options.template,
+                        status: email_template_entity_1.EmailTemplateStatus.ACTIVE
+                    }
                 });
                 if (!template) {
-                    throw new Error(`Email template ${options.template} not found`);
+                    throw new Error(`Email template not found for type: ${options.template}`);
                 }
-                ({ html: htmlContent, text: textContent } = await this.processTemplate(template, options.context || {}));
+                htmlContent = this.compileTemplate(template.content, options.context || {});
+                textContent = template.plainTextContent || '';
             }
             const emailData = {
                 from: this.configService.get('MAIL_FROM'),
@@ -125,10 +132,20 @@ let EmailService = EmailService_1 = class EmailService {
             throw error;
         }
     }
+    compileTemplate(template, variables = {}) {
+        try {
+            const compiledTemplate = Handlebars.compile(template);
+            return compiledTemplate(variables);
+        }
+        catch (error) {
+            this.logger.error('Error compiling template:', error);
+            throw error;
+        }
+    }
     async processTemplate(template, context) {
         try {
-            let html = template.htmlContent;
-            let text = template.textContent || '';
+            let html = template.content;
+            let text = template.plainTextContent || '';
             Object.entries(context).forEach(([key, value]) => {
                 const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
                 html = html.replace(regex, String(value));
@@ -153,16 +170,25 @@ let EmailService = EmailService_1 = class EmailService {
         await this.queueRepository.save(queueEntry);
     }
     async logEmail(emailData, result, metadata) {
+        // Create log without messageId
         const log = this.logRepository.create({
             recipient: emailData.to,
             subject: emailData.subject,
             template: emailData.template,
-            metadata,
-            messageId: result.messageId,
             status: email_status_enum_1.EmailStatus.SENT,
             sentAt: new Date(),
         });
-        await this.logRepository.save(log);
+        // Save the log first to get an ID
+        const savedLog = await this.logRepository.save(log);
+        // Create content record with messageId and other data
+        const content = this.contentRepository.create({
+            emailLogId: savedLog.id,
+            messageId: result.messageId,
+            metadata: metadata || {},
+            htmlContent: emailData.html || null,
+            textContent: emailData.text || null
+        });
+        await this.contentRepository.save(content);
     }
     stripHtml(html) {
         return html.replace(/<[^>]*>/g, '')
@@ -224,9 +250,13 @@ let EmailService = EmailService_1 = class EmailService {
     }
     async getEmailStatus(messageId) {
         try {
-            return await this.logRepository.findOne({
-                where: { messageId }
+            // Find by messageId in content entity instead of directly in log
+            const content = await this.contentRepository.findOne({
+                where: { messageId },
+                relations: ['emailLog']
             });
+            // Return the related email log if found
+            return (content === null || content === void 0 ? void 0 : content.emailLog) || null;
         }
         catch (error) {
             this.logger.error(`Error getting email status for message ${messageId}:`, error);
@@ -285,11 +315,14 @@ let EmailService = EmailService_1 = class EmailService {
 };
 EmailService = EmailService_1 = __decorate([
     (0, common_1.Injectable)(),
+    __param(1, (0, common_1.Inject)((0, common_1.forwardRef)(() => domain_verification_service_1.DomainVerificationService))),
     __param(2, (0, typeorm_1.InjectRepository)(email_template_entity_1.EmailTemplate)),
     __param(3, (0, typeorm_1.InjectRepository)(email_log_entity_1.EmailLog)),
     __param(4, (0, typeorm_1.InjectRepository)(email_queue_entity_1.EmailQueue)),
+    __param(5, (0, typeorm_1.InjectRepository)(email_content_entity_1.EmailContent)),
     __metadata("design:paramtypes", [config_1.ConfigService,
         domain_verification_service_1.DomainVerificationService,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository])

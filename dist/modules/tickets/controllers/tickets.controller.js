@@ -13,9 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TicketsController = void 0;
-const openapi = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
-const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../../auth/guards/roles.guard");
 const organization_guard_1 = require("../../../common/guards/organization.guard"); // Adjusted path
@@ -92,9 +90,6 @@ let TicketsController = class TicketsController {
 };
 __decorate([
     (0, common_1.Post)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Create new ticket' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.CREATED, description: 'Ticket created successfully' }),
-    openapi.ApiResponse({ status: 201, type: require("../entities/ticket.entity").Ticket }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -103,9 +98,6 @@ __decorate([
 ], TicketsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Get all tickets' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return all tickets' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Query)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -114,9 +106,6 @@ __decorate([
 ], TicketsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('dashboard'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get tickets dashboard data' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return tickets dashboard data' }),
-    openapi.ApiResponse({ status: 200, type: Object }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -124,9 +113,6 @@ __decorate([
 ], TicketsController.prototype, "getDashboard", null);
 __decorate([
     (0, common_1.Get)('assigned'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get tickets assigned to current user' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return assigned tickets' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Query)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -135,9 +121,6 @@ __decorate([
 ], TicketsController.prototype, "getAssignedTickets", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get ticket by id' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return ticket details' }),
-    openapi.ApiResponse({ status: 200, type: require("../entities/ticket.entity").Ticket }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -146,9 +129,6 @@ __decorate([
 ], TicketsController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Put)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Update ticket' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Ticket updated successfully' }),
-    openapi.ApiResponse({ status: 200, type: require("../entities/ticket.entity").Ticket }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -159,9 +139,6 @@ __decorate([
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Delete ticket' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.NO_CONTENT, description: 'Ticket deleted successfully' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -170,9 +147,6 @@ __decorate([
 ], TicketsController.prototype, "remove", null);
 __decorate([
     (0, common_1.Post)(':id/comments'),
-    (0, swagger_1.ApiOperation)({ summary: 'Add comment to ticket' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.CREATED, description: 'Comment added successfully' }),
-    openapi.ApiResponse({ status: 201, type: require("../entities/ticket-comment.entity").TicketComment }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -183,9 +157,6 @@ __decorate([
 __decorate([
     (0, common_1.Put)(':id/assign'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.STAFF),
-    (0, swagger_1.ApiOperation)({ summary: 'Assign ticket' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Ticket assigned successfully' }),
-    openapi.ApiResponse({ status: 200, type: require("../entities/ticket.entity").Ticket }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -196,9 +167,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)(':id/escalate'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.STAFF),
-    (0, swagger_1.ApiOperation)({ summary: 'Escalate ticket' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Ticket escalated successfully' }),
-    openapi.ApiResponse({ status: 201, type: require("../entities/ticket.entity").Ticket }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)('reason')),
     __param(2, (0, common_1.Request)()),
@@ -208,9 +176,6 @@ __decorate([
 ], TicketsController.prototype, "escalateTicket", null);
 __decorate([
     (0, common_1.Post)(':id/resolve'),
-    (0, swagger_1.ApiOperation)({ summary: 'Resolve ticket' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Ticket resolved successfully' }),
-    openapi.ApiResponse({ status: 201, type: require("../entities/ticket.entity").Ticket }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)('resolution')),
     __param(2, (0, common_1.Request)()),
@@ -220,9 +185,6 @@ __decorate([
 ], TicketsController.prototype, "resolveTicket", null);
 __decorate([
     (0, common_1.Post)(':id/reopen'),
-    (0, swagger_1.ApiOperation)({ summary: 'Reopen ticket' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Ticket reopened successfully' }),
-    openapi.ApiResponse({ status: 201, type: require("../entities/ticket.entity").Ticket }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)('reason')),
     __param(2, (0, common_1.Request)()),
@@ -232,9 +194,6 @@ __decorate([
 ], TicketsController.prototype, "reopenTicket", null);
 __decorate([
     (0, common_1.Get)(':id/timeline'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get ticket timeline' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return ticket timeline' }),
-    openapi.ApiResponse({ status: 200, type: [require("../entities/ticket-activity.entity").TicketActivity] }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -243,9 +202,6 @@ __decorate([
 ], TicketsController.prototype, "getTimeline", null);
 __decorate([
     (0, common_1.Get)(':id/related'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get related tickets' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return related tickets' }),
-    openapi.ApiResponse({ status: 200, type: Object }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -253,11 +209,9 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], TicketsController.prototype, "getRelatedTickets", null);
 TicketsController = __decorate([
-    (0, swagger_1.ApiTags)('Tickets'),
     (0, common_1.Controller)('tickets'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, organization_guard_1.OrganizationGuard) // Added OrganizationGuard
     ,
-    (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [tickets_service_1.TicketsService])
 ], TicketsController);
 exports.TicketsController = TicketsController;

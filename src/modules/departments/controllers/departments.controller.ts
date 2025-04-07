@@ -1,5 +1,4 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Req } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { DepartmentsService } from '../services/departments.service';
 import { DepartmentMembersService } from '../services/department-members.service';
 import { AuthGuard } from '../../auth/guards/auth.guard';
@@ -16,7 +15,6 @@ import { Role } from '../../users/enums/role.enum';
 import { User } from '../../users/entities/user.entity';
 import { Request } from 'express';
 
-@ApiTags('Departments')
 @Controller('departments')
 @UseGuards(AuthGuard, OrganizationGuard, RolesGuard)
 export class DepartmentsController {
@@ -27,8 +25,6 @@ export class DepartmentsController {
 
   @Post()
   @Roles(Role.ADMIN, Role.MANAGER)
-  @ApiOperation({ summary: 'Create department' })
-  @ApiResponse({ status: 201, type: Department })
   async create(
     @Body() createDepartmentDto: Partial<Department>,
     @Req() req: Request
@@ -41,8 +37,6 @@ export class DepartmentsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all departments' })
-  @ApiResponse({ status: 200, type: [Department] })
   async findAll(
     @Query() query: DepartmentQueryDto,
     @Req() req: Request
@@ -54,8 +48,6 @@ export class DepartmentsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get department by id' })
-  @ApiResponse({ status: 200, type: Department })
   async findOne(
     @Param('id') id: string,
     @Req() req: Request
@@ -68,8 +60,6 @@ export class DepartmentsController {
 
   @Put(':id')
   @Roles(Role.ADMIN, Role.MANAGER)
-  @ApiOperation({ summary: 'Update department' })
-  @ApiResponse({ status: 200, type: Department })
   async update(
     @Param('id') id: string,
     @Body() updateDepartmentDto: UpdateDepartmentDto,
@@ -80,8 +70,6 @@ export class DepartmentsController {
 
   @Delete(':id')
   @Roles(Role.ADMIN)
-  @ApiOperation({ summary: 'Delete department' })
-  @ApiResponse({ status: 204 })
   async remove(
     @Param('id') id: string,
     @CurrentUser('id') userId: string
@@ -91,8 +79,6 @@ export class DepartmentsController {
 
   @Post(':id/members')
   @Roles(Role.ADMIN, Role.MANAGER)
-  @ApiOperation({ summary: 'Add member to department' })
-  @ApiResponse({ status: 200 })
   async addMember(
     @Param('id') departmentId: string,
     @Body() addMemberDto: AddMemberDto,
@@ -107,8 +93,6 @@ export class DepartmentsController {
 
   @Delete(':id/members/:userId')
   @Roles(Role.ADMIN, Role.MANAGER)
-  @ApiOperation({ summary: 'Remove member from department' })
-  @ApiResponse({ status: 204 })
   async removeMember(
     @Param('id') departmentId: string,
     @Param('userId') memberId: string,
@@ -122,8 +106,6 @@ export class DepartmentsController {
   }
 
   @Get(':id/members')
-  @ApiOperation({ summary: 'Get department members' })
-  @ApiResponse({ status: 200, type: [User] })
   async getMembers(
     @Param('id') departmentId: string,
     @Query() query: DepartmentQueryDto

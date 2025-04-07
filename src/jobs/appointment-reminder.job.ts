@@ -14,6 +14,7 @@ import { Contact } from '../modules/contacts/entities/contact.entity';
 import { Organization } from '../modules/organizations/entities/organization.entity';
 import { AppointmentStatus } from '../modules/appointments/enums/appointment-status.enum';
 import { User } from '../modules/users/entities/user.entity';
+import { EmailTemplateType } from '../modules/email/entities/email-template.entity';
 
 interface AppointmentReminderData {
     appointmentId: string;
@@ -149,8 +150,23 @@ export class AppointmentReminderJob {
             if (!appointment.contact?.email || !appointment.contact?.allowEmail) continue;
 
             try {
-                const doctor = await appointment.doctor;
-                const organization = await appointment.organization;
+                // Get doctor and organization using IDs instead of relations
+                // Get the doctor using doctorId
+                const doctor = await this.appointmentRepository
+                    .createQueryBuilder('appointment')
+                    .leftJoinAndSelect('users', 'doctor', 'doctor.id = appointment.doctorId')
+                    .where('appointment.id = :id', { id: appointment.id })
+                    .select('doctor.*')
+                    .getRawOne()
+                    .then(result => result ? {
+                        id: result.doctor_id,
+                        firstName: result.doctor_firstName,
+                        lastName: result.doctor_lastName
+                    } : null);
+                
+                const organization = await this.organizationRepository.findOne({
+                    where: { id: appointment.organizationId }
+                });
                 const notificationData: AppointmentReminderData = {
                     appointmentId: appointment.id,
                     patientName: `${appointment.contact.firstName} ${appointment.contact.lastName}`,
@@ -161,7 +177,14 @@ export class AppointmentReminderJob {
                     organizationName: organization.name || 'N/A',
                 };
 
-                await this.emailService.sendAppointmentReminder(appointment.contact.email, notificationData);
+                await this.emailService.queueEmail({
+                    recipient: appointment.contact.email,
+                    subject: 'Appointment Reminder',
+                    templateId: EmailTemplateType.NOTIFICATION,
+                    variables: notificationData,
+                    organizationId: organization.id,
+                });
+
                 await this.markReminderSent(appointment.id);
             } catch (error) {
                 this.logger.error(`Failed to send email reminder for appointment ${appointment.id}:`, error);
@@ -174,8 +197,23 @@ export class AppointmentReminderJob {
             if (!appointment.contact?.phone || !appointment.contact?.allowSMS) continue;
 
             try {
-                const doctor = await appointment.doctor;
-                const organization = await appointment.organization;
+                // Get doctor and organization using IDs instead of relations
+                // Get the doctor using doctorId
+                const doctor = await this.appointmentRepository
+                    .createQueryBuilder('appointment')
+                    .leftJoinAndSelect('users', 'doctor', 'doctor.id = appointment.doctorId')
+                    .where('appointment.id = :id', { id: appointment.id })
+                    .select('doctor.*')
+                    .getRawOne()
+                    .then(result => result ? {
+                        id: result.doctor_id,
+                        firstName: result.doctor_firstName,
+                        lastName: result.doctor_lastName
+                    } : null);
+                
+                const organization = await this.organizationRepository.findOne({
+                    where: { id: appointment.organizationId }
+                });
                 const smsData = {
                     id: appointment.id,
                     contact: {
@@ -212,8 +250,23 @@ export class AppointmentReminderJob {
 
         for (const appointment of appointments) {
             try {
-                const doctor = await appointment.doctor;
-                const organization = await appointment.organization;
+                // Get doctor and organization using IDs instead of relations
+                // Get the doctor using doctorId
+                const doctor = await this.appointmentRepository
+                    .createQueryBuilder('appointment')
+                    .leftJoinAndSelect('users', 'doctor', 'doctor.id = appointment.doctorId')
+                    .where('appointment.id = :id', { id: appointment.id })
+                    .select('doctor.*')
+                    .getRawOne()
+                    .then(result => result ? {
+                        id: result.doctor_id,
+                        firstName: result.doctor_firstName,
+                        lastName: result.doctor_lastName
+                    } : null);
+                
+                const organization = await this.organizationRepository.findOne({
+                    where: { id: appointment.organizationId }
+                });
 
                 const notificationData = {
                     appointmentId: appointment.id,
@@ -237,38 +290,27 @@ export class AppointmentReminderJob {
     }
 
     private async markReminderSent(appointmentId: string): Promise<void> {
-        await this.appointmentRepository.update(
-            { id: appointmentId },
-            {
-                reminderSent: true,
-                reminderSentAt: new Date(),
-            }
-        );
+        await this.appointmentRepository.update(appointmentId, {
+            reminderSent: true,
+            reminderSentAt: new Date(),
+        });
     }
 
     // Cleanup old reminder records
     @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
     async cleanupOldReminders() {
-        try {
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - 7); // Keep 7 days of history
 
-            // Using proper type casting to avoid type errors
-            const whereClause = {
-                startTime: LessThanOrEqual(thirtyDaysAgo),
+        await this.appointmentRepository.update(
+            {
                 reminderSent: true,
-            } as FindOptionsWhere<Appointment>;
-
-            // Using update without raw SQL
-            await this.appointmentRepository.update(
-                whereClause,
-                {
-                    reminderSent: false,
-                    reminderSentAt: undefined,
-                },
-            );
-        } catch (error) {
-            this.logger.error('Error cleaning up old reminders:', error);
-        }
+                reminderSentAt: LessThanOrEqual(cutoffDate),
+            },
+            {
+                reminderSent: false,
+                reminderSentAt: null,
+            },
+        );
     }
 }

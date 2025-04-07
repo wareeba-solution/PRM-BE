@@ -10,6 +10,7 @@ import { AppointmentStatus } from '../enums/appointment-status.enum';
 import { NotificationsService } from '../../notifications/services/notifications.service';
 import { EmailService } from '../../email/services/email.service';
 import { DoctorScheduleService } from './doctor-schedule.service';
+import { CalendarEvent } from '../interfaces/calendar-event.interface';
 export declare class AppointmentsService {
     private appointmentRepository;
     private userRepository;
@@ -68,38 +69,30 @@ export declare class AppointmentsService {
         updatedBy: string;
     }): Promise<Appointment>;
     remove(id: string, organizationId: string): Promise<void>;
-    getCalendarEvents(query: {
-        organizationId: string;
-        start: Date;
-        end: Date;
-        doctorId?: string;
-    }): Promise<{
-        id: string;
-        title: string;
-        start: Date;
-        end: Date;
-        status: AppointmentStatus;
-        doctor: {
-            id: any;
-            name: any;
-        };
-        patient: {
-            id: any;
-            name: any;
-        };
-    }[]>;
+    getCalendarEvents(organizationId: string, startDate: Date, endDate: Date): Promise<CalendarEvent[]>;
     findAvailableSlots(query: {
         doctorId: string;
         date: Date;
         organizationId: string;
     }): Promise<any[]>;
+    private checkConflicts;
+    private createRecurringAppointments;
+    private sendAppointmentNotifications;
     getStatistics(query: {
         organizationId: string;
         startDate: Date;
         endDate: Date;
         doctorId?: string;
-    }): Promise<void>;
-    private checkConflicts;
-    private createRecurringAppointments;
-    private sendAppointmentNotifications;
+    }): Promise<{
+        total: number;
+        completed: number;
+        cancelled: number;
+        noShow: number;
+        rescheduled: number;
+    }>;
+    checkAvailability(doctorId: string, organizationId: string, date: Date, startTime: string, endTime: string): Promise<boolean>;
+    getAvailableSlots(doctorId: string, organizationId: string, date: Date): Promise<{
+        startTime: string;
+        endTime: string;
+    }[]>;
 }

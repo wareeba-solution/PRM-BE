@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/email/entities/email-log.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailLog = exports.EmailStatus = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/email/entities/email-log.entity.ts
 const typeorm_1 = require("typeorm");
 const organization_entity_1 = require("../../organizations/entities/organization.entity");
 var EmailStatus;
@@ -23,9 +22,6 @@ var EmailStatus;
     EmailStatus["BOUNCED"] = "BOUNCED";
 })(EmailStatus = exports.EmailStatus || (exports.EmailStatus = {}));
 let EmailLog = class EmailLog {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, jobId: { required: false, type: () => String }, to: { required: true, type: () => String }, cc: { required: false, type: () => String }, bcc: { required: false, type: () => String }, subject: { required: true, type: () => String }, template: { required: true, type: () => String }, context: { required: false, type: () => Object }, status: { required: true, type: () => String }, error: { required: false, type: () => String }, organizationId: { required: false, type: () => String }, organization: { required: true, type: () => require("../../organizations/entities/organization.entity").Organization }, userId: { required: false, type: () => String }, createdAt: { required: true, type: () => Date }, sentAt: { required: false, type: () => Date } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),

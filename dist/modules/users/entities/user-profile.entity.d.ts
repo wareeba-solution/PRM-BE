@@ -2,7 +2,7 @@ import { User } from './user.entity';
 export declare class UserProfile {
     id: string;
     userId: string;
-    user: User;
+    user: Promise<User>;
     title?: string;
     department?: string;
     employeeId?: string;

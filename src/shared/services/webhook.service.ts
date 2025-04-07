@@ -177,13 +177,10 @@ export class WebhookService {
             metadata: notification.metadata,
             timestamp: new Date().toISOString(),
             version: '1.0',
-            context: notification.context ? this.filterSensitiveData(notification.context) : undefined,
+            // Using content instead of context
         };
 
-        // Add additional context if available
-        if (notification.context) {
-            basePayload['context'] = this.filterSensitiveData(notification.context);
-        }
+        // No need to add additional context as we're already using content
 
         return basePayload;
     }

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan, FindOperator, In } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -25,6 +25,7 @@ interface EscalationRule {
 export class TicketEscalationService {
   private readonly logger = new Logger(TicketEscalationService.name);
   private readonly escalationRules: Record<string, EscalationRule>;
+  private readonly firstResponseThreshold = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
   constructor(
     @InjectRepository(Ticket)
@@ -117,9 +118,7 @@ export class TicketEscalationService {
    */
   private getCurrentEscalationLevel(ticket: Ticket): number {
     // Try to find the most recent escalation activity
-    const escalationActivities = ticket.activities?.filter(
-      activity => activity.type === TicketActivityType.ESCALATION
-    ) || [];
+    const escalationActivities = ticket.metadata?.escalationActivities || [];
     
     if (escalationActivities.length > 0) {
       // Sort by created date, descending
@@ -138,54 +137,59 @@ export class TicketEscalationService {
    * Check single ticket for escalation
    */
   private async checkTicketEscalation(ticket: Ticket): Promise<void> {
-    const rule = this.escalationRules[ticket.priority];
-    if (!rule) return;
+    try {
+      // Get activities using the repository
+      const activities = await this.activityRepository.find({
+        where: { ticketId: ticket.id }
+      });
+      
+      if (!activities || activities.length === 0) return;
 
-    const timeElapsed = this.getHoursElapsed(ticket.createdAt);
-    const currentLevel = this.getCurrentEscalationLevel(ticket);
-    
-    // Find next escalation level
-    const nextEscalation = rule.escalationLevels.find(level => 
-      level.level === currentLevel + 1 && timeElapsed >= level.timeThreshold
-    );
+      const escalationActivities = activities.filter(
+        activity => activity.type === TicketActivityType.ESCALATED
+      );
 
-    if (nextEscalation) {
-      await this.escalateTicket(ticket, nextEscalation);
+      const currentLevel = this.getCurrentEscalationLevel(ticket);
+      const rule = this.escalationRules[ticket.priority];
+
+      if (!rule) {
+        this.logger.warn(`No escalation rule found for priority ${ticket.priority}`);
+        return;
+      }
+
+      const nextLevel = rule.escalationLevels.find(level => level.level === currentLevel + 1);
+      if (!nextLevel) {
+        this.logger.debug(`No next escalation level found for ticket ${ticket.id}`);
+        return;
+      }
+
+      const timeElapsed = this.getHoursElapsed(ticket.createdAt);
+      if (timeElapsed >= nextLevel.timeThreshold) {
+        await this.escalateTicketInternal(ticket, nextLevel);
+      }
+    } catch (error) {
+      this.logger.error(`Error checking ticket escalation for ticket ${ticket.id}:`, error);
     }
   }
 
-  /**
-   * Escalate a ticket to the next level
-   */
-  private async escalateTicket(ticket: Ticket, escalation: EscalationRule['escalationLevels'][0]): Promise<void> {
-    try {
-      // Instead of updating a non-existent escalation level field,
-      // we'll track this in the activity metadata
-      
-      // Create activity log for the escalation
-      // Create with only the fields that exist on TicketActivity
-      const activityData = {
-        ticket,
-        type: TicketActivityType.ESCALATION,
-        // Using metadata to store all the custom information
-        metadata: {
-          description: `Ticket escalated to level ${escalation.level}`,
-          previousLevel: this.getCurrentEscalationLevel(ticket),
-          newLevel: escalation.level,
-          reason: 'SLA breach'
-        }
-      };
-      
-      const activity = this.activityRepository.create(activityData);
-      
-      await this.activityRepository.save(activity);
+  private async escalateTicketInternal(ticket: Ticket, escalation: EscalationRule['escalationLevels'][0]): Promise<void> {
+    const activityData = {
+      ticketId: ticket.id,
+      organizationId: ticket.organizationId,
+      performedById: ticket.createdById,
+      type: TicketActivityType.ESCALATED,
+      data: {
+        description: `Ticket escalated to level ${escalation.level}`,
+        previousLevel: this.getCurrentEscalationLevel(ticket),
+        newLevel: escalation.level,
+        reason: 'Time threshold exceeded'
+      }
+    };
 
-      // Notify relevant staff
-      await this.notifyEscalation(ticket, escalation);
+    const activity = this.activityRepository.create(activityData);
+    await this.activityRepository.save(activity);
 
-    } catch (error) {
-      this.logger.error(`Failed to escalate ticket ${ticket.id}:`, error);
-    }
+    await this.notifyEscalation(ticket, escalation);
   }
 
   /**
@@ -264,20 +268,24 @@ export class TicketEscalationService {
     };
   }> {
     const ticket = await this.ticketRepository.findOne({
-      where: { id: ticketId },
-      relations: ['activities']
+      where: { id: ticketId }
     });
 
     if (!ticket) {
       throw new Error('Ticket not found');
     }
 
+    // Get activities using the repository
+    const activities = await this.activityRepository.find({
+      where: { ticketId }
+    });
+
     const rule = this.escalationRules[ticket.priority];
     // Check for RESPONSE and RESOLUTION activity types
-    const firstResponse = ticket.activities.find(
+    const firstResponse = activities.find(
       a => a.type === TicketActivityType.RESPONSE
     );
-    const resolution = ticket.activities.find(
+    const resolution = activities.find(
       a => a.type === TicketActivityType.RESOLUTION
     );
 
@@ -321,8 +329,66 @@ export class TicketEscalationService {
       );
 
       if (nextLevel) {
-        await this.escalateTicket(ticket, nextLevel);
+        await this.escalateTicketInternal(ticket, nextLevel);
       }
     }
+  }
+
+  async checkFirstResponseTime(ticket: Ticket): Promise<boolean> {
+    try {
+      // Get activities using the repository
+      const activities = await this.activityRepository.find({
+        where: { ticketId: ticket.id }
+      });
+      
+      if (!activities || activities.length === 0) return false;
+
+      const firstResponse = activities.find(
+        activity => activity.type === TicketActivityType.RESPONSE
+      );
+
+      if (!firstResponse) {
+        const timeElapsed = Date.now() - ticket.createdAt.getTime();
+        return timeElapsed > this.firstResponseThreshold;
+      }
+
+      const resolution = activities.find(
+        activity => activity.type === TicketActivityType.RESOLUTION
+      );
+
+      if (!resolution) {
+        const timeElapsed = Date.now() - firstResponse.timestamp.getTime();
+        return timeElapsed > this.firstResponseThreshold;
+      }
+
+      return false;
+    } catch (error) {
+      this.logger.error(`Error checking first response time for ticket ${ticket.id}:`, error);
+      return false;
+    }
+  }
+
+  async escalateTicket(ticketId: string, reason: string): Promise<Ticket> {
+    const ticket = await this.ticketRepository.findOne({ where: { id: ticketId } });
+    if (!ticket) {
+      throw new NotFoundException(`Ticket with ID ${ticketId} not found`);
+    }
+
+    const currentLevel = this.getCurrentEscalationLevel(ticket);
+    const rule = this.escalationRules[ticket.priority];
+
+    if (!rule) {
+      this.logger.warn(`No escalation rule found for priority ${ticket.priority}`);
+      return ticket;
+    }
+
+    const nextLevel = rule.escalationLevels.find(level => level.level === currentLevel + 1);
+    if (!nextLevel) {
+      this.logger.debug(`No next escalation level found for ticket ${ticket.id}`);
+      return ticket;
+    }
+
+    await this.escalateTicketInternal(ticket, nextLevel);
+    return ticket;
   }
 }

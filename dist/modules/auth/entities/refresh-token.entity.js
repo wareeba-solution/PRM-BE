@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/auth/entities/refresh-token.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RefreshToken = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/auth/entities/refresh-token.entity.ts
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../../users/entities/user.entity");
 let RefreshToken = class RefreshToken {
@@ -32,9 +31,6 @@ let RefreshToken = class RefreshToken {
         if (this.metadata) {
             this.metadata.lastUsed = new Date();
         }
-    }
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, userId: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, token: { required: true, type: () => String }, expiresAt: { required: true, type: () => Date }, isRevoked: { required: true, type: () => Boolean }, deviceId: { required: true, type: () => String }, userAgent: { required: true, type: () => String }, ipAddress: { required: true, type: () => String }, metadata: { required: true, type: () => ({ platform: { required: false, type: () => String }, browser: { required: false, type: () => String }, location: { required: false, type: () => String }, lastUsed: { required: false, type: () => Date } }) }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, revokedAt: { required: true, type: () => Date }, revokedBy: { required: true, type: () => String }, revokedReason: { required: true, type: () => String }, user: { required: true, type: () => require("../../users/entities/user.entity").User } };
     }
 };
 __decorate([

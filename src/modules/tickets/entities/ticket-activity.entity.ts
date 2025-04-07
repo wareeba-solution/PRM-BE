@@ -9,26 +9,18 @@ import { TicketActivityType } from '../enums/ticket-activity-type.enum';
 export class TicketActivity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
-    organizationId: string; // Add this line
-    userId: string; // Add this line
-    action: string; // Add this line
-    details: any;
 
     @Column('uuid')
     @Index()
     ticketId: string;
 
-    @ManyToOne(() => Ticket, ticket => ticket.activities, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'ticketId' })
-    ticket: Ticket;
+    @Column('uuid')
+    @Index()
+    organizationId: string;
 
     @Column('uuid')
     @Index()
     performedById: string;
-
-    @ManyToOne(() => User)
-    @JoinColumn({ name: 'performedById' })
-    performedBy: User;
 
     @Column({
         type: 'enum',
@@ -61,14 +53,11 @@ export class TicketActivity {
     }[];
 
     @Column('text', { array: true, nullable: true })
+    @Index()
     tags?: string[];
 
     @Column({ nullable: true })
     parentActivityId?: string;
-
-    @ManyToOne(() => TicketActivity, { nullable: true })
-    @JoinColumn({ name: 'parentActivityId' })
-    parentActivity?: TicketActivity;
 
     @Column('jsonb', { nullable: true })
     context?: {
@@ -163,4 +152,30 @@ export class TicketActivity {
         changedAt: Date;
         reason?: string;
     };
+
+    // Relations
+    @ManyToOne(() => Ticket, ticket => ticket.activities, { lazy: true })
+    @JoinColumn({ name: 'ticketId' })
+    ticket: Promise<Ticket>;
+
+    @ManyToOne(() => User, { lazy: true })
+    @JoinColumn({ name: 'performedById' })
+    performedBy: Promise<User>;
+
+    @ManyToOne(() => TicketActivity, { nullable: true, lazy: true })
+    @JoinColumn({ name: 'parentActivityId' })
+    parentActivity?: Promise<TicketActivity>;
+
+    // Alias properties for backward compatibility
+    get userId(): string {
+        return this.performedById;
+    }
+
+    get action(): string {
+        return this.type;
+    }
+
+    get details(): Record<string, any> {
+        return this.data;
+    }
 }

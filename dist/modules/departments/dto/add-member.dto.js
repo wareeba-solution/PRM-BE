@@ -10,9 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AddMemberDto = exports.DepartmentMemberRole = void 0;
-const openapi = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
-const swagger_1 = require("@nestjs/swagger");
 var DepartmentMemberRole;
 (function (DepartmentMemberRole) {
     DepartmentMemberRole["MANAGER"] = "MANAGER";
@@ -20,42 +18,33 @@ var DepartmentMemberRole;
     DepartmentMemberRole["MEMBER"] = "MEMBER";
 })(DepartmentMemberRole = exports.DepartmentMemberRole || (exports.DepartmentMemberRole = {}));
 class AddMemberDto {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { userId: { required: true, type: () => String, format: "uuid" }, role: { required: true, enum: require("./add-member.dto").DepartmentMemberRole }, title: { required: false, type: () => String }, responsibilities: { required: false, type: () => String }, startDate: { required: false, type: () => String }, metadata: { required: false, type: () => Object } };
-    }
 }
 __decorate([
-    (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsUUID)(),
     __metadata("design:type", String)
 ], AddMemberDto.prototype, "userId", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ enum: DepartmentMemberRole }),
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsEnum)(DepartmentMemberRole),
     __metadata("design:type", String)
 ], AddMemberDto.prototype, "role", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], AddMemberDto.prototype, "title", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], AddMemberDto.prototype, "responsibilities", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], AddMemberDto.prototype, "startDate", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Object)
 ], AddMemberDto.prototype, "metadata", void 0);

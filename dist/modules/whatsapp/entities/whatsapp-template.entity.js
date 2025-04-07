@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/whatsapp/entities/whatsapp-template.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WhatsappTemplate = exports.WhatsappTemplateButtonType = exports.WhatsappTemplateHeaderType = exports.WhatsappTemplateComponentType = exports.WhatsappTemplateCategory = exports.WhatsappTemplateStatus = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/whatsapp/entities/whatsapp-template.entity.ts
 const typeorm_1 = require("typeorm");
 const whatsapp_template_enums_1 = require("../enums/whatsapp-template.enums");
 // Re-export the enums so they can be imported from this file
@@ -114,9 +113,6 @@ let WhatsappTemplate = class WhatsappTemplate {
             processed = processed.replace(regex, String(value !== null && value !== void 0 ? value : ''));
         }
         return processed;
-    }
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, name: { required: true, type: () => String }, description: { required: false, type: () => String }, category: { required: true, enum: require("../enums/whatsapp-template.enums").WhatsappTemplateCategory }, status: { required: true, enum: require("../enums/whatsapp-template.enums").WhatsappTemplateStatus }, language: { required: true, type: () => String }, externalTemplateId: { required: false, type: () => String }, components: { required: true, type: () => [Object] }, isDefault: { required: true, type: () => Boolean }, submittedAt: { required: false, type: () => Date }, approvedAt: { required: false, type: () => Date }, rejectionReason: { required: false, type: () => String }, metadata: { required: false, type: () => Object }, useCount: { required: true, type: () => Number }, lastUsedAt: { required: false, type: () => Date }, createdById: { required: false, type: () => String }, updatedById: { required: false, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, deletedAt: { required: false, type: () => Date } };
     }
 };
 __decorate([

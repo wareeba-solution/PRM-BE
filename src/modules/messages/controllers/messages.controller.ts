@@ -16,7 +16,6 @@ import {
     NotFoundException,
     BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
@@ -30,17 +29,13 @@ import { CustomRequest } from '../../../interfaces/request.interface';
 import { MessageTemplateDto } from '../dto/message-template.dto';
 import { BulkMessageDto } from '../dto/bulk-message.dto';
 
-@ApiTags('Messages')
 @Controller('messages')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth()
 export class MessagesController {
     constructor(private readonly messagesService: MessagesService) {}
 
     @Post()
     @Roles(Role.ADMIN, Role.STAFF)
-    @ApiOperation({ summary: 'Create new message' })
-    @ApiResponse({ status: HttpStatus.CREATED, description: 'Message sent successfully' })
     async create(
         @Body() createMessageDto: CreateMessageDto,
         @Request() req: CustomRequest,
@@ -57,8 +52,6 @@ export class MessagesController {
     }
 
     @Get()
-    @ApiOperation({ summary: 'Get all messages' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return all messages' })
     async findAll(
         @Query() query: MessageQueryDto,
         @Request() req: CustomRequest,
@@ -72,8 +65,6 @@ export class MessagesController {
     }
 
     @Get('conversations')
-    @ApiOperation({ summary: 'Get all conversations' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return all conversations' })
     async getConversations(
         @Query() query: MessageQueryDto,
         @Request() req: CustomRequest,
@@ -87,8 +78,6 @@ export class MessagesController {
     }
 
     @Get('conversations/:contactId')
-    @ApiOperation({ summary: 'Get conversation with contact' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return conversation messages' })
     async getConversation(
         @Param('contactId', ParseUUIDPipe) contactId: string,
         @Query() query: MessageQueryDto,
@@ -103,8 +92,6 @@ export class MessagesController {
     }
 
     @Get(':id')
-    @ApiOperation({ summary: 'Get message by id' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return message details' })
     async findOne(
         @Param('id', ParseUUIDPipe) id: string,
         @Request() req: CustomRequest,
@@ -120,8 +107,6 @@ export class MessagesController {
 
     @Put(':id')
     @Roles(Role.ADMIN, Role.STAFF)
-    @ApiOperation({ summary: 'Update message' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Message updated successfully' })
     async update(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() updateMessageDto: UpdateMessageDto,
@@ -139,8 +124,6 @@ export class MessagesController {
 
     @Delete(':id')
     @Roles(Role.ADMIN)
-    @ApiOperation({ summary: 'Delete message' })
-    @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Message deleted successfully' })
     async remove(
         @Param('id', ParseUUIDPipe) id: string,
         @Request() req: CustomRequest,
@@ -152,8 +135,6 @@ export class MessagesController {
 
     @Post('templates')
     @Roles(Role.ADMIN, Role.STAFF)
-    @ApiOperation({ summary: 'Create message template' })
-    @ApiResponse({ status: HttpStatus.CREATED, description: 'Template created successfully' })
     async createTemplate(
         @Body() templateDto: MessageTemplateDto,
         @Request() req: CustomRequest,
@@ -169,8 +150,6 @@ export class MessagesController {
     }
 
     @Get('templates')
-    @ApiOperation({ summary: 'Get message templates' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return message templates' })
     async getTemplates(
         @Query() query: MessageQueryDto,
         @Request() req: CustomRequest,
@@ -185,8 +164,6 @@ export class MessagesController {
 
     @Post('bulk')
     @Roles(Role.ADMIN)
-    @ApiOperation({ summary: 'Send bulk messages' })
-    @ApiResponse({ status: HttpStatus.CREATED, description: 'Bulk messages queued successfully' })
     async sendBulk(
         @Body() bulkMessageDto: BulkMessageDto,
         @Request() req: CustomRequest,
@@ -207,8 +184,6 @@ export class MessagesController {
 
     @Get('statistics')
     @Roles(Role.ADMIN)
-    @ApiOperation({ summary: 'Get messaging statistics' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return messaging statistics' })
     async getStatistics(
         @Query() query: MessageQueryDto,
         @Request() req: CustomRequest,
@@ -223,8 +198,6 @@ export class MessagesController {
 
     @Post(':id/resend')
     @Roles(Role.ADMIN, Role.STAFF)
-    @ApiOperation({ summary: 'Resend failed message' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Message resent successfully' })
     async resend(
         @Param('id', ParseUUIDPipe) id: string,
         @Request() req: CustomRequest,
@@ -239,8 +212,6 @@ export class MessagesController {
     }
 
     @Post(':id/mark-read')
-    @ApiOperation({ summary: 'Mark message as read' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Message marked as read' })
     async markAsRead(
         @Param('id', ParseUUIDPipe) id: string,
         @Request() req: CustomRequest,

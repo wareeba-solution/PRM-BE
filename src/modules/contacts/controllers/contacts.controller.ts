@@ -16,7 +16,6 @@ import {
     NotFoundException,
     BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator'; // Ensure this path is correct or update it to the correct path
@@ -29,17 +28,13 @@ import { MergeContactsDto } from '../dto/merge-contacts.dto';
 import { Contact } from '../entities/contact.entity';
 import { CustomRequest } from '../../../interfaces/request.interface';
 
-@ApiTags('Contacts')
 @Controller('contacts')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth()
 export class ContactsController {
     constructor(private readonly contactsService: ContactsService) {}
 
     @Post()
     @Roles(Role.ADMIN, Role.STAFF)
-    @ApiOperation({ summary: 'Create new contact' })
-    @ApiResponse({ status: HttpStatus.CREATED, description: 'Contact created successfully' })
     async create(
         @Body() createContactDto: CreateContactDto,
         @Request() req: CustomRequest,
@@ -52,8 +47,6 @@ export class ContactsController {
     }
 
     @Get()
-    @ApiOperation({ summary: 'Get all contacts' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return all contacts' })
     async findAll(
         @Query() query: ContactQueryDto,
         @Request() req: CustomRequest,
@@ -65,8 +58,6 @@ export class ContactsController {
     }
 
     @Get('search')
-    @ApiOperation({ summary: 'Search contacts' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return matching contacts' })
     async search(
         @Query('q') searchTerm: string,
         @Query() query: ContactQueryDto,
@@ -83,8 +74,6 @@ export class ContactsController {
     }
 
     @Get(':id')
-    @ApiOperation({ summary: 'Get contact by id' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return contact details' })
     async findOne(
         @Param('id', ParseUUIDPipe) id: string,
         @Request() req: CustomRequest,
@@ -101,8 +90,6 @@ export class ContactsController {
 
     @Put(':id')
     @Roles(Role.ADMIN, Role.STAFF)
-    @ApiOperation({ summary: 'Update contact' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Contact updated successfully' })
     async update(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() updateContactDto: UpdateContactDto,
@@ -117,8 +104,6 @@ export class ContactsController {
 
     @Delete(':id')
     @Roles(Role.ADMIN)
-    @ApiOperation({ summary: 'Delete contact' })
-    @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Contact deleted successfully' })
     async remove(
         @Param('id', ParseUUIDPipe) id: string,
         @Request() req: CustomRequest,
@@ -131,8 +116,6 @@ export class ContactsController {
 
     @Post(':id/merge')
     @Roles(Role.ADMIN)
-    @ApiOperation({ summary: 'Merge contacts' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Contacts merged successfully' })
     async merge(
         @Param('id', ParseUUIDPipe) primaryId: string,
         @Body() mergeContactsDto: MergeContactsDto,
@@ -145,8 +128,6 @@ export class ContactsController {
     }
 
     @Get(':id/relationships')
-    @ApiOperation({ summary: 'Get contact relationships' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return contact relationships' })
     async getRelationships(
         @Param('id', ParseUUIDPipe) id: string,
         @Request() req: CustomRequest,
@@ -159,8 +140,6 @@ export class ContactsController {
 
     @Post(':id/relationships')
     @Roles(Role.ADMIN, Role.STAFF)
-    @ApiOperation({ summary: 'Add contact relationship' })
-    @ApiResponse({ status: HttpStatus.CREATED, description: 'Relationship added successfully' })
     async addRelationship(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() relationshipDto: any,
@@ -173,8 +152,6 @@ export class ContactsController {
     }
 
     @Get(':id/medical-history')
-    @ApiOperation({ summary: 'Get medical history' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return medical history' })
     async getMedicalHistory(
         @Param('id', ParseUUIDPipe) id: string,
         @Query() query: any,
@@ -189,8 +166,6 @@ export class ContactsController {
     // Comment out or implement getAppointments method in ContactsService
     /*
     @Get(':id/appointments')
-    @ApiOperation({ summary: 'Get contact appointments' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return contact appointments' })
     async getAppointments(
         @Param('id', ParseUUIDPipe) id: string,
         @Query() query: any,
@@ -204,8 +179,6 @@ export class ContactsController {
     */
 
     @Get(':id/documents')
-    @ApiOperation({ summary: 'Get contact documents' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return contact documents' })
     async getDocuments(
         @Param('id', ParseUUIDPipe) id: string,
         @Query() query: any,
@@ -219,8 +192,6 @@ export class ContactsController {
 
     @Post(':id/documents')
     @Roles(Role.ADMIN, Role.STAFF)
-    @ApiOperation({ summary: 'Add contact document' })
-    @ApiResponse({ status: HttpStatus.CREATED, description: 'Document added successfully' })
     async addDocument(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() documentDto: any,
@@ -234,8 +205,6 @@ export class ContactsController {
 
     @Get('statistics/summary')
     @Roles(Role.ADMIN)
-    @ApiOperation({ summary: 'Get contacts statistics' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return contacts statistics' })
     async getStatistics(
         @Query() query: any,
         @Request() req: CustomRequest,
@@ -248,8 +217,6 @@ export class ContactsController {
 
     @Post('import')
     @Roles(Role.ADMIN)
-    @ApiOperation({ summary: 'Import contacts' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Contacts imported successfully' })
     async importContacts(
         @Body() importDto: any,
         @Request() req: CustomRequest,
@@ -262,8 +229,6 @@ export class ContactsController {
 
     @Post('export')
     @Roles(Role.ADMIN)
-    @ApiOperation({ summary: 'Export contacts' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Contacts exported successfully' })
     async exportContacts(
         @Body() exportDto: any,
         @Request() req: CustomRequest,

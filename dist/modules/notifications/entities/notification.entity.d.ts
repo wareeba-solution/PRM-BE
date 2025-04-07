@@ -1,13 +1,18 @@
 import { NotificationPriority, NotificationChannel } from '../dto/create-notification.dto';
 import { Organization } from '../../organizations/entities/organization.entity';
-import type { User } from '../../users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 export declare class Notification {
-    [x: string]: any;
     id: string;
     userId: string;
     retryCount: number;
     type: string;
     content: string;
+    subject?: string;
+    templateId?: string;
+    message?: string;
+    error?: string;
+    channelContent?: Record<string, any>;
+    recipient?: any;
     metadata?: Record<string, any>;
     status: string;
     createdAt: Date;

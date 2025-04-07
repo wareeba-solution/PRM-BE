@@ -1,5 +1,7 @@
 import { MessageTemplateType } from '../enums/message-template-type.enum';
 import { MessageTemplateCategory } from '../enums/message-template-category.enum';
+import { Organization } from '../../organizations/entities/organization.entity';
+import { User } from '../../users/entities/user.entity';
 export declare class MessageTemplate {
     id: string;
     organizationId: string;
@@ -22,7 +24,7 @@ export declare class MessageTemplate {
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;
-    organization: any;
-    createdBy: Promise<any>;
-    updatedBy?: Promise<any>;
+    organization: Promise<Organization>;
+    createdBy: Promise<User>;
+    updatedBy?: Promise<User>;
 }

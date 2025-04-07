@@ -7,9 +7,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  ManyToOne,
   OneToMany,
+  JoinColumn,
   Index,
 } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
+import { Organization } from '../../organizations/entities/organization.entity';
 import { Appointment } from './appointment.entity';
 import { DayOfWeek } from '../enums/day-of-week.enum';
 
@@ -22,20 +26,21 @@ export class DoctorSchedule {
   @Index()
   doctorId: string;
 
+  @ManyToOne(() => User, { lazy: true })
+  @JoinColumn({ name: 'doctor_id' })
+  doctor: Promise<User>;
+
   @Column()
   @Index()
   organizationId: string;
 
+  @ManyToOne(() => Organization, { lazy: true })
+  @JoinColumn({ name: 'organization_id' })
+  organization: Promise<Organization>;
+
   @Column({ type: 'int', enum: DayOfWeek })
   dayOfWeek: DayOfWeek;
 
-  @Column({ type: 'time' })
-  startTime: string;
-
-  @Column({ type: 'time' })
-  endTime: string;
-
-  // Added to match service code
   @Column({ type: 'timestamp' })
   workStart: Date;
 
@@ -85,8 +90,16 @@ export class DoctorSchedule {
   @Column({ nullable: true })
   createdById?: string;
 
+  @ManyToOne(() => User, { lazy: true })
+  @JoinColumn({ name: 'created_by_id' })
+  createdBy?: Promise<User>;
+
   @Column({ nullable: true })
   updatedById?: string;
+
+  @ManyToOne(() => User, { lazy: true })
+  @JoinColumn({ name: 'updated_by_id' })
+  updatedBy?: Promise<User>;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -97,18 +110,15 @@ export class DoctorSchedule {
   @DeleteDateColumn()
   deletedAt?: Date;
 
-  // Virtual fields (not stored in database)
-  appointments?: Appointment[]; // Related appointments for this schedule
-  availableSlots?: {
-    startTime: Date;
-    endTime: Date;
-    available: boolean;
-    appointmentId?: string;
-  }[];
+  @OneToMany(() => Appointment, appointment => appointment.doctor)
+  appointments: Promise<Appointment[]>;
 
   // Helper methods
-  isTimeInRange(time: string): boolean {
-    return time >= this.startTime && time <= this.endTime;
+  isTimeInRange(time: Date): boolean {
+    const timeStr = time.toTimeString().slice(0, 5);
+    const startStr = this.workStart.toTimeString().slice(0, 5);
+    const endStr = this.workEnd.toTimeString().slice(0, 5);
+    return timeStr >= startStr && timeStr <= endStr;
   }
 
   isDateInValidRange(date: Date): boolean {
@@ -136,11 +146,12 @@ export class DoctorSchedule {
     return this.dayOfWeek;
   }
 
-  isBreakTime(time: string): boolean {
+  isBreakTime(time: Date): boolean {
     if (!this.breakTimes || !this.breakTimes.length) return false;
     
+    const timeStr = time.toTimeString().slice(0, 5);
     return this.breakTimes.some(
-      breakTime => time >= breakTime.startTime && time < breakTime.endTime
+      breakTime => timeStr >= breakTime.startTime && timeStr < breakTime.endTime
     );
   }
 }

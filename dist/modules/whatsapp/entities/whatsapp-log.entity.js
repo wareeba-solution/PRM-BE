@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/whatsapp/entities/whatsapp-log.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WhatsappLog = exports.WhatsappMediaType = exports.WhatsappMessageType = exports.WhatsappMessageStatus = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/whatsapp/entities/whatsapp-log.entity.ts
 const typeorm_1 = require("typeorm");
 const whatsapp_template_entity_1 = require("./whatsapp-template.entity");
 /**
@@ -153,9 +152,6 @@ let WhatsappLog = class WhatsappLog {
             };
         }
         return null;
-    }
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, messageType: { required: true, enum: require("./whatsapp-log.entity").WhatsappMessageType }, templateId: { required: false, type: () => String }, template: { required: false, type: () => require("./whatsapp-template.entity").WhatsappTemplate }, to: { required: true, type: () => String }, toName: { required: false, type: () => String }, from: { required: true, type: () => String }, content: { required: false, type: () => String }, status: { required: true, enum: require("./whatsapp-log.entity").WhatsappMessageStatus }, messageId: { required: false, type: () => String }, conversationId: { required: false, type: () => String }, metadata: { required: false, type: () => Object }, variables: { required: false, type: () => Object }, components: { required: false }, mediaData: { required: false, type: () => ({ type: { required: true, enum: require("./whatsapp-log.entity").WhatsappMediaType }, id: { required: false, type: () => String }, url: { required: false, type: () => String }, caption: { required: false, type: () => String }, filename: { required: false, type: () => String }, mimeType: { required: false, type: () => String }, size: { required: false, type: () => Number } }) }, deliveryDetails: { required: false, type: () => ({ provider: { required: false, type: () => String }, attemptCount: { required: false, type: () => Number }, lastAttemptAt: { required: false, type: () => Date }, deliveredAt: { required: false, type: () => Date }, readAt: { required: false, type: () => Date }, error: { required: false, type: () => String }, errorCode: { required: false, type: () => String }, errorDetails: { required: false, type: () => Object }, receivedAt: { required: false, type: () => Date }, cost: { required: false, type: () => Number }, currency: { required: false, type: () => String }, wamid: { required: false, type: () => String }, phoneType: { required: false, type: () => String }, phoneModel: { required: false, type: () => String }, pricing: { required: false, type: () => ({ pricing_model: { required: true, type: () => String }, category: { required: true, type: () => String }, cost: { required: true, type: () => Number }, currency: { required: true, type: () => String } }) } }) }, recipientId: { required: false, type: () => String }, senderId: { required: false, type: () => String }, referenceId: { required: false, type: () => String }, referenceType: { required: false, type: () => String }, scheduledFor: { required: false, type: () => Date }, createdById: { required: false, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, isAutomated: { required: true, type: () => Boolean }, buttons: { required: false }, contextInfo: { required: false, type: () => ({ messageId: { required: false, type: () => String }, forwarded: { required: false, type: () => Boolean }, frequentlyForwarded: { required: false, type: () => Boolean }, fromGroup: { required: false, type: () => Boolean }, groupId: { required: false, type: () => String }, groupName: { required: false, type: () => String }, quotedMessageId: { required: false, type: () => String }, quotedMessageText: { required: false, type: () => String }, quotedMessageSender: { required: false, type: () => String }, mentionedContacts: { required: false, type: () => [String] } }) }, externalBusinessId: { required: false, type: () => String } };
     }
 };
 __decorate([

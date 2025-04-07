@@ -22,11 +22,18 @@ import { Document } from '../modules/documents/entities/document.entity';
 import { MedicalHistory } from '../modules/medical-history/medical-history.entity';
 import { ContactRelationship } from '../modules/contacts/entities/contact-relationship.entity';
 import { UserSettings } from '../modules/users/entities/user-settings.entity';
+import { EmailContent } from '../modules/notifications/entities/email-content.entity';
+import { EmailLog } from '../modules/notifications/entities/email-log.entity';
+import { EmailQueue } from '../modules/notifications/entities/email-queue.entity';
+import { MergedRecord } from '../modules/merged-records/entities/merged-record.entity';
+import { EmailTemplate } from '../modules/email/entities/email-template.entity';
 import { CleanupUsersTable1710000000001 } from '../migrations/1710000000001-CleanupUsersTable';
 import { UserSettingsMigration1710000000005 } from "../migrations/1710000000005-UserSettingsMigration";
 import { CheckUsersTableColumns1710000000006 } from "../migrations/1710000000006-CheckUsersTableColumns";
 import { FixUsersTableColumns1710000000007 } from "../migrations/1710000000007-FixUsersTableColumns";
 import { FixUsersTablePermissions1710000000008 } from "../migrations/1710000000008-FixUsersTablePermissions";
+import { CreateEmailContentsTable1710000000009 } from "../migrations/1710000000009-CreateEmailContentsTable";
+import { AddEmailQueueCcBcc1710000000010 } from "../migrations/1710000000010-AddEmailQueueCcBcc";
 
 dotenv.config();
 
@@ -64,14 +71,21 @@ export const dataSourceOptions: DataSourceOptions = {
         Document,
         MedicalHistory,
         ContactRelationship,
-        UserSettings
+        UserSettings,
+        EmailContent,
+        EmailLog,
+        EmailQueue,
+        MergedRecord,
+        EmailTemplate
     ],
     migrations: [
         CleanupUsersTable1710000000001,
         UserSettingsMigration1710000000005,
         CheckUsersTableColumns1710000000006,
         FixUsersTableColumns1710000000007,
-        FixUsersTablePermissions1710000000008
+        FixUsersTablePermissions1710000000008,
+        CreateEmailContentsTable1710000000009,
+        AddEmailQueueCcBcc1710000000010
     ],
     migrationsRun: true,
 };

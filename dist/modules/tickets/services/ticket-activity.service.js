@@ -21,10 +21,8 @@ const event_emitter_1 = require("@nestjs/event-emitter");
 const ticket_activity_entity_1 = require("../entities/ticket-activity.entity");
 const ticket_entity_1 = require("../entities/ticket.entity");
 const user_entity_1 = require("../../users/entities/user.entity");
+const ticket_activity_type_enum_1 = require("../enums/ticket-activity-type.enum");
 let TicketActivityService = TicketActivityService_1 = class TicketActivityService {
-    recordActivity(arg0) {
-        throw new Error('Method not implemented.');
-    }
     constructor(activityRepository, ticketRepository, userRepository, eventEmitter) {
         this.activityRepository = activityRepository;
         this.ticketRepository = ticketRepository;
@@ -232,6 +230,16 @@ let TicketActivityService = TicketActivityService_1 = class TicketActivityServic
             acc[userId] = (acc[userId] || 0) + 1;
             return acc;
         }, {});
+    }
+    async recordActivity(data) {
+        const activity = this.activityRepository.create({
+            ticketId: data.ticketId,
+            organizationId: data.organizationId,
+            performedById: data.userId,
+            type: ticket_activity_type_enum_1.TicketActivityType.STATUS_CHANGED,
+            data: data.details
+        });
+        return this.activityRepository.save(activity);
     }
 };
 TicketActivityService = TicketActivityService_1 = __decorate([

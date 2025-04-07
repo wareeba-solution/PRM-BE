@@ -12,12 +12,13 @@ import {
     JoinColumn,
     Index,
 } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
 import { AppointmentStatus } from '../enums/appointment-status.enum';
 import { AppointmentType } from '../enums/appointment-type.enum';
 import { AppointmentPriority } from '../enums/appointment-priority.enum';
 import { User } from '../../users/entities/user.entity';
 import { Department } from '../../departments/entities/department.entity';
+import { Organization } from '../../organizations/entities/organization.entity';
+import { Contact } from '../../contacts/entities/contact.entity';
 
 @Entity('appointments')
 @Index(['organizationId', 'status'])
@@ -26,43 +27,33 @@ import { Department } from '../../departments/entities/department.entity';
 @Index(['organizationId', 'departmentId'])
 @Index(['organizationId', 'startTime'])
 export class Appointment {
-    @ApiProperty()
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ApiProperty()
     @Column()
     organizationId: string;
 
-    @ApiProperty()
     @Column()
     doctorId: string;
 
-    @ApiProperty()
     @Column()
     patientId: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     departmentId?: string;
 
-    @ApiProperty()
     @Column()
     title: string;
 
-    @ApiProperty()
     @Column({ type: 'text', nullable: true })
     description?: string;
 
-    @ApiProperty()
     @Column()
     startTime: Date;
 
-    @ApiProperty()
     @Column()
     endTime: Date;
 
-    @ApiProperty()
     @Column({
         type: 'enum',
         enum: AppointmentStatus,
@@ -70,7 +61,6 @@ export class Appointment {
     })
     status: AppointmentStatus;
 
-    @ApiProperty()
     @Column({
         type: 'enum',
         enum: AppointmentType,
@@ -78,7 +68,6 @@ export class Appointment {
     })
     type: AppointmentType;
 
-    @ApiProperty()
     @Column({
         type: 'enum',
         enum: AppointmentPriority,
@@ -86,15 +75,12 @@ export class Appointment {
     })
     priority: AppointmentPriority;
 
-    @ApiProperty()
     @Column({ nullable: true })
     location?: string;
 
-    @ApiProperty()
     @Column({ type: 'text', nullable: true })
     notes?: string;
 
-    @ApiProperty()
     @Column({ type: 'jsonb', nullable: true })
     metadata?: {
         reason?: string;
@@ -105,11 +91,9 @@ export class Appointment {
         [key: string]: any;
     };
 
-    @ApiProperty()
     @Column({ default: false })
     isRecurring: boolean;
 
-    @ApiProperty()
     @Column({ type: 'jsonb', nullable: true })
     recurrenceRule?: {
         frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
@@ -120,75 +104,57 @@ export class Appointment {
         daysOfMonth?: number[];
     };
 
-    @ApiProperty()
     @Column({ nullable: true })
     parentAppointmentId?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     cancelledAt?: Date;
 
-    @ApiProperty()
     @Column({ nullable: true })
     cancelledById?: string;
 
-    @ApiProperty()
     @Column({ type: 'text', nullable: true })
     cancellationReason?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     rescheduledAt?: Date;
 
-    @ApiProperty()
     @Column({ nullable: true })
     rescheduledById?: string;
 
-    @ApiProperty()
     @Column({ type: 'text', nullable: true })
     rescheduleReason?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     completedAt?: Date;
 
-    @ApiProperty()
     @Column({ nullable: true })
     completedById?: string;
 
-    @ApiProperty()
     @Column({ type: 'text', nullable: true })
     completionNotes?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     noShowAt?: Date;
 
-    @ApiProperty()
     @Column({ nullable: true })
     noShowById?: string;
 
-    @ApiProperty()
     @Column({ type: 'text', nullable: true })
     noShowReason?: string;
 
-    @ApiProperty()
     @Column()
     createdById: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     updatedById?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     confirmedAt?: Date;
 
-    @ApiProperty()
     @Column({ default: false })
     reminderSent: boolean;
 
-    @ApiProperty()
     @Column({ nullable: true })
     reminderSentAt?: Date;
 
@@ -202,83 +168,54 @@ export class Appointment {
     deletedAt?: Date;
 
     // Relations - all using string references to avoid circular dependencies
-    @ApiProperty({
-        type: 'object',
-        properties: {
-            id: { type: 'string' },
-            name: { type: 'string' }
-        }
-    })
-    @ManyToOne('Organization')
+    @ManyToOne(() => Organization, { lazy: true })
     @JoinColumn({ name: 'organizationId' })
-    organization: any;
+    organization: Promise<Organization>;
 
-    @ApiProperty({ type: () => User })
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'doctorId' })
-    doctor: Promise<any>;
+    doctor: Promise<User>;
 
-    @ApiProperty({ type: () => User })
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => Contact, { lazy: true })
     @JoinColumn({ name: 'patientId' })
-    patient: Promise<any>;
+    patient: Promise<Contact>;
 
-    @ApiProperty({
-        type: 'object',
-        properties: {
-            id: { type: 'string' },
-            name: { type: 'string' }
-        },
-        nullable: true
-    })
+
     @ManyToOne(() => Department, { lazy: true })
     @JoinColumn({ name: 'departmentId' })
     department?: Promise<Department>;
 
-    @ApiProperty({
-        type: 'object',
-        properties: {
-            id: { type: 'string' },
-            title: { type: 'string' }
-        },
-        nullable: true
-    })
-    @ManyToOne('Appointment')
+
+    @ManyToOne(() => Appointment, { lazy: true })
     @JoinColumn({ name: 'parentAppointmentId' })
-    parentAppointment?: any;
+    parentAppointment?: Promise<Appointment>;
 
-    @ApiProperty({ type: () => User, nullable: true })
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'cancelledById' })
-    cancelledBy?: Promise<any>;
+    cancelledBy?: Promise<User>;
 
-    @ApiProperty({ type: () => User, nullable: true })
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'rescheduledById' })
-    rescheduledBy?: Promise<any>;
+    rescheduledBy?: Promise<User>;
 
-    @ApiProperty({ type: () => User, nullable: true })
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'completedById' })
-    completedBy?: Promise<any>;
+    completedBy?: Promise<User>;
 
-    @ApiProperty({ type: () => User, nullable: true })
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'noShowById' })
-    noShowBy?: Promise<any>;
+    noShowBy?: Promise<User>;
 
-    @ApiProperty({ type: () => User })
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'createdById' })
-    createdBy: Promise<any>;
+    createdBy: Promise<User>;
 
-    @ApiProperty({ type: () => User, nullable: true })
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'updatedById' })
-    updatedBy?: Promise<any>;
+    updatedBy?: Promise<User>;
 
-    @OneToMany('Appointment', 'parentAppointment')
-    childAppointments: any[];
+    @OneToMany(() => Appointment, appointment => appointment.parentAppointment, { lazy: true })
+    childAppointments: Promise<Appointment[]>;
 
     get isCancelled(): boolean {
         return !!this.cancelledAt;

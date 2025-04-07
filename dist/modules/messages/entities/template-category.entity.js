@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/messages/entities/template-category.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,14 +11,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TemplateCategory = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/messages/entities/template-category.entity.ts
 const typeorm_1 = require("typeorm");
 const message_template_entity_1 = require("./message-template.entity");
 let TemplateCategory = class TemplateCategory {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, name: { required: true, type: () => String }, description: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, templates: { required: true, type: () => [require("./message-template.entity").MessageTemplate] }, createdById: { required: true, type: () => String }, updatedById: { required: true, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, deletedAt: { required: true, type: () => Date } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),

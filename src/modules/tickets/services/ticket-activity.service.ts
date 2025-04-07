@@ -6,6 +6,7 @@ import { TicketActivity } from '../entities/ticket-activity.entity';
 import { Ticket } from '../entities/ticket.entity';
 import { User } from '../../users/entities/user.entity';
 import { TicketActivityType } from '../enums/ticket-activity-type.enum';
+import { TicketStatus } from '../enums/ticket-status.enum';
 
 interface ActivityOptions {
     ticketId: string;
@@ -19,9 +20,6 @@ interface ActivityOptions {
 
 @Injectable()
 export class TicketActivityService {
-    recordActivity(arg0: { ticketId: string; organizationId: string; userId: string; action: string; details: { status: import("../dto/create-ticket.dto").TicketStatus; }; }) {
-        throw new Error('Method not implemented.');
-    }
     private readonly logger = new Logger(TicketActivityService.name);
 
     constructor(
@@ -293,6 +291,24 @@ export class TicketActivityService {
             acc[userId] = (acc[userId] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
+    }
+
+    async recordActivity(data: {
+        ticketId: string;
+        organizationId: string;
+        userId: string;
+        action: string;
+        details: { status: TicketStatus };
+    }): Promise<TicketActivity> {
+        const activity = this.activityRepository.create({
+            ticketId: data.ticketId,
+            organizationId: data.organizationId,
+            performedById: data.userId,
+            type: TicketActivityType.STATUS_CHANGED,
+            data: data.details
+        });
+
+        return this.activityRepository.save(activity);
     }
 }
 

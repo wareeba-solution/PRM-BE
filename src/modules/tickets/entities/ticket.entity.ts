@@ -12,22 +12,22 @@ import {
     JoinColumn,
     Index,
 } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
-import { 
-    TicketType, 
-    TicketPriority, 
-    TicketStatus,
-    TicketSource,
-} from '../dto/create-ticket.dto';
+import { User } from '../../users/entities/user.entity';
+import { Organization } from '../../organizations/entities/organization.entity';
+import { TicketActivity } from './ticket-activity.entity';
+import { TicketAttachment } from './ticket-attachment.entity';
+import { TicketType } from '../enums/ticket-type.enum';
+import { TicketPriority } from '../enums/ticket-priority.enum';
+import { TicketStatus } from '../enums/ticket-status.enum';
+import { TicketSource } from '../enums/ticket-source.enum';
+import { TicketCategory } from '../enums/ticket-category.enum';
 // Remove direct entity imports that cause circular dependencies
 // import { Organization } from '../../organizations/entities/organization.entity';
 // import { User } from '../../users/entities/user.entity';
 // import { Contact } from '../../contacts/entities/contact.entity';
 import { Department } from '../../departments/entities/department.entity';
 import { TicketComment } from './ticket-comment.entity';
-import { TicketAttachment } from './ticket-attachment.entity';
-import { TicketActivity } from './ticket-activity.entity';
-import { User } from '../../users/entities/user.entity';
+import { Contact } from '../../contacts/entities/contact.entity';
 
 @Entity('tickets')
 @Index(['organizationId', 'status'])
@@ -36,168 +36,105 @@ import { User } from '../../users/entities/user.entity';
 @Index(['organizationId', 'departmentId'])
 @Index(['organizationId', 'createdAt'])
 export class Ticket {
-    @ApiProperty()
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ApiProperty()
     @Column()
     organizationId: string;
 
-    @ApiProperty()
     @Column()
     title: string;
 
-    @ApiProperty()
-    @Column({ type: 'text' })
+    @Column('text')
     description: string;
 
-    @ApiProperty()
-    @Column({
-        type: 'enum',
-        enum: TicketType,
-    })
+    @Column({ type: 'enum', enum: TicketType })
     type: TicketType;
 
-    @ApiProperty()
-    @Column({
-        type: 'enum',
-        enum: TicketPriority,
-        default: TicketPriority.NORMAL,
-    })
+    @Column({ type: 'enum', enum: TicketPriority, default: TicketPriority.NORMAL })
     priority: TicketPriority;
 
-    @ApiProperty()
-    @Column({
-        type: 'enum',
-        enum: TicketStatus,
-        default: TicketStatus.OPEN,
-    })
+    @Column({ type: 'enum', enum: TicketStatus })
     status: TicketStatus;
 
-    @ApiProperty()
-    @Column({
-        type: 'enum',
-        enum: TicketSource,
-        default: TicketSource.WEB,
-    })
+    @Column({ type: 'enum', enum: TicketSource, default: TicketSource.WEB })
     source: TicketSource;
 
-    @ApiProperty()
     @Column({ nullable: true })
     contactId?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     departmentId?: string;
 
-    @ApiProperty()
-    @Column({ nullable: true })
+    @Column('uuid')
+    createdById: string;
+
+    @Column('uuid', { nullable: true })
     assigneeId?: string;
 
-    @ApiProperty()
-    @Column({ nullable: true })
-    category?: string;
+    @Column({ type: 'enum', enum: TicketCategory, nullable: true })
+    category?: TicketCategory;
 
-    @ApiProperty()
     @Column({ nullable: true })
     subCategory?: string;
 
-    @ApiProperty()
-    @Column('simple-array', { nullable: true })
-    tags?: string[];
+    @Column('text', { array: true, default: '{}' })
+    tags: string[];
 
-    @ApiProperty()
     @Column({ nullable: true })
     referenceNumber?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     relatedTicketId?: string;
 
-    @ApiProperty()
-    @Column({ type: 'jsonb', nullable: true })
-    customFields?: {
-        patientId?: string;
-        appointmentId?: string;
-        medicalRecordId?: string;
-        insuranceInfo?: {
-            provider?: string;
-            policyNumber?: string;
-        };
-        deviceInfo?: {
-            type?: string;
-            model?: string;
-            serialNumber?: string;
-        };
-        [key: string]: any;
-    };
+    @Column('jsonb', { nullable: true })
+    metadata?: Record<string, any>;
 
-    @ApiProperty()
     @Column({ default: false })
     isPrivate: boolean;
 
-    @ApiProperty()
     @Column({ type: 'text', nullable: true })
     internalNotes?: string;
 
-    @ApiProperty()
     @Column({ type: 'text', nullable: true })
     resolution?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     resolvedAt?: Date;
 
-    @ApiProperty()
     @Column({ nullable: true })
     resolvedById?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     closedAt?: Date;
 
-    @ApiProperty()
     @Column({ nullable: true })
     closedById?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     escalatedAt?: Date;
 
-    @ApiProperty()
     @Column({ nullable: true })
     escalatedById?: string;
 
-    @ApiProperty()
     @Column({ type: 'text', nullable: true })
     escalationReason?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     reopenedAt?: Date;
 
-    @ApiProperty()
     @Column({ nullable: true })
     reopenedById?: string;
 
-    @ApiProperty()
     @Column({ type: 'text', nullable: true })
     reopenReason?: string;
 
-    @ApiProperty()
     @Column({ nullable: true })
     firstResponseAt?: Date;
 
-    @ApiProperty()
     @Column({ nullable: true })
     lastActivityAt?: Date;
 
-    @ApiProperty()
-    @Column()
-    createdById: string;
-
-    @ApiProperty()
     @Column({ nullable: true })
     updatedById?: string;
 
@@ -210,126 +147,86 @@ export class Ticket {
     @DeleteDateColumn()
     deletedAt?: Date;
 
+    @Column({ default: 0 })
+    escalationLevel: number;
+
     // Relations - all using string references to avoid circular dependencies
-    @ApiProperty({
-        type: 'object',
-        properties: {
-            id: { type: 'string' },
-            name: { type: 'string' }
-        }
-    })
-    @ManyToOne('Organization')
+    @ManyToOne(() => Organization, { lazy: true })
     @JoinColumn({ name: 'organizationId' })
-    organization: any;
+    organization: Promise<Organization>;
 
-    @ApiProperty({
-        type: 'object',
-        properties: {
-            id: { type: 'string' },
-            firstName: { type: 'string' },
-            lastName: { type: 'string' }
-        },
-        nullable: true
-    })
-    @ManyToOne('Contact')
+
+    @ManyToOne(() => Contact, { lazy: true })
     @JoinColumn({ name: 'contactId' })
-    contact?: any;
+    contact?: Promise<Contact>;
 
-    @ApiProperty({
-        type: 'object',
-        properties: {
-            id: { type: 'string' },
-            name: { type: 'string' }
-        },
-        nullable: true
-    })
     @ManyToOne(() => Department, { lazy: true })
     @JoinColumn({ name: 'departmentId' })
     department?: Promise<Department>;
 
-    @ApiProperty({ type: () => User, nullable: true })
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, user => user.assignedTickets, { lazy: true })
     @JoinColumn({ name: 'assigneeId' })
-    assignee?: Promise<any>;
+    assignee?: Promise<User>;
 
-    @ApiProperty({ type: () => User })
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, user => user.createdTickets, { lazy: true })
     @JoinColumn({ name: 'createdById' })
-    createdBy: Promise<any>;
+    createdBy: Promise<User>;
 
-    @ApiProperty({ type: () => User, nullable: true })
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'updatedById' })
-    updatedBy?: Promise<any>;
+    updatedBy?: Promise<User>;
 
-    @ApiProperty({ type: () => User, nullable: true })
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'resolvedById' })
-    resolvedBy?: Promise<any>;
+    resolvedBy?: Promise<User>;
 
-    @ApiProperty({ type: () => User, nullable: true })
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'closedById' })
-    closedBy?: Promise<any>;
+    closedBy?: Promise<User>;
 
-    @ApiProperty({ type: () => User, nullable: true })
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'escalatedById' })
-    escalatedBy?: Promise<any>;
+    escalatedBy?: Promise<User>;
 
-    @ApiProperty({ type: () => User, nullable: true })
-    @ManyToOne('User', { lazy: true })
+    @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'reopenedById' })
-    reopenedBy?: Promise<any>;
+    reopenedBy?: Promise<User>;
 
-    @ApiProperty({
-        type: 'object',
-        properties: {
-            id: { type: 'string' },
-            title: { type: 'string' }
-        },
-        nullable: true
-    })
-    @ManyToOne('Ticket')
+
+    @ManyToOne(() => Ticket, { lazy: true })
     @JoinColumn({ name: 'relatedTicketId' })
-    relatedTicket?: any;
+    relatedTicket?: Promise<Ticket>;
 
-    @OneToMany('TicketComment', 'ticket')
-    comments: any[];
+    @OneToMany(() => TicketComment, comment => comment.ticket, { lazy: true })
+    comments: Promise<TicketComment[]>;
 
-    @OneToMany('TicketAttachment', 'ticket')
-    attachments: any[];
+    @OneToMany(() => TicketAttachment, attachment => attachment.ticket, { lazy: true })
+    attachments: Promise<TicketAttachment[]>;
 
-    @OneToMany('TicketActivity', 'ticket')
-    activities: any[];
+    @OneToMany(() => TicketActivity, activity => activity.ticket, { lazy: true })
+    activities: Promise<TicketActivity[]>;
 
     // Virtual properties
-    @ApiProperty()
     get isEscalated(): boolean {
         return !!this.escalatedAt;
     }
 
-    @ApiProperty()
     get isResolved(): boolean {
         return !!this.resolvedAt;
     }
 
-    @ApiProperty()
     get isClosed(): boolean {
         return !!this.closedAt;
     }
 
-    @ApiProperty()
     get isReopened(): boolean {
         return !!this.reopenedAt;
     }
 
-    @ApiProperty()
     get hasFirstResponse(): boolean {
         return !!this.firstResponseAt;
     }
 
-    @ApiProperty()
     get responseTime(): number | null {
         if (!this.firstResponseAt || !this.createdAt) {
             return null;
@@ -337,7 +234,6 @@ export class Ticket {
         return this.firstResponseAt.getTime() - this.createdAt.getTime();
     }
 
-    @ApiProperty()
     get resolutionTime(): number | null {
         if (!this.resolvedAt || !this.createdAt) {
             return null;

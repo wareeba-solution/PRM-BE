@@ -10,53 +10,42 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DepartmentQueryDto = void 0;
-const openapi = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
-const swagger_1 = require("@nestjs/swagger");
 class DepartmentQueryDto {
     constructor() {
         this.skip = 0;
         this.take = 10;
     }
-    static _OPENAPI_METADATA_FACTORY() {
-        return { search: { required: false, type: () => String }, parentDepartmentId: { required: false, type: () => String, format: "uuid" }, managerId: { required: false, type: () => String, format: "uuid" }, isActive: { required: false, type: () => Boolean }, relations: { required: false, type: () => [String] }, skip: { required: false, type: () => Number, default: 0, minimum: 0 }, take: { required: false, type: () => Number, default: 10, minimum: 1, maximum: 100 } };
-    }
 }
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], DepartmentQueryDto.prototype, "search", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)(),
     __metadata("design:type", String)
 ], DepartmentQueryDto.prototype, "parentDepartmentId", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)(),
     __metadata("design:type", String)
 ], DepartmentQueryDto.prototype, "managerId", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),
     (0, class_transformer_1.Type)(() => Boolean),
     __metadata("design:type", Boolean)
 ], DepartmentQueryDto.prototype, "isActive", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.IsString)({ each: true }),
     __metadata("design:type", Array)
 ], DepartmentQueryDto.prototype, "relations", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ default: 0 }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_transformer_1.Type)(() => Number),
@@ -64,7 +53,6 @@ __decorate([
     __metadata("design:type", Number)
 ], DepartmentQueryDto.prototype, "skip", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ default: 10 }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_transformer_1.Type)(() => Number),

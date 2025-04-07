@@ -35,7 +35,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const dotenv = __importStar(require("dotenv"));
-dotenv.config();
+const path = __importStar(require("path"));
+// Load environment variables based on NODE_ENV
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
@@ -43,6 +46,9 @@ const throttler_1 = require("@nestjs/throttler");
 const event_emitter_1 = require("@nestjs/event-emitter");
 const schedule_1 = require("@nestjs/schedule");
 const core_1 = require("@nestjs/core");
+const mailer_1 = require("@nestjs-modules/mailer");
+const handlebars_adapter_1 = require("@nestjs-modules/mailer/dist/adapters/handlebars.adapter");
+const path_1 = require("path");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 // Feature Modules
@@ -55,6 +61,7 @@ const tickets_module_1 = require("./modules/tickets/tickets.module");
 const messages_module_1 = require("./modules/messages/messages.module");
 const notifications_module_1 = require("./modules/notifications/notifications.module");
 const domain_module_1 = require("./modules/domain/domain.module");
+const shared_module_1 = require("./shared/shared.module");
 // Configuration
 const app_config_1 = __importDefault(require("./config/app.config"));
 const database_config_1 = __importDefault(require("./config/database.config"));
@@ -73,21 +80,52 @@ AppModule = __decorate([
             // Configuration Modules
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
+                envFilePath: envFile,
                 load: [app_config_1.default, database_config_1.default, mail_config_1.default, jwt_config_1.default],
+            }),
+            // Mailer Module
+            mailer_1.MailerModule.forRootAsync({
+                imports: [config_1.ConfigModule],
+                useFactory: async (config) => ({
+                    transport: {
+                        host: config.get('mail.host'),
+                        port: config.get('mail.port'),
+                        secure: config.get('mail.secure'),
+                        auth: {
+                            user: config.get('mail.auth.user'),
+                            pass: config.get('mail.auth.pass'),
+                        },
+                    },
+                    defaults: {
+                        from: config.get('mail.defaults.from'),
+                    },
+                    template: {
+                        dir: (0, path_1.join)(__dirname, '..', 'templates', 'email'),
+                        adapter: new handlebars_adapter_1.HandlebarsAdapter(),
+                        options: {
+                            strict: true,
+                        },
+                    },
+                }),
+                inject: [config_1.ConfigService],
             }),
             // Database Module
             typeorm_1.TypeOrmModule.forRoot({
                 type: 'postgres',
-                host: process.env.DB_HOST || 'localhost',
+                url: process.env.DATABASE_URL,
+                host: process.env.DB_HOST,
                 port: parseInt(process.env.DB_PORT || '5432', 10),
-                username: process.env.DB_USERNAME || 'postgres',
-                password: process.env.DB_PASSWORD || 'admin@123',
-                database: process.env.DB_NAME || 'prm_db',
+                username: process.env.DB_USERNAME,
+                password: process.env.DB_PASSWORD,
+                database: process.env.DB_NAME,
                 schema: process.env.DB_SCHEMA || 'public',
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
-                synchronize: process.env.DB_SYNC === 'true',
-                logging: false,
-                ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+                // synchronize: process.env.NODE_ENV !== 'production',
+                synchronize: false,
+                logging: ['error'],
+                ssl: process.env.DB_SSL === 'true' ? {
+                    rejectUnauthorized: false
+                } : false
             }),
             // Rate Limiting
             throttler_1.ThrottlerModule.forRoot({
@@ -108,6 +146,9 @@ AppModule = __decorate([
             // Task Scheduling
             schedule_1.ScheduleModule.forRoot(),
             // Feature Modules
+            shared_module_1.SharedModule,
+            (0, common_1.forwardRef)(() => domain_module_1.DomainModule),
+            (0, common_1.forwardRef)(() => notifications_module_1.NotificationsModule),
             users_module_1.UsersModule,
             auth_module_1.AuthModule,
             organizations_module_1.OrganizationsModule,
@@ -115,8 +156,6 @@ AppModule = __decorate([
             appointments_module_1.AppointmentsModule,
             tickets_module_1.TicketsModule,
             messages_module_1.MessagesModule,
-            notifications_module_1.NotificationsModule,
-            domain_module_1.DomainModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

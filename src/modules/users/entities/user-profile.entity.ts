@@ -17,9 +17,9 @@ export class UserProfile {
     @Column()
     userId: string;
 
-    @OneToOne(() => User)
+    @OneToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'userId' })
-    user: User;
+    user: Promise<User>;
 
     @Column({ nullable: true })
     title?: string;

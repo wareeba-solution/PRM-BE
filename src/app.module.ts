@@ -1,15 +1,22 @@
 // src/app.module.ts
 
 import * as dotenv from 'dotenv';
-dotenv.config();
+import * as path from 'path';
 
-import { Module } from '@nestjs/common';
+// Load environment variables based on NODE_ENV
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleAsyncOptions, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { join } from 'path';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -24,6 +31,7 @@ import { TicketsModule } from './modules/tickets/tickets.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { DomainModule } from './modules/domain/domain.module';
+import { SharedModule } from './shared/shared.module';
 
 // Configuration
 import appConfig from './config/app.config';
@@ -42,17 +50,54 @@ import { ThrottlerConfigService } from './config/throttler.config';
     // Configuration Modules
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: envFile,
       load: [appConfig, databaseConfig, mailConfig, jwtConfig],
+    }),
+
+    // Mailer Module
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (config: ConfigService) => ({
+        transport: {
+          host: config.get('mail.host'),
+          port: config.get('mail.port'),
+          secure: config.get('mail.secure'),
+          auth: {
+            user: config.get('mail.auth.user'),
+            pass: config.get('mail.auth.pass'),
+          },
+        },
+        defaults: {
+          from: config.get('mail.defaults.from'),
+        },
+        template: {
+          dir: join(__dirname, '..', 'templates', 'email'),
+          adapter: new HandlebarsAdapter(),
+          options: {
+            strict: true,
+          },
+        },
+      }),
+      inject: [ConfigService],
     }),
 
     // Database Module
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT || '5432', 10),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      schema: process.env.DB_SCHEMA || 'public',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: process.env.DB_SYNC === 'true',
-      logging: process.env.DB_LOGGING === 'true',
+      // synchronize: process.env.NODE_ENV !== 'production',
+      synchronize: false,
+      logging: ['error'],
+      ssl: process.env.DB_SSL === 'true' ? {
+        rejectUnauthorized: false
+      } : false
     }),
 
     // Rate Limiting
@@ -77,6 +122,9 @@ import { ThrottlerConfigService } from './config/throttler.config';
     ScheduleModule.forRoot(),
 
     // Feature Modules
+    SharedModule,
+    forwardRef(() => DomainModule),
+    forwardRef(() => NotificationsModule),
     UsersModule,
     AuthModule,
     OrganizationsModule,
@@ -84,8 +132,6 @@ import { ThrottlerConfigService } from './config/throttler.config';
     AppointmentsModule,
     TicketsModule,
     MessagesModule,
-    NotificationsModule,
-    DomainModule,
   ],
   controllers: [AppController],
   providers: [

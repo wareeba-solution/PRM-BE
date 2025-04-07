@@ -9,6 +9,7 @@ import { ContactRelationship } from './entities/contact-relationship.entity';
 import { MedicalHistory } from '../medical-history/medical-history.entity';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { Document } from '../documents/entities/document.entity';
+import { MergedRecord } from '../merged-records/entities/merged-record.entity';
 import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
@@ -20,7 +21,8 @@ import { OrganizationsModule } from '../organizations/organizations.module';
             ContactRelationship,
             MedicalHistory,
             Appointment,
-            Document
+            Document,
+            MergedRecord
         ]),
         AuthModule,
         UsersModule,

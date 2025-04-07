@@ -1,6 +1,6 @@
 import { Ticket } from './ticket.entity';
 import { User } from '../../users/entities/user.entity';
-type TicketCommentType = any;
+import { TicketComment } from './ticket-comment.entity';
 export declare class TicketAttachment {
     id: string;
     organizationId: string;
@@ -12,7 +12,7 @@ export declare class TicketAttachment {
     ticketId: string;
     ticket: Ticket;
     commentId: string;
-    comment: TicketCommentType;
+    comment: TicketComment;
     uploadedById: string;
     uploadedBy: User;
     metadata: Record<string, any>;
@@ -20,4 +20,3 @@ export declare class TicketAttachment {
     isPrivate: boolean;
     isActive: boolean;
 }
-export {};

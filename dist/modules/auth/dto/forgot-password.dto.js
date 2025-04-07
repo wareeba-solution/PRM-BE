@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/auth/dto/forgot-password.dto.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,20 +11,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ForgotPasswordDto = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/auth/dto/forgot-password.dto.ts
-const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 class ForgotPasswordDto {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { email: { required: true, type: () => String, format: "email" } };
-    }
 }
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        description: 'Email address associated with the account',
-        example: 'user@example.com'
-    }),
     (0, class_validator_1.IsEmail)({}, { message: 'Please provide a valid email address' }),
     (0, class_validator_1.IsNotEmpty)({ message: 'Email is required' }),
     __metadata("design:type", String)

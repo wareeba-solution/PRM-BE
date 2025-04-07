@@ -8,6 +8,7 @@ import { ContactRelationship, RelationshipType } from '../entities/contact-relat
 import { MedicalHistory } from '../../medical-history/medical-history.entity';
 import { Appointment } from '../../appointments/entities/appointment.entity';
 import { Document } from '../../documents/entities/document.entity';
+import { MergedRecord } from '../../merged-records/entities/merged-record.entity';
 export interface CreateContactRelationshipDto {
     relatedContactId: string;
     type: RelationshipType;
@@ -30,12 +31,13 @@ export interface UpdateContactRelationshipDto {
 }
 export declare class ContactsService {
     private readonly contactRepository;
+    private readonly mergedRecordRepository;
     private readonly relationshipRepository;
     private readonly medicalHistoryRepository;
     private readonly appointmentRepository;
     private readonly documentRepository;
     private readonly dataSource;
-    constructor(contactRepository: Repository<Contact>, relationshipRepository: Repository<ContactRelationship>, medicalHistoryRepository: Repository<MedicalHistory>, appointmentRepository: Repository<Appointment>, documentRepository: Repository<Document>, dataSource: DataSource);
+    constructor(contactRepository: Repository<Contact>, mergedRecordRepository: Repository<MergedRecord>, relationshipRepository: Repository<ContactRelationship>, medicalHistoryRepository: Repository<MedicalHistory>, appointmentRepository: Repository<Appointment>, documentRepository: Repository<Document>, dataSource: DataSource);
     create(data: CreateContactDto & {
         organizationId: string;
         createdBy: string;
@@ -129,4 +131,6 @@ export declare class ContactsService {
             type: import("../entities/contact.entity").ContactType;
         }[];
     }>;
+    addDocuments(contactId: string, documents: Document[]): Promise<Contact>;
+    mergeContacts(organizationId: string, primaryContactId: string, secondaryContactId: string, metadata?: Record<string, any>): Promise<Contact>;
 }

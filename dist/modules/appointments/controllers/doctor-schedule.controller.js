@@ -13,9 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DoctorScheduleController = void 0;
-const openapi = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
-const swagger_1 = require("@nestjs/swagger");
 const passport_1 = require("@nestjs/passport");
 const roles_guard_1 = require("../../auth/guards/roles.guard");
 const roles_decorator_1 = require("../../auth/decorators/roles.decorator");
@@ -101,7 +99,18 @@ let DoctorScheduleController = class DoctorScheduleController {
         if (!req.user || !req.organization) {
             throw new common_1.BadRequestException('Authentication data missing');
         }
-        return this.doctorScheduleService.createException(Object.assign(Object.assign({}, createExceptionDto), { organizationId: req.organization.id, createdBy: req.user.id, startDate: new Date(createExceptionDto.startDate), endDate: new Date(createExceptionDto.endDate), startTime: createExceptionDto.startTime ? new Date(createExceptionDto.startTime) : undefined, endTime: createExceptionDto.endTime ? new Date(createExceptionDto.endTime) : undefined }));
+        return this.doctorScheduleService.createException({
+            doctorId: createExceptionDto.doctorId,
+            organizationId: req.organization.id,
+            createdBy: req.user.id,
+            startDate: new Date(createExceptionDto.startDate),
+            endDate: new Date(createExceptionDto.endDate),
+            startTime: createExceptionDto.startTime ? new Date(createExceptionDto.startTime) : undefined,
+            endTime: createExceptionDto.endTime ? new Date(createExceptionDto.endTime) : undefined,
+            isFullDay: createExceptionDto.isFullDay,
+            type: createExceptionDto.type,
+            reason: createExceptionDto.reason
+        });
     }
     async getDoctorExceptions(doctorId, req) {
         if (!req.organization) {
@@ -135,9 +144,6 @@ let DoctorScheduleController = class DoctorScheduleController {
 __decorate([
     (0, common_1.Post)(),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.DOCTOR),
-    (0, swagger_1.ApiOperation)({ summary: 'Create a new doctor schedule' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.CREATED, description: 'Schedule created successfully' }),
-    openapi.ApiResponse({ status: 201, type: require("../entities/doctor-schedule.entity").DoctorSchedule }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -146,9 +152,6 @@ __decorate([
 ], DoctorScheduleController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)('doctor/:doctorId'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get all schedules for a doctor' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Returns all schedules for the specified doctor' }),
-    openapi.ApiResponse({ status: 200, type: [require("../entities/doctor-schedule.entity").DoctorSchedule] }),
     __param(0, (0, common_1.Param)('doctorId', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -157,9 +160,6 @@ __decorate([
 ], DoctorScheduleController.prototype, "getDoctorSchedules", null);
 __decorate([
     (0, common_1.Get)('date'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get doctor schedule for a specific date' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Returns the schedule for the specified date' }),
-    openapi.ApiResponse({ status: 200, type: require("../entities/doctor-schedule.entity").DoctorSchedule }),
     __param(0, (0, common_1.Query)('doctorId', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Query)('date')),
     __param(2, (0, common_1.Request)()),
@@ -170,9 +170,6 @@ __decorate([
 __decorate([
     (0, common_1.Put)(':id'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.DOCTOR),
-    (0, swagger_1.ApiOperation)({ summary: 'Update a doctor schedule' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Schedule updated successfully' }),
-    openapi.ApiResponse({ status: 200, type: require("../entities/doctor-schedule.entity").DoctorSchedule }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -183,9 +180,6 @@ __decorate([
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.DOCTOR),
-    (0, swagger_1.ApiOperation)({ summary: 'Delete a doctor schedule' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.NO_CONTENT, description: 'Schedule deleted successfully' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -195,9 +189,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)('exceptions'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.DOCTOR),
-    (0, swagger_1.ApiOperation)({ summary: 'Create a new schedule exception (vacation, time off, etc.)' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.CREATED, description: 'Exception created successfully' }),
-    openapi.ApiResponse({ status: 201, type: require("../entities/schedule-exception.entity").ScheduleException }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -206,9 +197,6 @@ __decorate([
 ], DoctorScheduleController.prototype, "createException", null);
 __decorate([
     (0, common_1.Get)('exceptions/doctor/:doctorId'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get all future exceptions for a doctor' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Returns all future exceptions for the specified doctor' }),
-    openapi.ApiResponse({ status: 200, type: [require("../entities/schedule-exception.entity").ScheduleException] }),
     __param(0, (0, common_1.Param)('doctorId', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -218,9 +206,6 @@ __decorate([
 __decorate([
     (0, common_1.Delete)('exceptions/:id'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.DOCTOR),
-    (0, swagger_1.ApiOperation)({ summary: 'Delete a schedule exception' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.NO_CONTENT, description: 'Exception deleted successfully' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -229,9 +214,6 @@ __decorate([
 ], DoctorScheduleController.prototype, "removeException", null);
 __decorate([
     (0, common_1.Get)('check-availability'),
-    (0, swagger_1.ApiOperation)({ summary: 'Check if a doctor is available for a specific time slot' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Returns availability status' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Query)('doctorId', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Query)('startTime')),
     __param(2, (0, common_1.Query)('endTime')),
@@ -241,10 +223,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], DoctorScheduleController.prototype, "checkAvailability", null);
 DoctorScheduleController = __decorate([
-    (0, swagger_1.ApiTags)('Doctor Schedules'),
     (0, common_1.Controller)('doctor-schedules'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
-    (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [doctor_schedule_service_1.DoctorScheduleService])
 ], DoctorScheduleController);
 exports.DoctorScheduleController = DoctorScheduleController;

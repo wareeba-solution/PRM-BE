@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { EmailStatus } from '../enums/email-status.enum';
 import { Organization } from '../../organizations/entities/organization.entity';
-import { EmailTemplate } from './email-template.entity';
+import { EmailTemplate } from '../../email/entities/email-template.entity';
 
 @Entity('email_queue')
 export class EmailQueue {
@@ -9,37 +9,27 @@ export class EmailQueue {
   id: string;
 
   @Column()
-
-  @Column()
-
   priority: number;
 
   @Column()
-
   attempts: number;
 
   @Column()
-
   maxAttempts: number;
 
   @Column({ nullable: true })
-
   lastError: string;
 
   @CreateDateColumn()
-
   createdAt: Date;
 
   @UpdateDateColumn()
-
   updatedAt: Date;
 
   @Column({ nullable: true })
-
   sentAt: Date;
 
   @Column('json')
-
   data: any;
 
   @Column('uuid')
@@ -86,4 +76,10 @@ export class EmailQueue {
 
   @Column({ nullable: true })
   processedAt: Date;
+
+  @Column('simple-array', { nullable: true })
+  cc: string[];
+
+  @Column('simple-array', { nullable: true })
+  bcc: string[];
 }

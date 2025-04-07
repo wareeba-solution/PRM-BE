@@ -1,7 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
 import { EmailStatus } from '../enums/email-status.enum';
 import { Organization } from '../../organizations/entities/organization.entity';
-import { EmailTemplate } from './email-template.entity';
+import { EmailTemplate } from '../../email/entities/email-template.entity';
+import { EmailContent } from './email-content.entity';
 
 @Entity('email_logs')
 export class EmailLog {
@@ -28,15 +29,6 @@ export class EmailLog {
   @Column({ nullable: true })
   subject: string;
 
-  @Column('text', { nullable: true })
-  htmlContent: string;
-
-  @Column('text', { nullable: true })
-  textContent: string;
-
-  @Column('jsonb', { nullable: true })
-  metadata: Record<string, any>;
-
   @Column({
     type: 'enum',
     enum: EmailStatus,
@@ -46,9 +38,6 @@ export class EmailLog {
 
   @Column({ nullable: true })
   error: string;
-
-  @Column({ nullable: true })
-  messageId: string;
 
   @Column({ nullable: true })
   providerResponse: string;
@@ -67,4 +56,7 @@ export class EmailLog {
 
   @Column({ nullable: true })
   clickedAt: Date;
+
+  @OneToOne(() => EmailContent, content => content.emailLog, { cascade: true, nullable: true })
+  content: EmailContent;
 }

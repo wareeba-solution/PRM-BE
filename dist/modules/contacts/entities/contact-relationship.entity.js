@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/contacts/entities/contact-relationship.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContactRelationship = exports.RelationshipType = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/contacts/entities/contact-relationship.entity.ts
 const typeorm_1 = require("typeorm");
 /**
  * Represents different types of relationships between contacts
@@ -34,9 +33,6 @@ var RelationshipType;
     RelationshipType["OTHER"] = "OTHER";
 })(RelationshipType = exports.RelationshipType || (exports.RelationshipType = {}));
 let ContactRelationship = class ContactRelationship {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, contactId: { required: true, type: () => String }, contact: { required: true, type: () => require("./contact.entity").Contact }, relatedContactId: { required: true, type: () => String }, relatedContact: { required: true, type: () => require("./contact.entity").Contact }, type: { required: true, enum: require("./contact-relationship.entity").RelationshipType }, notes: { required: true, type: () => String }, isActive: { required: true, type: () => Boolean }, isPrimary: { required: true, type: () => Boolean }, createdById: { required: true, type: () => String }, updatedById: { required: true, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, deletedAt: { required: true, type: () => Date }, metadata: { required: true, type: () => Object, description: "Custom metadata for the relationship (JSON field)\nThis can store additional information specific to the relationship type\nFor example, for a PARENT-CHILD relationship, it might store custodial information" }, inverseType: { required: true, description: "Inverse relationship type (if applicable)\nFor example, if this relationship is PARENT, the inverse would be CHILD\nThis helps maintain consistency when querying from either direction", enum: require("./contact-relationship.entity").RelationshipType }, startDate: { required: true, type: () => Date, description: "Start date of the relationship (if applicable)\nFor example, when a provider became a patient's specialist" }, endDate: { required: true, type: () => Date, description: "End date of the relationship (if applicable)\nFor example, when a provider stopped being a patient's specialist" } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),

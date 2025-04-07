@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/messages/entities/message-attachment.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MessageAttachment = exports.AttachmentType = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/messages/entities/message-attachment.entity.ts
 const typeorm_1 = require("typeorm");
 var AttachmentType;
 (function (AttachmentType) {
@@ -22,9 +21,6 @@ var AttachmentType;
     AttachmentType["OTHER"] = "other";
 })(AttachmentType = exports.AttachmentType || (exports.AttachmentType = {}));
 let MessageAttachment = class MessageAttachment {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, fileName: { required: true, type: () => String }, fileSize: { required: true, type: () => Number }, mimeType: { required: true, type: () => String }, type: { required: true, enum: require("./message-attachment.entity").AttachmentType }, filePath: { required: true, type: () => String }, publicUrl: { required: true, type: () => String }, isUploaded: { required: true, type: () => Boolean }, message: { required: true, type: () => require("./message.entity").Message }, messageId: { required: true, type: () => String }, metadata: { required: true, type: () => Object }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),

@@ -1,6 +1,21 @@
 import { AppointmentType } from '../enums/appointment-type.enum';
 import { AppointmentPriority } from '../enums/appointment-priority.enum';
 import { AppointmentStatus } from '../enums/appointment-status.enum';
+export declare class UpdateReminderPreferencesDto {
+    email?: boolean;
+    sms?: boolean;
+    push?: boolean;
+    reminderTimes?: number[];
+}
+export declare class UpdateAppointmentFormDataDto {
+    fields?: Record<string, any>;
+    templateId?: string;
+}
+export declare class UpdateAppointmentMetadataDto {
+    customFields?: Record<string, any>;
+    externalRefs?: Record<string, string>;
+    tags?: string[];
+}
 export declare class UpdateAppointmentDto {
     doctorId?: string;
     startTime?: string;
@@ -18,30 +33,4 @@ export declare class UpdateAppointmentDto {
     metadata?: UpdateAppointmentMetadataDto;
     cancellationReason?: string;
     reschedulingReason?: string;
-}
-export declare class UpdateReminderPreferencesDto {
-    email?: boolean;
-    sms?: boolean;
-    whatsapp?: boolean;
-    reminderTimes?: number[];
-}
-export declare class UpdateAppointmentFormDataDto {
-    chiefComplaint?: string;
-    symptoms?: string[];
-    duration?: string;
-    notes?: string;
-    diagnosis?: string;
-    treatmentPlan?: string;
-    prescriptions?: string[];
-    followUpInstructions?: string;
-}
-export declare class UpdateAppointmentMetadataDto {
-    referralSource?: string;
-    insurance?: string;
-    tags?: string[];
-    externalId?: string;
-    followUpAppointmentId?: string;
-    previousAppointmentId?: string;
-    billingStatus?: string;
-    claimStatus?: string;
 }

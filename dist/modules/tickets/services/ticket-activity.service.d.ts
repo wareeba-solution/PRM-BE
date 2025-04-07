@@ -4,6 +4,7 @@ import { TicketActivity } from '../entities/ticket-activity.entity';
 import { Ticket } from '../entities/ticket.entity';
 import { User } from '../../users/entities/user.entity';
 import { TicketActivityType } from '../enums/ticket-activity-type.enum';
+import { TicketStatus } from '../enums/ticket-status.enum';
 interface ActivityOptions {
     ticketId: string;
     performedById: string;
@@ -18,15 +19,6 @@ export declare class TicketActivityService {
     private readonly ticketRepository;
     private readonly userRepository;
     private readonly eventEmitter;
-    recordActivity(arg0: {
-        ticketId: string;
-        organizationId: string;
-        userId: string;
-        action: string;
-        details: {
-            status: import("../dto/create-ticket.dto").TicketStatus;
-        };
-    }): void;
     private readonly logger;
     constructor(activityRepository: Repository<TicketActivity>, ticketRepository: Repository<Ticket>, userRepository: Repository<User>, eventEmitter: EventEmitter2);
     logActivity(options: ActivityOptions): Promise<TicketActivity>;
@@ -55,5 +47,14 @@ export declare class TicketActivityService {
     generateActivityReport(ticketId: string, startDate: Date, endDate: Date): Promise<any>;
     private calculateActivityTypeStats;
     private calculateUserActivityStats;
+    recordActivity(data: {
+        ticketId: string;
+        organizationId: string;
+        userId: string;
+        action: string;
+        details: {
+            status: TicketStatus;
+        };
+    }): Promise<TicketActivity>;
 }
 export {};

@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/organizations/dto/update-organization.dto.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,15 +11,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateOrganizationDto = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/organizations/dto/update-organization.dto.ts
-const swagger_1 = require("@nestjs/swagger");
 const create_organization_dto_1 = require("./create-organization.dto");
 const class_validator_1 = require("class-validator");
-class UpdateOrganizationDto extends (0, swagger_1.PartialType)((0, swagger_1.OmitType)(create_organization_dto_1.CreateOrganizationDto, ['subscriptionPlan'])) {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { isActive: { required: false, type: () => Boolean }, isVerified: { required: false, type: () => Boolean } };
-    }
+const mapped_types_1 = require("@nestjs/mapped-types");
+class UpdateOrganizationDto extends (0, mapped_types_1.PartialType)((0, mapped_types_1.OmitType)(create_organization_dto_1.CreateOrganizationDto, ['subscriptionPlan'])) {
 }
 __decorate([
     (0, class_validator_1.IsOptional)(),

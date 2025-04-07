@@ -7,53 +7,52 @@ import { TicketAttachment } from './ticket-attachment.entity';
 export class TicketComment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-  
+
+  @Column('uuid')
   organizationId: string;
-  userId: string;
-  
+
   @Column('text')
   content: string;
-  
+
   @Column({ default: false })
   isInternal: boolean;
-  
+
   @Column('uuid')
   ticketId: string;
-  
-  @ManyToOne(() => Ticket, ticket => ticket.comments)
+
+  @ManyToOne(() => Ticket, ticket => ticket.comments, { lazy: true })
   @JoinColumn({ name: 'ticketId' })
-  ticket: Ticket;
-  
+  ticket: Promise<Ticket>;
+
   @Column('uuid')
   authorId: string;
-  
-  @ManyToOne(() => User)
+
+  @ManyToOne(() => User, { lazy: true })
   @JoinColumn({ name: 'authorId' })
-  author: User;
-  
-  @OneToMany(() => TicketAttachment, attachment => attachment.comment)
-  attachments: TicketAttachment[];
-  
+  author: Promise<User>;
+
+  @OneToMany(() => TicketAttachment, attachment => attachment.comment, { lazy: true })
+  attachments: Promise<TicketAttachment[]>;
+
   @Column({ nullable: true })
   parentId: string;
-  
-  // Self-referencing relationships can also use string names
-  @ManyToOne('TicketComment', { nullable: true })
+
+  @ManyToOne(() => TicketComment, { nullable: true, lazy: true })
   @JoinColumn({ name: 'parentId' })
-  parent: TicketComment;
-  
+  parent?: Promise<TicketComment>;
+
   @Column('jsonb', { nullable: true })
   metadata: Record<string, any>;
-  
+
   @CreateDateColumn()
   createdAt: Date;
-  
+
   @UpdateDateColumn()
   updatedAt: Date;
-  
+
   @Column({ nullable: true })
   editedAt: Date;
-  
+
   @Column({ nullable: true })
   editedBy: string;
 }

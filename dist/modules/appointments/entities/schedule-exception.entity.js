@@ -10,7 +10,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ScheduleException = void 0;
-const openapi = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../../users/entities/user.entity");
 const organization_entity_1 = require("../../organizations/entities/organization.entity");
@@ -47,9 +46,6 @@ let ScheduleException = class ScheduleException {
         }
         // If we don't have specific times, it affects the whole day
         return true;
-    }
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, doctorId: { required: true, type: () => String }, doctor: { required: true, type: () => require("../../users/entities/user.entity").User }, organizationId: { required: true, type: () => String }, organization: { required: true, type: () => require("../../organizations/entities/organization.entity").Organization }, startDate: { required: true, type: () => Date }, endDate: { required: true, type: () => Date }, startTime: { required: true, type: () => Date, nullable: true }, endTime: { required: true, type: () => Date, nullable: true }, isFullDay: { required: true, type: () => Boolean }, type: { required: true, type: () => String }, reason: { required: true, type: () => String }, createdBy: { required: true, type: () => String }, creator: { required: true, type: () => require("../../users/entities/user.entity").User }, updatedBy: { required: true, type: () => String }, updater: { required: true, type: () => require("../../users/entities/user.entity").User }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date } };
     }
 };
 __decorate([

@@ -22,10 +22,11 @@ const ticket_entity_1 = require("../entities/ticket.entity");
 const ticket_comment_entity_1 = require("../entities/ticket-comment.entity");
 const ticket_attachment_entity_1 = require("../entities/ticket-attachment.entity");
 const ticket_activity_entity_1 = require("../entities/ticket-activity.entity");
-const create_ticket_dto_1 = require("../dto/create-ticket.dto");
+const ticket_status_enum_1 = require("../enums/ticket-status.enum");
 const notifications_service_1 = require("../../notifications/services/notifications.service");
 const user_entity_1 = require("../../users/entities/user.entity");
 const nestjs_typeorm_paginate_1 = require("nestjs-typeorm-paginate");
+const ticket_activity_type_enum_1 = require("../enums/ticket-activity-type.enum");
 let TicketsService = class TicketsService {
     constructor(ticketRepository, commentRepository, attachmentRepository, activityRepository, dataSource, userRepository, eventEmitter, notificationsService) {
         this.ticketRepository = ticketRepository;
@@ -44,7 +45,7 @@ let TicketsService = class TicketsService {
     async remove(id, organizationId) {
         const ticket = await this.findOne(id, organizationId);
         // Make sure TicketStatus.DELETED exists in your enum
-        ticket.status = create_ticket_dto_1.TicketStatus.DELETED;
+        ticket.status = ticket_status_enum_1.TicketStatus.DELETED;
         ticket.deletedAt = new Date();
         await this.ticketRepository.save(ticket);
     }
@@ -55,7 +56,7 @@ let TicketsService = class TicketsService {
         if (!ticket) {
             throw new common_1.NotFoundException('Ticket not found');
         }
-        ticket.status = create_ticket_dto_1.TicketStatus.REOPENED;
+        ticket.status = ticket_status_enum_1.TicketStatus.REOPENED;
         ticket.reopenReason = reopenDetails.reason;
         const reopenedByUser = await this.userRepository.findOne({ where: { id: reopenDetails.reopenedBy } });
         if (!reopenedByUser) {
@@ -66,67 +67,41 @@ let TicketsService = class TicketsService {
         return ticket;
     }
     async create(data) {
-        var _a, _b;
-        const queryRunner = this.dataSource.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-        try {
-            // Create ticket
-            const createdByUser = await this.userRepository.findOne({ where: { id: data.createdBy } });
-            if (!createdByUser) {
-                throw new common_1.NotFoundException('User not found');
-            }
-            const ticket = this.ticketRepository.create(Object.assign(Object.assign({}, data), { status: create_ticket_dto_1.TicketStatus.OPEN, createdBy: Promise.resolve(createdByUser), attachments: (_a = data.attachments) === null || _a === void 0 ? void 0 : _a.map(attachmentData => {
-                    const attachment = new ticket_attachment_entity_1.TicketAttachment();
-                    Object.assign(attachment, attachmentData);
-                    attachment.organizationId = data.organizationId;
-                    attachment.uploadedById = data.createdBy;
-                    return attachment;
-                }) }));
-            await queryRunner.manager.save(ticket);
-            // Handle attachments if any
-            if ((_b = data.attachments) === null || _b === void 0 ? void 0 : _b.length) {
-                for (const attachmentData of data.attachments) {
-                    const attachment = new ticket_attachment_entity_1.TicketAttachment();
-                    // Copy properties from attachment data (filename, fileType, etc.)
-                    Object.assign(attachment, attachmentData);
-                    // Set the relationships explicitly
-                    attachment.ticketId = ticket.id;
-                    attachment.organizationId = data.organizationId;
-                    attachment.uploadedById = data.createdBy;
-                    await queryRunner.manager.save(attachment);
-                }
-            }
-            // Create activity record
-            const activity = new ticket_activity_entity_1.TicketActivity();
-            activity.ticketId = ticket.id;
-            activity.organizationId = data.organizationId;
-            activity.userId = data.createdBy;
-            activity.action = 'CREATED';
-            activity.details = { status: ticket.status };
-            await queryRunner.manager.save(activity);
-            await queryRunner.commitTransaction();
-            // Send notifications
-            if (ticket.assigneeId) {
-                await this.notificationsService.create({
-                    type: 'TICKET_ASSIGNED',
-                    title: 'New Ticket Assigned',
-                    content: `Ticket #${ticket.referenceNumber} has been assigned to you: ${ticket.title}`,
-                    recipients: ticket.assigneeId ? [{ userId: ticket.assigneeId }] : [],
-                    organizationId: data.organizationId,
-                    senderId: data.createdBy,
-                });
-            }
-            this.eventEmitter.emit('ticket.created', ticket);
-            return ticket;
+        var _a;
+        const createdByUser = await this.userRepository.findOne({ where: { id: data.createdBy } });
+        if (!createdByUser) {
+            throw new common_1.NotFoundException('User not found');
         }
-        catch (error) {
-            await queryRunner.rollbackTransaction();
-            throw error;
+        const assigneeUser = data.assigneeId ? await this.userRepository.findOne({ where: { id: data.assigneeId } }) : null;
+        const ticket = this.ticketRepository.create({
+            organizationId: data.organizationId,
+            title: data.title,
+            description: data.description,
+            type: data.type,
+            priority: data.priority,
+            category: data.category,
+            status: ticket_status_enum_1.TicketStatus.OPEN,
+            createdBy: Promise.resolve(createdByUser),
+            attachments: Promise.resolve([]),
+            assigneeId: data.assigneeId,
+            tags: data.tags,
+            metadata: data.metadata,
+        });
+        const savedTicket = await this.ticketRepository.save(ticket);
+        if ((_a = data.attachments) === null || _a === void 0 ? void 0 : _a.length) {
+            const attachments = data.attachments.map(attachmentData => {
+                const attachment = new ticket_attachment_entity_1.TicketAttachment();
+                Object.assign(attachment, attachmentData);
+                attachment.ticketId = savedTicket.id;
+                attachment.organizationId = data.organizationId;
+                attachment.uploadedById = data.createdBy;
+                return attachment;
+            });
+            await this.attachmentRepository.save(attachments);
+            savedTicket.attachments = Promise.resolve(attachments);
+            await this.ticketRepository.save(savedTicket);
         }
-        finally {
-            await queryRunner.release();
-        }
+        return savedTicket;
     }
     async findAll(query) {
         const { organizationId, status, priority, type, assigneeId, contactId, departmentId, search, startDate, endDate, page = 1, limit = 10, } = query;
@@ -203,16 +178,16 @@ let TicketsService = class TicketsService {
             await queryRunner.manager.save(ticket);
             // Create activity record for status change
             if (data.status && data.status !== oldStatus) {
-                const activity = new ticket_activity_entity_1.TicketActivity();
-                activity.ticketId = ticket.id;
-                activity.organizationId = data.organizationId;
-                activity.userId = data.updatedBy;
-                activity.action = 'STATUS_CHANGED';
-                activity.details = {
-                    oldStatus,
-                    newStatus: data.status,
-                    note: data.statusNote,
-                };
+                const activity = this.activityRepository.create({
+                    ticketId: id,
+                    organizationId: data.organizationId,
+                    performedById: data.updatedBy,
+                    type: ticket_activity_type_enum_1.TicketActivityType.STATUS_CHANGED,
+                    data: {
+                        status: data.status,
+                        note: data.statusNote
+                    }
+                });
                 await queryRunner.manager.save(activity);
                 // Send notification for status change
                 if (ticket.assigneeId) {
@@ -249,16 +224,16 @@ let TicketsService = class TicketsService {
         }
         await this.ticketRepository.save(ticket);
         // Create activity record
-        const activity = new ticket_activity_entity_1.TicketActivity();
-        activity.ticketId = ticket.id;
-        activity.organizationId = data.organizationId;
-        activity.userId = data.assignedBy;
-        activity.action = 'ASSIGNED';
-        activity.details = {
-            oldAssigneeId,
-            newAssigneeId: data.assigneeId,
-            note: data.note,
-        };
+        const activity = this.activityRepository.create({
+            ticketId: id,
+            organizationId: data.organizationId,
+            performedById: data.assignedBy,
+            type: ticket_activity_type_enum_1.TicketActivityType.ASSIGNED,
+            data: {
+                assigneeId: data.assigneeId,
+                note: data.note
+            }
+        });
         await this.activityRepository.save(activity);
         // Send notification to new assignee
         await this.notificationsService.create({
@@ -279,18 +254,19 @@ let TicketsService = class TicketsService {
         Object.assign(comment, data);
         comment.ticketId = ticket.id;
         comment.organizationId = data.organizationId;
-        comment.userId = data.userId;
+        comment.authorId = data.userId; // Changed from userId to authorId
         await this.commentRepository.save(comment);
         // Update ticket's last activity
         ticket.lastActivityAt = new Date();
         await this.ticketRepository.save(ticket);
         // Create activity record
-        const activity = new ticket_activity_entity_1.TicketActivity();
-        activity.ticketId = ticket.id;
-        activity.organizationId = data.organizationId;
-        activity.userId = data.userId;
-        activity.action = 'COMMENTED';
-        activity.details = { commentId: comment.id };
+        const activity = this.activityRepository.create({
+            ticketId: id,
+            organizationId: data.organizationId,
+            performedById: data.userId,
+            type: ticket_activity_type_enum_1.TicketActivityType.COMMENT_ADDED,
+            data: { commentId: comment.id }
+        });
         await this.activityRepository.save(activity);
         // Send notification if internal note
         if (data.isInternal && ticket.assigneeId !== data.userId) {
@@ -307,7 +283,7 @@ let TicketsService = class TicketsService {
     }
     async escalateTicket(id, data) {
         const ticket = await this.findOne(id, data.organizationId);
-        ticket.status = create_ticket_dto_1.TicketStatus.ESCALATED;
+        ticket.status = ticket_status_enum_1.TicketStatus.ESCALATED;
         ticket.escalatedAt = new Date();
         ticket.escalatedById = data.escalatedBy;
         ticket.escalationReason = data.reason;
@@ -317,12 +293,13 @@ let TicketsService = class TicketsService {
         }
         await this.ticketRepository.save(ticket);
         // Create activity record
-        const activity = new ticket_activity_entity_1.TicketActivity();
-        activity.ticketId = ticket.id;
-        activity.organizationId = data.organizationId;
-        activity.userId = data.escalatedBy;
-        activity.action = 'ESCALATED';
-        activity.details = { reason: data.reason };
+        const activity = this.activityRepository.create({
+            ticketId: id,
+            organizationId: data.organizationId,
+            performedById: data.escalatedBy,
+            type: ticket_activity_type_enum_1.TicketActivityType.ESCALATED,
+            data: { reason: data.reason }
+        });
         await this.activityRepository.save(activity);
         // Notify administrators
         await this.notificationsService.create({
@@ -338,7 +315,7 @@ let TicketsService = class TicketsService {
     }
     async resolveTicket(id, data) {
         const ticket = await this.findOne(id, data.organizationId);
-        ticket.status = create_ticket_dto_1.TicketStatus.RESOLVED;
+        ticket.status = ticket_status_enum_1.TicketStatus.RESOLVED;
         ticket.resolvedAt = new Date();
         ticket.resolvedById = data.resolvedBy;
         ticket.resolution = data.resolution;
@@ -348,12 +325,13 @@ let TicketsService = class TicketsService {
         }
         await this.ticketRepository.save(ticket);
         // Create activity record
-        const activity = new ticket_activity_entity_1.TicketActivity();
-        activity.ticketId = ticket.id;
-        activity.organizationId = data.organizationId;
-        activity.userId = data.resolvedBy;
-        activity.action = 'RESOLVED';
-        activity.details = { resolution: data.resolution };
+        const activity = this.activityRepository.create({
+            ticketId: id,
+            organizationId: data.organizationId,
+            performedById: data.resolvedBy,
+            type: ticket_activity_type_enum_1.TicketActivityType.RESOLUTION,
+            data: { resolution: data.resolution }
+        });
         await this.activityRepository.save(activity);
         // Notify ticket creator if different from resolver
         if (ticket.createdById !== data.resolvedBy) {
@@ -425,9 +403,9 @@ let TicketsService = class TicketsService {
             'COUNT(CASE WHEN status = :escalated THEN 1 END) as escalated',
             'COUNT(CASE WHEN priority = :urgent THEN 1 END) as urgent',
         ])
-            .setParameter('open', create_ticket_dto_1.TicketStatus.OPEN)
-            .setParameter('inProgress', create_ticket_dto_1.TicketStatus.IN_PROGRESS)
-            .setParameter('escalated', create_ticket_dto_1.TicketStatus.ESCALATED)
+            .setParameter('open', ticket_status_enum_1.TicketStatus.OPEN)
+            .setParameter('inProgress', ticket_status_enum_1.TicketStatus.IN_PROGRESS)
+            .setParameter('escalated', ticket_status_enum_1.TicketStatus.ESCALATED)
             .setParameter('urgent', 'URGENT')
             .getRawOne();
         return stats;

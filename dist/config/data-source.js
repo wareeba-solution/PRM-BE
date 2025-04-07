@@ -48,11 +48,18 @@ const document_entity_1 = require("../modules/documents/entities/document.entity
 const medical_history_entity_1 = require("../modules/medical-history/medical-history.entity");
 const contact_relationship_entity_1 = require("../modules/contacts/entities/contact-relationship.entity");
 const user_settings_entity_1 = require("../modules/users/entities/user-settings.entity");
+const email_content_entity_1 = require("../modules/notifications/entities/email-content.entity");
+const email_log_entity_1 = require("../modules/notifications/entities/email-log.entity");
+const email_queue_entity_1 = require("../modules/notifications/entities/email-queue.entity");
+const merged_record_entity_1 = require("../modules/merged-records/entities/merged-record.entity");
+const email_template_entity_1 = require("../modules/email/entities/email-template.entity");
 const _1710000000001_CleanupUsersTable_1 = require("../migrations/1710000000001-CleanupUsersTable");
 const _1710000000005_UserSettingsMigration_1 = require("../migrations/1710000000005-UserSettingsMigration");
 const _1710000000006_CheckUsersTableColumns_1 = require("../migrations/1710000000006-CheckUsersTableColumns");
 const _1710000000007_FixUsersTableColumns_1 = require("../migrations/1710000000007-FixUsersTableColumns");
 const _1710000000008_FixUsersTablePermissions_1 = require("../migrations/1710000000008-FixUsersTablePermissions");
+const _1710000000009_CreateEmailContentsTable_1 = require("../migrations/1710000000009-CreateEmailContentsTable");
+const _1710000000010_AddEmailQueueCcBcc_1 = require("../migrations/1710000000010-AddEmailQueueCcBcc");
 dotenv.config();
 const configService = new config_1.ConfigService();
 exports.dataSourceOptions = {
@@ -87,14 +94,21 @@ exports.dataSourceOptions = {
         document_entity_1.Document,
         medical_history_entity_1.MedicalHistory,
         contact_relationship_entity_1.ContactRelationship,
-        user_settings_entity_1.UserSettings
+        user_settings_entity_1.UserSettings,
+        email_content_entity_1.EmailContent,
+        email_log_entity_1.EmailLog,
+        email_queue_entity_1.EmailQueue,
+        merged_record_entity_1.MergedRecord,
+        email_template_entity_1.EmailTemplate
     ],
     migrations: [
         _1710000000001_CleanupUsersTable_1.CleanupUsersTable1710000000001,
         _1710000000005_UserSettingsMigration_1.UserSettingsMigration1710000000005,
         _1710000000006_CheckUsersTableColumns_1.CheckUsersTableColumns1710000000006,
         _1710000000007_FixUsersTableColumns_1.FixUsersTableColumns1710000000007,
-        _1710000000008_FixUsersTablePermissions_1.FixUsersTablePermissions1710000000008
+        _1710000000008_FixUsersTablePermissions_1.FixUsersTablePermissions1710000000008,
+        _1710000000009_CreateEmailContentsTable_1.CreateEmailContentsTable1710000000009,
+        _1710000000010_AddEmailQueueCcBcc_1.AddEmailQueueCcBcc1710000000010
     ],
     migrationsRun: true,
 };

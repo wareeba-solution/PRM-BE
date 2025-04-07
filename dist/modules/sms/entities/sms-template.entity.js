@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/sms/entities/sms-template.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SmsTemplate = exports.SmsTemplateType = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/sms/entities/sms-template.entity.ts
 const typeorm_1 = require("typeorm");
 /**
  * SMS template types for different scenarios
@@ -27,9 +26,6 @@ var SmsTemplateType;
     SmsTemplateType["CUSTOM"] = "custom";
 })(SmsTemplateType = exports.SmsTemplateType || (exports.SmsTemplateType = {}));
 let SmsTemplate = class SmsTemplate {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, name: { required: true, type: () => String }, type: { required: true, enum: require("./sms-template.entity").SmsTemplateType }, content: { required: true, type: () => String }, description: { required: true, type: () => String }, isDefault: { required: true, type: () => Boolean }, isActive: { required: true, type: () => Boolean }, organizationId: { required: true, type: () => String }, createdById: { required: true, type: () => String }, updatedById: { required: true, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, sampleVariables: { required: true, type: () => Object, description: "Sample variables that can be used in this template\nStored as a JSON object { variableName: description }" }, maxLength: { required: true, type: () => Number, description: "The maximum allowed length for SMS (for reference)" }, metadata: { required: true, type: () => Object, description: "Optional metadata for additional properties" } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),

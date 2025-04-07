@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/appointments/entities/appointment-reminder.entity.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -10,8 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppointmentReminder = exports.ReminderStatus = exports.ReminderType = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/appointments/entities/appointment-reminder.entity.ts
 const typeorm_1 = require("typeorm");
 const appointment_entity_1 = require("./appointment.entity");
 var ReminderType;
@@ -29,9 +28,6 @@ var ReminderStatus;
     ReminderStatus["CANCELLED"] = "cancelled";
 })(ReminderStatus = exports.ReminderStatus || (exports.ReminderStatus = {}));
 let AppointmentReminder = class AppointmentReminder {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, appointmentId: { required: true, type: () => String }, appointment: { required: true, type: () => require("./appointment.entity").Appointment }, type: { required: true, enum: require("./appointment-reminder.entity").ReminderType }, status: { required: true, enum: require("./appointment-reminder.entity").ReminderStatus }, scheduledFor: { required: true, type: () => Date }, sentAt: { required: false, type: () => Date }, content: { required: false, type: () => String }, recipientId: { required: false, type: () => String }, recipientEmail: { required: false, type: () => String }, recipientPhone: { required: false, type: () => String }, metadata: { required: false, type: () => Object }, deliveryDetails: { required: false, type: () => ({ provider: { required: false, type: () => String }, messageId: { required: false, type: () => String }, error: { required: false, type: () => String }, attempts: { required: false, type: () => Number } }) }, organizationId: { required: true, type: () => String }, createdById: { required: false, type: () => String }, updatedById: { required: false, type: () => String }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, deletedAt: { required: false, type: () => Date } };
-    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),

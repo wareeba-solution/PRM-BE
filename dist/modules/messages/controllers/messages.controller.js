@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/messages/controllers/messages.controller.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -13,10 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MessagesController = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/messages/controllers/messages.controller.ts
 const common_1 = require("@nestjs/common");
-const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../../auth/guards/roles.guard");
 const roles_decorator_1 = require("../../auth/decorators/roles.decorator");
@@ -126,9 +124,6 @@ let MessagesController = class MessagesController {
 __decorate([
     (0, common_1.Post)(),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.STAFF),
-    (0, swagger_1.ApiOperation)({ summary: 'Create new message' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.CREATED, description: 'Message sent successfully' }),
-    openapi.ApiResponse({ status: 201, type: require("../entities/message.entity").Message }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -137,9 +132,6 @@ __decorate([
 ], MessagesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Get all messages' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return all messages' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Query)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -148,9 +140,6 @@ __decorate([
 ], MessagesController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('conversations'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get all conversations' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return all conversations' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Query)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -159,9 +148,6 @@ __decorate([
 ], MessagesController.prototype, "getConversations", null);
 __decorate([
     (0, common_1.Get)('conversations/:contactId'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get conversation with contact' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return conversation messages' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('contactId', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Query)()),
     __param(2, (0, common_1.Request)()),
@@ -171,9 +157,6 @@ __decorate([
 ], MessagesController.prototype, "getConversation", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get message by id' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return message details' }),
-    openapi.ApiResponse({ status: 200, type: require("../entities/message.entity").Message }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -183,9 +166,6 @@ __decorate([
 __decorate([
     (0, common_1.Put)(':id'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.STAFF),
-    (0, swagger_1.ApiOperation)({ summary: 'Update message' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Message updated successfully' }),
-    openapi.ApiResponse({ status: 200, type: require("../entities/message.entity").Message }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -196,9 +176,6 @@ __decorate([
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Delete message' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.NO_CONTENT, description: 'Message deleted successfully' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -208,9 +185,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)('templates'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.STAFF),
-    (0, swagger_1.ApiOperation)({ summary: 'Create message template' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.CREATED, description: 'Template created successfully' }),
-    openapi.ApiResponse({ status: 201, type: Object }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -219,9 +193,6 @@ __decorate([
 ], MessagesController.prototype, "createTemplate", null);
 __decorate([
     (0, common_1.Get)('templates'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get message templates' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return message templates' }),
-    openapi.ApiResponse({ status: 200, type: [require("../entities/message-template.entity").MessageTemplate] }),
     __param(0, (0, common_1.Query)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -231,9 +202,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)('bulk'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Send bulk messages' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.CREATED, description: 'Bulk messages queued successfully' }),
-    openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -243,9 +211,6 @@ __decorate([
 __decorate([
     (0, common_1.Get)('statistics'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Get messaging statistics' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return messaging statistics' }),
-    openapi.ApiResponse({ status: 200, type: Object }),
     __param(0, (0, common_1.Query)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -255,9 +220,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)(':id/resend'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.STAFF),
-    (0, swagger_1.ApiOperation)({ summary: 'Resend failed message' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Message resent successfully' }),
-    openapi.ApiResponse({ status: 201, type: require("../entities/message.entity").Message }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -266,9 +228,6 @@ __decorate([
 ], MessagesController.prototype, "resend", null);
 __decorate([
     (0, common_1.Post)(':id/mark-read'),
-    (0, swagger_1.ApiOperation)({ summary: 'Mark message as read' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Message marked as read' }),
-    openapi.ApiResponse({ status: 201, type: require("../entities/message.entity").Message }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -276,10 +235,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], MessagesController.prototype, "markAsRead", null);
 MessagesController = __decorate([
-    (0, swagger_1.ApiTags)('Messages'),
     (0, common_1.Controller)('messages'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [messages_service_1.MessagesService])
 ], MessagesController);
 exports.MessagesController = MessagesController;

@@ -31,28 +31,28 @@ import { OrganizationRoleGuard } from './guards/organization-role.guard';
 import { DomainVerificationService } from '../domain/services/domain-verification.service';
 import { EmailService } from '../../shared/services/email.service';
 import { StorageService } from '../storage/services/storage.service';
-import { Domain } from 'domain';
+import { Domain } from '../domain/entities/domain.entity';
 import { DomainVerificationToken } from '../domain/entities/domain-verification-token.entity';
-import { EmailTemplate } from '../notifications/entities/email-template.entity';
+import { EmailTemplate } from '../email/entities/email-template.entity';
 import { EmailLog } from '../notifications/entities/email-log.entity';
 import { EmailQueue } from '../notifications/entities/email-queue.entity';
+import { EmailContent } from '../notifications/entities/email-content.entity';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([
             Organization,
             OrganizationInvitation,
-            OrganizationAuditLog, // Add this entity
+            OrganizationAuditLog,
             User,
             AuditLog,
             Domain,
-            DomainVerificationService,
             DomainVerificationToken,
+            EmailContent,
+
             EmailTemplate,
             EmailLog,
-            EmailQueue,
-            EmailService,
-            
+            EmailQueue
         ]),
         EventEmitterModule.forRoot({
             wildcard: true,

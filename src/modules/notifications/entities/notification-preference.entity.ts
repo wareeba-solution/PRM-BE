@@ -10,10 +10,11 @@ import {
   Index,
   Check,
 } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
 import { NotificationChannel } from '../enums/notification-channel.enum';
 import { NotificationCategory } from '../enums/notification-category.enum';
 import { NotificationFrequency } from '../enums/notification-frequency.enum';
+import { Organization } from '../../organizations/entities/organization.entity';
+import { User } from '../../users/entities/user.entity';
 
 export { NotificationChannel, NotificationCategory, NotificationFrequency };
 
@@ -22,21 +23,17 @@ export { NotificationChannel, NotificationCategory, NotificationFrequency };
 @Index(['organizationId', 'category'])
 @Check(`"startTime" < "endTime"`)
 export class NotificationPreference {
-  @ApiProperty()
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ApiProperty()
   @Column()
   @Index()
   organizationId: string;
 
-  @ApiProperty()
   @Column()
   @Index()
   userId: string;
 
-  @ApiProperty({ enum: NotificationCategory })
   @Column({
     type: 'enum',
     enum: NotificationCategory,
@@ -44,15 +41,12 @@ export class NotificationPreference {
   })
   category: NotificationCategory;
 
-  @ApiProperty({ type: [String], enum: NotificationChannel })
   @Column('simple-array')
   channels: NotificationChannel[];
 
-  @ApiProperty({ type: [String], enum: NotificationChannel })
   @Column('simple-array')
   enabledChannels: NotificationChannel[];
 
-  @ApiProperty({ enum: NotificationFrequency })
   @Column({
     type: 'enum',
     enum: NotificationFrequency,
@@ -146,7 +140,6 @@ export class NotificationPreference {
   @Column({ type: 'int', default: 3 })
   maxReminders: number;
 
-  @ApiProperty()
   @Column({ type: 'jsonb', nullable: true })
   settings?: {
     quietHours?: {
@@ -161,18 +154,15 @@ export class NotificationPreference {
     [key: string]: any;
   };
 
-  @ApiProperty()
   @Column({ type: 'jsonb', nullable: true })
   metadata?: {
     lastUpdated?: Date;
     [key: string]: any;
   };
 
-  @ApiProperty()
   @Column()
   createdById: string;
 
-  @ApiProperty()
   @Column({ nullable: true })
   updatedById?: string;
 
@@ -186,51 +176,22 @@ export class NotificationPreference {
   deletedAt?: Date;
 
   // Relations - all using string references to avoid circular dependencies
-  @ApiProperty({
-    type: 'object',
-    properties: {
-      id: { type: 'string' },
-      name: { type: 'string' }
-    }
-  })
-  @ManyToOne('Organization')
+  @ManyToOne(() => Organization, { lazy: true })
   @JoinColumn({ name: 'organizationId' })
-  organization: any;
+  organization: Promise<Organization>;
 
-  @ApiProperty({
-    type: 'object',
-    properties: {
-      id: { type: 'string' },
-      firstName: { type: 'string' },
-      lastName: { type: 'string' }
-    }
-  })
-  @ManyToOne('User', { lazy: true })
+
+  @ManyToOne(() => User, { lazy: true })
   @JoinColumn({ name: 'userId' })
-  user: Promise<any>;
+  user: Promise<User>;
 
-  @ApiProperty({
-    type: 'object',
-    properties: {
-      id: { type: 'string' },
-      firstName: { type: 'string' },
-      lastName: { type: 'string' }
-    }
-  })
-  @ManyToOne('User', { lazy: true })
+
+  @ManyToOne(() => User, { lazy: true })
   @JoinColumn({ name: 'createdById' })
-  createdBy: Promise<any>;
+  createdBy: Promise<User>;
 
-  @ApiProperty({
-    type: 'object',
-    properties: {
-      id: { type: 'string' },
-      firstName: { type: 'string' },
-      lastName: { type: 'string' }
-    },
-    nullable: true
-  })
-  @ManyToOne('User', { lazy: true })
+
+  @ManyToOne(() => User, { lazy: true })
   @JoinColumn({ name: 'updatedById' })
-  updatedBy?: Promise<any>;
+  updatedBy?: Promise<User>;
 }

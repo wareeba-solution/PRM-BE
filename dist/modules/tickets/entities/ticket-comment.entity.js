@@ -8,22 +8,23 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var TicketComment_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TicketComment = void 0;
-const openapi = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
 const ticket_entity_1 = require("./ticket.entity");
 const user_entity_1 = require("../../users/entities/user.entity");
 const ticket_attachment_entity_1 = require("./ticket-attachment.entity");
-let TicketComment = class TicketComment {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { id: { required: true, type: () => String }, organizationId: { required: true, type: () => String }, userId: { required: true, type: () => String }, content: { required: true, type: () => String }, isInternal: { required: true, type: () => Boolean }, ticketId: { required: true, type: () => String }, ticket: { required: true, type: () => require("./ticket.entity").Ticket }, authorId: { required: true, type: () => String }, author: { required: true, type: () => require("../../users/entities/user.entity").User }, attachments: { required: true, type: () => [require("./ticket-attachment.entity").TicketAttachment] }, parentId: { required: true, type: () => String }, parent: { required: true, type: () => require("./ticket-comment.entity").TicketComment }, metadata: { required: true, type: () => Object }, createdAt: { required: true, type: () => Date }, updatedAt: { required: true, type: () => Date }, editedAt: { required: true, type: () => Date }, editedBy: { required: true, type: () => String } };
-    }
+let TicketComment = TicketComment_1 = class TicketComment {
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
     __metadata("design:type", String)
 ], TicketComment.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.Column)('uuid'),
+    __metadata("design:type", String)
+], TicketComment.prototype, "organizationId", void 0);
 __decorate([
     (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
@@ -37,31 +38,31 @@ __decorate([
     __metadata("design:type", String)
 ], TicketComment.prototype, "ticketId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => ticket_entity_1.Ticket, ticket => ticket.comments),
+    (0, typeorm_1.ManyToOne)(() => ticket_entity_1.Ticket, ticket => ticket.comments, { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'ticketId' }),
-    __metadata("design:type", ticket_entity_1.Ticket)
+    __metadata("design:type", Promise)
 ], TicketComment.prototype, "ticket", void 0);
 __decorate([
     (0, typeorm_1.Column)('uuid'),
     __metadata("design:type", String)
 ], TicketComment.prototype, "authorId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'authorId' }),
-    __metadata("design:type", user_entity_1.User)
+    __metadata("design:type", Promise)
 ], TicketComment.prototype, "author", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => ticket_attachment_entity_1.TicketAttachment, attachment => attachment.comment),
-    __metadata("design:type", Array)
+    (0, typeorm_1.OneToMany)(() => ticket_attachment_entity_1.TicketAttachment, attachment => attachment.comment, { lazy: true }),
+    __metadata("design:type", Promise)
 ], TicketComment.prototype, "attachments", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], TicketComment.prototype, "parentId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)('TicketComment', { nullable: true }),
+    (0, typeorm_1.ManyToOne)(() => TicketComment_1, { nullable: true, lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'parentId' }),
-    __metadata("design:type", TicketComment)
+    __metadata("design:type", Promise)
 ], TicketComment.prototype, "parent", void 0);
 __decorate([
     (0, typeorm_1.Column)('jsonb', { nullable: true }),
@@ -83,7 +84,7 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], TicketComment.prototype, "editedBy", void 0);
-TicketComment = __decorate([
+TicketComment = TicketComment_1 = __decorate([
     (0, typeorm_1.Entity)('ticket_comments')
 ], TicketComment);
 exports.TicketComment = TicketComment;

@@ -2,9 +2,10 @@
 /// <reference types="node" />
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
-import { EmailTemplate } from '../../modules/notifications/entities/email-template.entity';
+import { EmailTemplate } from '../../modules/email/entities/email-template.entity';
 import { EmailLog } from '../../modules/notifications/entities/email-log.entity';
 import { EmailQueue } from '../../modules/notifications/entities/email-queue.entity';
+import { EmailContent } from '../../modules/notifications/entities/email-content.entity';
 import { DomainVerificationService } from '../../modules/domain/services/domain-verification.service';
 import { Notification } from '../../modules/notifications/entities/notification.entity';
 interface EmailOptions {
@@ -26,17 +27,19 @@ interface EmailOptions {
 }
 export declare class EmailService {
     private readonly configService;
-    private readonly domainVerificationService;
-    private readonly templateRepository;
+    private readonly emailTemplateRepository;
     private readonly logRepository;
     private readonly queueRepository;
+    private readonly contentRepository;
     private readonly logger;
     private readonly transporter;
     private readonly maxRetries;
     private readonly resolveTxt;
-    constructor(configService: ConfigService, domainVerificationService: DomainVerificationService, templateRepository: Repository<EmailTemplate>, logRepository: Repository<EmailLog>, queueRepository: Repository<EmailQueue>);
+    private readonly domainVerificationService;
+    constructor(configService: ConfigService, domainVerificationService: DomainVerificationService, emailTemplateRepository: Repository<EmailTemplate>, logRepository: Repository<EmailLog>, queueRepository: Repository<EmailQueue>, contentRepository: Repository<EmailContent>);
     send(notification: Notification): Promise<boolean>;
     sendEmail(options: EmailOptions): Promise<boolean>;
+    private compileTemplate;
     private processTemplate;
     private queueEmail;
     private logEmail;

@@ -10,13 +10,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateCallDto = void 0;
-const openapi = require("@nestjs/swagger");
 // src/modules/voip/dto/create-call.dto.ts
 const class_validator_1 = require("class-validator");
 class CreateCallDto {
-    static _OPENAPI_METADATA_FACTORY() {
-        return { destination: { required: true, type: () => String }, callerId: { required: false, type: () => String }, provider: { required: false, type: () => String }, options: { required: false, type: () => Object } };
-    }
 }
 __decorate([
     (0, class_validator_1.IsString)(),

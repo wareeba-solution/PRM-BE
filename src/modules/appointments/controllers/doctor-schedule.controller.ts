@@ -14,7 +14,6 @@ import {
   ParseUUIDPipe,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
@@ -27,17 +26,13 @@ import { CustomRequest } from '../../../interfaces/request.interface';
 import { DoctorSchedule } from '../entities/doctor-schedule.entity';
 import { ScheduleException } from '../entities/schedule-exception.entity';
 
-@ApiTags('Doctor Schedules')
 @Controller('doctor-schedules')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
-@ApiBearerAuth()
 export class DoctorScheduleController {
   constructor(private readonly doctorScheduleService: DoctorScheduleService) {}
 
   @Post()
   @Roles(Role.ADMIN, Role.DOCTOR)
-  @ApiOperation({ summary: 'Create a new doctor schedule' })
-  @ApiResponse({ status: HttpStatus.CREATED, description: 'Schedule created successfully' })
   async create(
     @Body() createScheduleDto: CreateScheduleDto,
     @Request() req: CustomRequest,
@@ -57,8 +52,6 @@ export class DoctorScheduleController {
   }
 
   @Get('doctor/:doctorId')
-  @ApiOperation({ summary: 'Get all schedules for a doctor' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Returns all schedules for the specified doctor' })
   async getDoctorSchedules(
     @Param('doctorId', ParseUUIDPipe) doctorId: string,
     @Request() req: CustomRequest,
@@ -71,8 +64,6 @@ export class DoctorScheduleController {
   }
 
   @Get('date')
-  @ApiOperation({ summary: 'Get doctor schedule for a specific date' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Returns the schedule for the specified date' })
   async getScheduleForDate(
     @Query('doctorId', ParseUUIDPipe) doctorId: string,
     @Query('date') dateString: string,
@@ -102,8 +93,6 @@ export class DoctorScheduleController {
 
   @Put(':id')
   @Roles(Role.ADMIN, Role.DOCTOR)
-  @ApiOperation({ summary: 'Update a doctor schedule' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Schedule updated successfully' })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateScheduleDto: UpdateScheduleDto,
@@ -128,8 +117,6 @@ export class DoctorScheduleController {
 
   @Delete(':id')
   @Roles(Role.ADMIN, Role.DOCTOR)
-  @ApiOperation({ summary: 'Delete a doctor schedule' })
-  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Schedule deleted successfully' })
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: CustomRequest,
@@ -180,8 +167,6 @@ export class DoctorScheduleController {
 
   @Post('exceptions')
   @Roles(Role.ADMIN, Role.DOCTOR)
-  @ApiOperation({ summary: 'Create a new schedule exception (vacation, time off, etc.)' })
-  @ApiResponse({ status: HttpStatus.CREATED, description: 'Exception created successfully' })
   async createException(
     @Body() createExceptionDto: CreateExceptionDto,
     @Request() req: CustomRequest,
@@ -191,19 +176,20 @@ export class DoctorScheduleController {
     }
     
     return this.doctorScheduleService.createException({
-      ...createExceptionDto,
+      doctorId: createExceptionDto.doctorId,
       organizationId: req.organization.id,
-      createdBy: req.user.id, // Using createdBy for ScheduleException
+      createdBy: req.user.id,
       startDate: new Date(createExceptionDto.startDate),
       endDate: new Date(createExceptionDto.endDate),
       startTime: createExceptionDto.startTime ? new Date(createExceptionDto.startTime) : undefined,
       endTime: createExceptionDto.endTime ? new Date(createExceptionDto.endTime) : undefined,
+      isFullDay: createExceptionDto.isFullDay,
+      type: createExceptionDto.type,
+      reason: createExceptionDto.reason
     });
   }
 
   @Get('exceptions/doctor/:doctorId')
-  @ApiOperation({ summary: 'Get all future exceptions for a doctor' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Returns all future exceptions for the specified doctor' })
   async getDoctorExceptions(
     @Param('doctorId', ParseUUIDPipe) doctorId: string,
     @Request() req: CustomRequest,
@@ -217,8 +203,6 @@ export class DoctorScheduleController {
 
   @Delete('exceptions/:id')
   @Roles(Role.ADMIN, Role.DOCTOR)
-  @ApiOperation({ summary: 'Delete a schedule exception' })
-  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Exception deleted successfully' })
   async removeException(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: CustomRequest,
@@ -231,8 +215,6 @@ export class DoctorScheduleController {
   }
 
   @Get('check-availability')
-  @ApiOperation({ summary: 'Check if a doctor is available for a specific time slot' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Returns availability status' })
   async checkAvailability(
     @Query('doctorId', ParseUUIDPipe) doctorId: string,
     @Query('startTime') startTimeString: string,

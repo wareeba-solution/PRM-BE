@@ -1,4 +1,5 @@
 "use strict";
+// src/modules/contacts/controllers/contacts.controller.ts
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -13,10 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContactsController = void 0;
-const openapi = require("@nestjs/swagger");
-// src/modules/contacts/controllers/contacts.controller.ts
 const common_1 = require("@nestjs/common");
-const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../../auth/guards/roles.guard");
 const roles_decorator_1 = require("../../../common/decorators/roles.decorator"); // Ensure this path is correct or update it to the correct path
@@ -95,8 +93,6 @@ let ContactsController = class ContactsController {
     // Comment out or implement getAppointments method in ContactsService
     /*
     @Get(':id/appointments')
-    @ApiOperation({ summary: 'Get contact appointments' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return contact appointments' })
     async getAppointments(
         @Param('id', ParseUUIDPipe) id: string,
         @Query() query: any,
@@ -141,9 +137,6 @@ let ContactsController = class ContactsController {
 __decorate([
     (0, common_1.Post)(),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.STAFF),
-    (0, swagger_1.ApiOperation)({ summary: 'Create new contact' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.CREATED, description: 'Contact created successfully' }),
-    openapi.ApiResponse({ status: 201, type: require("../entities/contact.entity").Contact }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -152,9 +145,6 @@ __decorate([
 ], ContactsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Get all contacts' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return all contacts' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Query)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -163,9 +153,6 @@ __decorate([
 ], ContactsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('search'),
-    (0, swagger_1.ApiOperation)({ summary: 'Search contacts' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return matching contacts' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Query)('q')),
     __param(1, (0, common_1.Query)()),
     __param(2, (0, common_1.Request)()),
@@ -175,9 +162,6 @@ __decorate([
 ], ContactsController.prototype, "search", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get contact by id' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return contact details' }),
-    openapi.ApiResponse({ status: 200, type: require("../entities/contact.entity").Contact }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -187,9 +171,6 @@ __decorate([
 __decorate([
     (0, common_1.Put)(':id'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.STAFF),
-    (0, swagger_1.ApiOperation)({ summary: 'Update contact' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Contact updated successfully' }),
-    openapi.ApiResponse({ status: 200, type: require("../entities/contact.entity").Contact }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -200,9 +181,6 @@ __decorate([
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Delete contact' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.NO_CONTENT, description: 'Contact deleted successfully' }),
-    openapi.ApiResponse({ status: 200 }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -212,9 +190,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)(':id/merge'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Merge contacts' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Contacts merged successfully' }),
-    openapi.ApiResponse({ status: 201, type: require("../entities/contact.entity").Contact }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -224,9 +199,6 @@ __decorate([
 ], ContactsController.prototype, "merge", null);
 __decorate([
     (0, common_1.Get)(':id/relationships'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get contact relationships' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return contact relationships' }),
-    openapi.ApiResponse({ status: 200, type: [require("../entities/contact-relationship.entity").ContactRelationship] }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -236,9 +208,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)(':id/relationships'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.STAFF),
-    (0, swagger_1.ApiOperation)({ summary: 'Add contact relationship' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.CREATED, description: 'Relationship added successfully' }),
-    openapi.ApiResponse({ status: 201, type: require("../entities/contact-relationship.entity").ContactRelationship }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -248,9 +217,6 @@ __decorate([
 ], ContactsController.prototype, "addRelationship", null);
 __decorate([
     (0, common_1.Get)(':id/medical-history'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get medical history' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return medical history' }),
-    openapi.ApiResponse({ status: 200, type: [require("../../medical-history/medical-history.entity").MedicalHistory] }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Query)()),
     __param(2, (0, common_1.Request)()),
@@ -260,9 +226,6 @@ __decorate([
 ], ContactsController.prototype, "getMedicalHistory", null);
 __decorate([
     (0, common_1.Get)(':id/documents'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get contact documents' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return contact documents' }),
-    openapi.ApiResponse({ status: 200, type: [require("../../documents/entities/document.entity").Document] }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Query)()),
     __param(2, (0, common_1.Request)()),
@@ -273,9 +236,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)(':id/documents'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN, role_enum_1.Role.STAFF),
-    (0, swagger_1.ApiOperation)({ summary: 'Add contact document' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.CREATED, description: 'Document added successfully' }),
-    openapi.ApiResponse({ status: 201, type: [require("../../documents/entities/document.entity").Document] }),
     __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -286,9 +246,6 @@ __decorate([
 __decorate([
     (0, common_1.Get)('statistics/summary'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Get contacts statistics' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Return contacts statistics' }),
-    openapi.ApiResponse({ status: 200, type: Object }),
     __param(0, (0, common_1.Query)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -298,9 +255,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)('import'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Import contacts' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Contacts imported successfully' }),
-    openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -310,9 +264,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)('export'),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
-    (0, swagger_1.ApiOperation)({ summary: 'Export contacts' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Contacts exported successfully' }),
-    openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
@@ -320,10 +271,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ContactsController.prototype, "exportContacts", null);
 ContactsController = __decorate([
-    (0, swagger_1.ApiTags)('Contacts'),
     (0, common_1.Controller)('contacts'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [contacts_service_1.ContactsService])
 ], ContactsController);
 exports.ContactsController = ContactsController;

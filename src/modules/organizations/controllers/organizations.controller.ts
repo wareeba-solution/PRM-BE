@@ -16,7 +16,6 @@ import {
     ForbiddenException,
     UnauthorizedException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -32,10 +31,8 @@ import { Repository } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm'; 
 
-@ApiTags('Organizations')
 @Controller('organizations')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth()
 export class OrganizationsController {
     constructor(
         private readonly organizationsService: OrganizationsService,
@@ -59,8 +56,6 @@ export class OrganizationsController {
     }
     @Get()
     @Roles(Role.SUPER_ADMIN)
-    @ApiOperation({ summary: 'Get all organizations' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return all organizations' })
     async findAll(
         @Query() query: OrganizationQueryDto,
     ) {
@@ -68,8 +63,6 @@ export class OrganizationsController {
     }
 
     @Get('current')
-    @ApiOperation({ summary: 'Get current organization' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return current organization details' })
     async getCurrentOrganization(
         @Request() req: CustomRequest,
     ) {
@@ -82,8 +75,6 @@ export class OrganizationsController {
 
     @Get(':id')
     @Roles(Role.SUPER_ADMIN)
-    @ApiOperation({ summary: 'Get organization by id' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return organization details' })
     async findOne(
         @Param('id', ParseUUIDPipe) id: string,
     ) {
@@ -95,8 +86,6 @@ export class OrganizationsController {
     }
 
     @Put(':id')
-    @ApiOperation({ summary: 'Update organization' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Organization updated successfully' })
     async update(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() updateOrganizationDto: UpdateOrganizationDto,
@@ -119,8 +108,6 @@ export class OrganizationsController {
 
     @Delete(':id')
     @Roles(Role.SUPER_ADMIN)
-    @ApiOperation({ summary: 'Delete organization' })
-    @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Organization deleted successfully' })
     async remove(
         @Param('id', ParseUUIDPipe) id: string,
     ) {
@@ -129,8 +116,6 @@ export class OrganizationsController {
 
     @Post(':id/users')
     @Roles(Role.ADMIN)
-    @ApiOperation({ summary: 'Add user to organization' })
-    @ApiResponse({ status: HttpStatus.CREATED, description: 'User added successfully' })
     async addUser(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() addUserDto: AddUserDto,
@@ -150,8 +135,6 @@ export class OrganizationsController {
 
     @Delete(':id/users/:userId')
     @Roles(Role.ADMIN)
-    @ApiOperation({ summary: 'Remove user from organization' })
-    @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'User removed successfully' })
     async removeUser(
         @Param('id', ParseUUIDPipe) id: string,
         @Param('userId', ParseUUIDPipe) userId: string,
@@ -179,8 +162,6 @@ export class OrganizationsController {
 
     @Put(':id/subscription')
     @Roles(Role.SUPER_ADMIN, Role.ADMIN)
-    @ApiOperation({ summary: 'Update organization subscription' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Subscription updated successfully' })
     async updateSubscription(
         @Param('id', ParseUUIDPipe) id: string,
         @Body() updateSubscriptionDto: UpdateSubscriptionDto,
@@ -200,8 +181,6 @@ export class OrganizationsController {
 
     @Get(':id/statistics')
     @Roles(Role.ADMIN)
-    @ApiOperation({ summary: 'Get organization statistics' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return organization statistics' })
     async getStatistics(
         @Param('id', ParseUUIDPipe) id: string,
         @Request() req: CustomRequest,
@@ -220,8 +199,6 @@ export class OrganizationsController {
 
     @Post(':id/verify-domain')
     @Roles(Role.ADMIN)
-    @ApiOperation({ summary: 'Verify organization domain' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Domain verified successfully' })
     async verifyDomain(
         @Param('id', ParseUUIDPipe) id: string,
         @Body('domain') domain: string,
@@ -241,8 +218,6 @@ export class OrganizationsController {
 
     @Get(':id/audit-logs')
     @Roles(Role.ADMIN)
-    @ApiOperation({ summary: 'Get organization audit logs' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Return organization audit logs' })
     async getAuditLogs(
         @Param('id', ParseUUIDPipe) id: string,
         @Query() query: any,

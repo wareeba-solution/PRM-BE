@@ -1,9 +1,11 @@
 import { CreateUserDto } from './create-user.dto';
-declare const UpdateUserDto_base: import("@nestjs/common").Type<Partial<Omit<CreateUserDto, "email" | "password">>>;
+import { Role } from '../enums/role.enum';
+declare const UpdateUserDto_base: import("@nestjs/mapped-types").MappedType<Pick<CreateUserDto, "department" | "phoneNumber" | "firstName" | "lastName">>;
 export declare class UpdateUserDto extends UpdateUserDto_base {
     isActive?: boolean;
     isLocked?: boolean;
     isEmailVerified?: boolean;
     isPhoneVerified?: boolean;
+    role?: Role;
 }
 export {};

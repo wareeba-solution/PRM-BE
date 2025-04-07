@@ -13,7 +13,6 @@ import {
     Ip,
     UnauthorizedException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
@@ -26,7 +25,6 @@ import { Public } from '../decorators/public.decorator';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { RateLimitGuard } from '../guards/rate-limit.guard';
 
-@ApiTags('Authentication')
 @Controller('auth')
 @UseGuards(RateLimitGuard)
 export class AuthController {
@@ -35,9 +33,6 @@ export class AuthController {
     @Post('login')
     @Public()
     @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'User login' })
-    @ApiResponse({ status: HttpStatus.OK, description: 'Login successful' })
-    @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid credentials' })
     async login(
         @Body() loginDto: LoginDto,
         @Headers('user-agent') userAgent: string,
@@ -59,9 +54,6 @@ export class AuthController {
 
     @Post('register')
     @Public()
-    @ApiOperation({ summary: 'Register a new user and organization' })
-    @ApiResponse({ status: 201, description: 'Successfully registered' })
-    @ApiResponse({ status: 400, description: 'Bad request' })
     async register(
         @Body() registerDto: RegisterDto,
         @Headers('user-agent') userAgent: string,
@@ -81,7 +73,6 @@ export class AuthController {
     @Post('refresh-token')
     @Public()
     @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Refresh access token' })
     async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
         const tokens = await this.authService.refreshToken(refreshTokenDto.refreshToken);
         return { tokens };
@@ -90,8 +81,6 @@ export class AuthController {
     @Post('logout')
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'User logout' })
     async logout(
         @CurrentUser() user: User,
         @Headers('authorization') authHeader: string,
@@ -109,7 +98,6 @@ export class AuthController {
     @Post('forgot-password')
     @Public()
     @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Request password reset' })
     async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
         // Assuming the service has a method to handle this
         // If not implemented, you'll need to add this method to your AuthService
@@ -120,7 +108,6 @@ export class AuthController {
     @Post('reset-password')
     @Public()
     @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Reset password' })
     async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
         // Assuming the service has a method to handle this
         // If not implemented, you'll need to add this method to your AuthService
@@ -133,8 +120,6 @@ export class AuthController {
 
     @Get('me')
     @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Get current user profile' })
     async getCurrentUser(@CurrentUser() user: User) {
         return { user };
     }
@@ -142,7 +127,6 @@ export class AuthController {
     @Post('verify-email')
     @Public()
     @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Verify email address' })
     async verifyEmail(@Body('token') token: string) {
         // Assuming the service has a method to handle this
         // If not implemented, you'll need to add this method to your AuthService
@@ -152,8 +136,6 @@ export class AuthController {
 
     @Post('resend-verification')
     @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Resend verification email' })
     async resendVerification(@CurrentUser() user: User) {
         // Assuming the service has a method to handle this
         // If not implemented, you'll need to add this method to your AuthService
