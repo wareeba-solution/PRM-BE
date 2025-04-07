@@ -3,9 +3,31 @@ import { INestApplication } from '@nestjs/common';
 import * as path from 'path';
 import * as fs from 'fs';
 
+// Import all DTOs for Swagger documentation
+import {
+  BaseDto,
+  UserDto,
+  OrganizationDto,
+  TicketDto,
+  ContactDto,
+  ContactRelationshipDto,
+  AppointmentDto,
+  NotificationDto,
+  MessageDto,
+  DepartmentDto,
+  DocumentDto,
+  MedicalHistoryDto,
+  MergedRecordDto
+} from './swagger-dto';
+
 /**
  * Configures Swagger and ReDoc for the application
  * Implements a safe configuration to avoid circular dependency issues
+ */
+
+
+/**
+ * Sets up Swagger documentation for the application
  */
 export function setupSwagger(app: INestApplication): void {
   // Ensure the public directory exists
@@ -13,6 +35,7 @@ export function setupSwagger(app: INestApplication): void {
   if (!fs.existsSync(publicDir)) {
     fs.mkdirSync(publicDir, { recursive: true });
   }
+  
   // Create Swagger document configuration
   const config = new DocumentBuilder()
     .setTitle('Patient Relationship Manager API')
@@ -29,98 +52,110 @@ export function setupSwagger(app: INestApplication): void {
       },
       'JWT-auth',
     )
-    .addTag('auth', 'Authentication endpoints')
-    .addTag('users', 'User management endpoints')
-    .addTag('organizations', 'Organization management endpoints')
-    .addTag('departments', 'Department management endpoints')
-    .addTag('tickets', 'Ticket management endpoints')
-    .addTag('messages', 'Message management endpoints')
-    .addTag('appointments', 'Appointment management endpoints')
-    .addTag('notifications', 'Notification management endpoints')
     .build();
 
-  // Create the Swagger document with safe options to avoid circular dependency issues
-  const document = SwaggerModule.createDocument(app, config, {
-    deepScanRoutes: false, // Prevent deep scanning which can cause circular dependency issues
-  });
+  try {
+    // Create the Swagger document with safe options to avoid circular dependency issues
+    const document = SwaggerModule.createDocument(app, config, {
+      deepScanRoutes: false, // Prevent deep scanning which can cause circular dependency issues
+      extraModels: [
+        BaseDto,
+        UserDto,
+        OrganizationDto,
+        TicketDto,
+        ContactDto,
+        ContactRelationshipDto,
+        AppointmentDto,
+        NotificationDto,
+        MessageDto,
+        DepartmentDto,
+        DocumentDto,
+        MedicalHistoryDto,
+        MergedRecordDto
+      ]
+    });
+    
+    // Manually add schemas if they're not being detected automatically
+    if (!document.components) {
+      document.components = {};
+    }
+    
+    if (!document.components.schemas) {
+      document.components.schemas = {};
+    }
+    
+    // Add DTOs to schemas explicitly
+    const schemaMap = {
+      BaseDto,
+      UserDto,
+      OrganizationDto,
+      TicketDto,
+      ContactDto,
+      ContactRelationshipDto,
+      AppointmentDto,
+      NotificationDto,
+      MessageDto,
+      DepartmentDto,
+      DocumentDto,
+      MedicalHistoryDto,
+      MergedRecordDto
+    };
+    
+    // Add each DTO to the schemas
+    Object.entries(schemaMap).forEach(([key, value]) => {
+      if (!document.components.schemas[key]) {
+        // Create a schema object with the correct type
+        const schemaObject: any = {
+          type: 'object',
+          properties: {}
+        };
+        
+        // Extract properties from class metadata
+        const prototype = value.prototype;
+        if (prototype) {
+          const properties = Reflect.getMetadata('swagger/apiProperties', prototype) || {};
+          schemaObject.properties = properties;
+        }
+        
+        // Add the schema to the document
+        document.components.schemas[key] = schemaObject;
+      }
+    });
 
-  // Filter out undefined models which can cause errors
-  const filteredDocument = {
-    ...document,
-    components: {
-      ...document.components,
-      schemas: Object.entries(document.components?.schemas || {})
-        .filter(([_, schema]) => schema !== undefined)
-        .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
-    },
-  };
+    // Filter out undefined models which can cause errors
+    const filteredDocument = {
+      ...document,
+      components: {
+        ...document.components,
+        schemas: Object.entries(document.components?.schemas || {})
+          .filter(([_, schema]) => schema !== undefined)
+          .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
+      },
+    };
+    
+    // Log available schemas for debugging
+    console.log('Available schemas:', Object.keys(filteredDocument.components?.schemas || {}).length);
 
-  // Create the redoc HTML file
-  const redocHtmlPath = path.join(publicDir, 'redoc.html');
-  const redocHtml = `<!DOCTYPE html>
-<html>
-  <head>
-    <title>Patient Relationship Manager API Documentation</title>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        font-family: 'Roboto', sans-serif;
-      }
-      
-      .header {
-        background-color: #2d3748;
-        color: white;
-        padding: 20px;
-        text-align: center;
-      }
-      
-      .header h1 {
-        margin: 0;
-        font-family: 'Montserrat', sans-serif;
-      }
-      
-      .header p {
-        margin: 10px 0 0;
-        opacity: 0.8;
-      }
-      
-      redoc {
-        display: block;
-        height: calc(100vh - 80px);
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>Patient Relationship Manager API</h1>
-      <p>Interactive API documentation powered by ReDoc</p>
-    </div>
-    <redoc spec-url="/docs-json"></redoc>
-    <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"></script>
-  </body>
-</html>`;
-  fs.writeFileSync(redocHtmlPath, redocHtml);
-
-  // Setup ReDoc with NestJS
-  SwaggerModule.setup('docs', app, filteredDocument, {
-    useGlobalPrefix: false,
-    customSiteTitle: 'PRM API Documentation',
-  });
-  
-  // Expose the OpenAPI JSON at /docs-json
-  const httpAdapter = app.getHttpAdapter();
-  httpAdapter.get('/docs-json', (req, res) => {
-    res.json(filteredDocument);
-  });
-  
-  // Serve the ReDoc HTML file
-  httpAdapter.get('/docs', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'public', 'redoc.html'));
-  });
+    // Setup Swagger with NestJS using the default setup
+    SwaggerModule.setup('docs', app, filteredDocument, {
+      useGlobalPrefix: false,
+      customSiteTitle: 'PRM API Documentation',
+      explorer: true, // Enable explorer to make schemas more accessible
+      swaggerOptions: {
+        docExpansion: 'none', // Start with all sections collapsed
+        filter: true,
+        deepLinking: true,
+        defaultModelsExpandDepth: 1, // Show schemas section by default
+        displayRequestDuration: true,
+        showExtensions: true,
+        showCommonExtensions: true
+      },
+    });
+    
+    console.log('Swagger documentation setup successfully');
+  } catch (error) {
+    console.error('Error setting up Swagger documentation:', error.message);
+  }
   
   console.log('ReDoc documentation setup successfully');
 }

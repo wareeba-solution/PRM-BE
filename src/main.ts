@@ -126,7 +126,7 @@ async function bootstrap() {
     // Set global prefix for all API routes
     const apiPrefix = process.env.API_PREFIX || 'api';
     app.setGlobalPrefix(apiPrefix, {
-      exclude: ['docs', 'docs-json', 'health-check', 'api-debug', '/']
+      exclude: ['docs', 'swagger-ui', 'health-check', 'api-debug', '/']
     });
     logger.log(`Global API prefix set to: ${apiPrefix}`);
     
@@ -214,7 +214,7 @@ async function bootstrap() {
 
     // Log API Documentation URL
     console.log('API Documentation available at:');
-    console.log(`- ReDoc UI: ${await app.getUrl()}/docs`);
+    console.log(`- API Documentation: ${await app.getUrl()}/docs`);
 
     return { app, server: nestServer };
   } catch (error) {
