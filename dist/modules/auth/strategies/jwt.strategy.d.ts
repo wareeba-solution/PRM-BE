@@ -18,6 +18,7 @@ export declare class JwtStrategy extends JwtStrategy_base {
         role: import("../../users/enums/role.enum").Role;
         tenantId: any;
         organizationId: string;
+        isEmailVerified: true;
         permissions: any;
     }>;
 }

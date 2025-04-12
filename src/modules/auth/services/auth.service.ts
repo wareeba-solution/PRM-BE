@@ -14,7 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 import { UsersService } from '../../users/services/users.service';
-import { RegisterDto } from '../dto/register.dto';
+import { CreateBranchDto } from '../dto/create-branch.dto';
 import { TenantsService } from '../../tenants/services/tenants.service';
 import { UserAccountService } from './user-account.service';
 import { OrganizationsService } from '../../organizations/services/organizations.service';
@@ -55,7 +55,7 @@ export class AuthService {
         private readonly organizationsService: OrganizationsService,
     ) {}
 
-    async login(loginDto: LoginDto): Promise<TokenPair> {
+    async login(loginDto: LoginDto): Promise<TokenPair & { isEmailVerified: boolean }> {
         const { email, password, organizationId } = loginDto;
 
         // Find user by email and organization
@@ -108,20 +108,30 @@ export class AuthService {
         return {
             accessToken,
             refreshToken,
-            expiresIn: 3600 // 1 hour in seconds
+            expiresIn: 3600,
+            isEmailVerified: user.isEmailVerified
         };
     }
 
-    async register(registerDto: RegisterDto): Promise<TokenPair> {
-        // Delegate registration to UserAccountService
-        const result = await this.userAccountService.register(registerDto);
-        
-        // Generate tokens after successful registration
-        return this.login({ 
-            email: result.user.email, 
-            password: registerDto.user.password,
-            organizationId: result.user.organizationId 
+
+
+
+    async createBranch(createBranchDto: CreateBranchDto): Promise<TokenPair & { isEmailVerified: boolean, verificationToken?: string }> {
+        // Delegate branch creation to UserAccountService
+        const result = await this.userAccountService.createBranch(createBranchDto);
+
+        // Generate tokens after successful branch creation
+        const loginResult = await this.login({
+            email: result.user.email,
+            password: createBranchDto.user.password,
+            organizationId: result.user.organizationId
         });
+
+        return {
+            ...loginResult,
+            isEmailVerified: false, // New branch admins always start unverified
+            verificationToken: result.verificationToken // Only included in development
+        };
     }
 
     async refreshToken(refreshToken: string): Promise<TokenPair> {

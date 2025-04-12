@@ -54,14 +54,21 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         throw new UnauthorizedException('Invalid tenant context');
       }
 
-      // Find the user with ID only first, to provide better error messages
+      // Find the user with complete relations to check verification status
       const user = await this.userRepository.findOne({
         where: { id: payload.sub },
+        relations: ['verification'] // Include verification relation if it exists
       });
 
       if (!user) {
         this.logger.warn(`User not found with ID: ${payload.sub}`);
         throw new UnauthorizedException('User not found');
+      }
+
+      // Check if email verification is required and if user's email is verified
+      if (!user.isEmailVerified) {
+        this.logger.warn(`Unverified user ${user.id} attempted to access protected resource`);
+        throw new UnauthorizedException('Email verification required. Please verify your email to continue using your account.');
       }
 
       // Return user data to be attached to request, including tenantId from token
@@ -71,11 +78,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         role: user.role,
         tenantId: payload.tenantId, // Use tenantId from token
         organizationId: user.organizationId,
+        isEmailVerified: user.isEmailVerified, // Include verification status
         permissions: payload.permissions || user.permissions || []
       };
     } catch (error) {
       this.logger.error(`JWT validation error: ${error.message}`);
-      throw new UnauthorizedException('Invalid or expired token');
+      throw new UnauthorizedException(error.message || 'Invalid or expired token');
     }
   }
+
 }

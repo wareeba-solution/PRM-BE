@@ -1,4 +1,4 @@
-// src/modules/auth/dto/register.dto.ts
+// src/modules/auth/dto/create-branch.dto.ts
 
 import {
     IsEmail,
@@ -18,7 +18,7 @@ import { Role } from '../../users/enums/role.enum';
 import { SubscriptionPlan } from '../../organizations/enums/subscription-plan.enum';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class OrganizationAddressDto {
+export class BranchAddressDto {
     @ApiProperty({ description: 'Street address', example: '123 Main St' })
     @IsString()
     @IsNotEmpty()
@@ -45,29 +45,27 @@ export class OrganizationAddressDto {
     country: string;
 }
 
-export class RegisterUserDto {
-    @ApiProperty({ description: 'User\'s first name', example: 'John' })
+export class BranchAdminDto {
+    @ApiProperty({ description: 'Branch admin\'s first name', example: 'John' })
     @IsString()
     @IsNotEmpty({ message: 'First name is required' })
     @MinLength(2, { message: 'First name must be at least 2 characters long' })
     @MaxLength(50, { message: 'First name must not exceed 50 characters' })
     firstName: string;
 
-
-    @ApiProperty({ description: 'User\'s last name', example: 'Doe' })
+    @ApiProperty({ description: 'Branch admin\'s last name', example: 'Doe' })
     @IsString()
     @IsNotEmpty({ message: 'Last name is required' })
     @MinLength(2, { message: 'Last name must be at least 2 characters long' })
     @MaxLength(50, { message: 'Last name must not exceed 50 characters' })
     lastName: string;
 
-
-    @ApiProperty({ description: 'User\'s email address', example: 'john.doe@example.com' })
+    @ApiProperty({ description: 'Branch admin\'s email address', example: 'branch.admin@example.com' })
     @IsEmail({}, { message: 'Please enter a valid email address' })
     @IsNotEmpty({ message: 'Email is required' })
     email: string;
 
-
+    @ApiProperty({ description: 'Branch admin\'s password', example: 'SecurePass123!' })
     @IsString()
     @IsNotEmpty({ message: 'Password is required' })
     @MinLength(8, { message: 'Password must be at least 8 characters long' })
@@ -79,27 +77,31 @@ export class RegisterUserDto {
     )
     password: string;
 
-
+    @ApiPropertyOptional({ description: 'Branch admin\'s phone number', example: '+1234567890' })
     @IsOptional()
     @IsPhoneNumber(undefined, { message: 'Please enter a valid phone number' })
     phone?: string;
 
-
+    @ApiPropertyOptional({
+        description: 'Branch admin\'s role',
+        enum: Role,
+        default: Role.ADMIN,
+        example: Role.ADMIN
+    })
     @IsOptional()
     @IsEnum(Role)
-    role?: Role;
+    role?: Role = Role.ADMIN;
 }
 
-export class RegisterOrganizationDto {
-    @ApiProperty({ description: 'Organization name', example: 'Acme Healthcare' })
+export class BranchDetailsDto {
+    @ApiProperty({ description: 'Branch name', example: 'Acme Healthcare - Downtown Branch' })
     @IsString()
-    @IsNotEmpty({ message: 'Organization name is required' })
-    @MinLength(2, { message: 'Organization name must be at least 2 characters long' })
-    @MaxLength(100, { message: 'Organization name must not exceed 100 characters' })
+    @IsNotEmpty({ message: 'Branch name is required' })
+    @MinLength(2, { message: 'Branch name must be at least 2 characters long' })
+    @MaxLength(100, { message: 'Branch name must not exceed 100 characters' })
     name: string;
 
-
-    @ApiPropertyOptional({ description: 'Organization website', example: 'https://acme-health.com' })
+    @ApiPropertyOptional({ description: 'Branch website', example: 'https://downtown.acme-health.com' })
     @IsOptional()
     @IsString()
     @Matches(/^https?:\/\/.+\..+$/, {
@@ -107,24 +109,22 @@ export class RegisterOrganizationDto {
     })
     website?: string;
 
-
+    @ApiPropertyOptional({ description: 'Branch phone number', example: '+1234567890' })
     @IsOptional()
     @IsPhoneNumber(undefined, { message: 'Please enter a valid phone number' })
     phone?: string;
 
-
-    @ApiPropertyOptional({ 
-        description: 'Organization address', 
-        type: () => OrganizationAddressDto 
+    @ApiPropertyOptional({
+        description: 'Branch address',
+        type: () => BranchAddressDto
     })
     @IsOptional()
     @ValidateNested()
-    @Type(() => OrganizationAddressDto)
-    address?: OrganizationAddressDto;
+    @Type(() => BranchAddressDto)
+    address?: BranchAddressDto;
 
-
-    @ApiPropertyOptional({ 
-        description: 'Organization subscription plan', 
+    @ApiPropertyOptional({
+        description: 'Branch subscription plan',
         enum: SubscriptionPlan,
         example: SubscriptionPlan.BASIC
     })
@@ -133,25 +133,25 @@ export class RegisterOrganizationDto {
     subscriptionPlan?: SubscriptionPlan;
 }
 
-export class RegisterDto {
-    @ApiProperty({ 
-        description: 'User information', 
-        type: () => RegisterUserDto 
+export class CreateBranchDto {
+    @ApiProperty({
+        description: 'Branch admin information',
+        type: () => BranchAdminDto
     })
     @ValidateNested()
-    @Type(() => RegisterUserDto)
-    user: RegisterUserDto;
+    @Type(() => BranchAdminDto)
+    user: BranchAdminDto;
 
-    @ApiProperty({ 
-        description: 'Organization information', 
-        type: () => RegisterOrganizationDto 
+    @ApiProperty({
+        description: 'Branch details',
+        type: () => BranchDetailsDto
     })
     @ValidateNested()
-    @Type(() => RegisterOrganizationDto)
-    organization: RegisterOrganizationDto;
-    
-    @ApiPropertyOptional({ 
-        description: 'Tenant ID (required for multi-tenant registration)',
+    @Type(() => BranchDetailsDto)
+    organization: BranchDetailsDto;
+
+    @ApiProperty({
+        description: 'Tenant ID (required for multi-tenant applications)',
         example: '123e4567-e89b-12d3-a456-426614174000'
     })
     @IsOptional()
@@ -160,7 +160,7 @@ export class RegisterDto {
 }
 
 // Response interfaces
-export interface RegisterResponse {
+export interface CreateBranchResponse {
     user: {
         id: string;
         email: string;
@@ -169,7 +169,7 @@ export interface RegisterResponse {
         role: string;
         organizationId: string;
     };
-    organization: {
+    branch: {
         id: string;
         name: string;
         subscriptionPlan: string;
@@ -180,12 +180,6 @@ export interface RegisterResponse {
         refreshToken: string;
         expiresIn: number;
     };
-}
-
-export interface RegistrationMetadata {
-    userAgent: string;
-    ip: string;
-    deviceId?: string;
-    verificationToken?: string;
-    verificationExpires?: Date;
+    isEmailVerified: boolean;
+    verificationToken?: string; // Only included in development
 }

@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { RegisterDto } from '../dto/register.dto';
+import { CreateBranchDto } from '../dto/create-branch.dto';
 import { Organization } from '../../organizations/entities/organization.entity';
 import { UsersService } from '../../users/services/users.service';
 import { ConfigService } from '@nestjs/config';
@@ -26,12 +26,13 @@ export declare class UserAccountService {
     private readonly emailService;
     constructor(userRepository: Repository<User>, organizationRepository: Repository<Organization>, userVerificationRepository: Repository<UserVerification>, userSettingsRepository: Repository<UserSettings>, authService: AuthService, usersService: UsersService, configService: ConfigService, organizationsService: OrganizationsService, emailService: EmailService);
     /**
-     * Registers a new user and organization
-     * @param registerDto Registration data
-     * @returns Created user
+     * Creates a new branch organization within an existing tenant
+     * @param createBranchDto Branch creation data
+     * @returns Created user and verification token for testing
      */
-    register(registerDto: RegisterDto): Promise<{
+    createBranch(createBranchDto: CreateBranchDto): Promise<{
         user: User;
+        verificationToken?: string;
     }>;
     /**
      * Sends a password reset email to the user

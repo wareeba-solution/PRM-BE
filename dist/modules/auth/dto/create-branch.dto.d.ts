@@ -1,13 +1,13 @@
 import { Role } from '../../users/enums/role.enum';
 import { SubscriptionPlan } from '../../organizations/enums/subscription-plan.enum';
-export declare class OrganizationAddressDto {
+export declare class BranchAddressDto {
     street: string;
     city: string;
     state: string;
     postalCode: string;
     country: string;
 }
-export declare class RegisterUserDto {
+export declare class BranchAdminDto {
     firstName: string;
     lastName: string;
     email: string;
@@ -15,19 +15,19 @@ export declare class RegisterUserDto {
     phone?: string;
     role?: Role;
 }
-export declare class RegisterOrganizationDto {
+export declare class BranchDetailsDto {
     name: string;
     website?: string;
     phone?: string;
-    address?: OrganizationAddressDto;
+    address?: BranchAddressDto;
     subscriptionPlan?: SubscriptionPlan;
 }
-export declare class RegisterDto {
-    user: RegisterUserDto;
-    organization: RegisterOrganizationDto;
+export declare class CreateBranchDto {
+    user: BranchAdminDto;
+    organization: BranchDetailsDto;
     tenantId?: string;
 }
-export interface RegisterResponse {
+export interface CreateBranchResponse {
     user: {
         id: string;
         email: string;
@@ -36,7 +36,7 @@ export interface RegisterResponse {
         role: string;
         organizationId: string;
     };
-    organization: {
+    branch: {
         id: string;
         name: string;
         subscriptionPlan: string;
@@ -47,11 +47,6 @@ export interface RegisterResponse {
         refreshToken: string;
         expiresIn: number;
     };
-}
-export interface RegistrationMetadata {
-    userAgent: string;
-    ip: string;
-    deviceId?: string;
+    isEmailVerified: boolean;
     verificationToken?: string;
-    verificationExpires?: Date;
 }

@@ -21,6 +21,7 @@ var OrganizationType;
     OrganizationType["LABORATORY"] = "LABORATORY";
     OrganizationType["PHARMACY"] = "PHARMACY";
     OrganizationType["OTHER"] = "OTHER";
+    OrganizationType["BRANCH"] = "BRANCH";
 })(OrganizationType = exports.OrganizationType || (exports.OrganizationType = {}));
 var SubscriptionPlan;
 (function (SubscriptionPlan) {

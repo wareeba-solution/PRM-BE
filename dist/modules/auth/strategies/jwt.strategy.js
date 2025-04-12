@@ -60,13 +60,19 @@ let JwtStrategy = JwtStrategy_1 = class JwtStrategy extends (0, passport_1.Passp
                 this.logger.error(`Error verifying tenant from token: ${error.message}`);
                 throw new common_1.UnauthorizedException('Invalid tenant context');
             }
-            // Find the user with ID only first, to provide better error messages
+            // Find the user with complete relations to check verification status
             const user = await this.userRepository.findOne({
                 where: { id: payload.sub },
+                relations: ['verification'] // Include verification relation if it exists
             });
             if (!user) {
                 this.logger.warn(`User not found with ID: ${payload.sub}`);
                 throw new common_1.UnauthorizedException('User not found');
+            }
+            // Check if email verification is required and if user's email is verified
+            if (!user.isEmailVerified) {
+                this.logger.warn(`Unverified user ${user.id} attempted to access protected resource`);
+                throw new common_1.UnauthorizedException('Email verification required. Please verify your email to continue using your account.');
             }
             // Return user data to be attached to request, including tenantId from token
             return {
@@ -75,12 +81,13 @@ let JwtStrategy = JwtStrategy_1 = class JwtStrategy extends (0, passport_1.Passp
                 role: user.role,
                 tenantId: payload.tenantId,
                 organizationId: user.organizationId,
+                isEmailVerified: user.isEmailVerified,
                 permissions: payload.permissions || user.permissions || []
             };
         }
         catch (error) {
             this.logger.error(`JWT validation error: ${error.message}`);
-            throw new common_1.UnauthorizedException('Invalid or expired token');
+            throw new common_1.UnauthorizedException(error.message || 'Invalid or expired token');
         }
     }
 };

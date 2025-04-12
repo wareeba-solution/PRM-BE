@@ -82,18 +82,21 @@ let AuthService = AuthService_1 = class AuthService {
         return {
             accessToken,
             refreshToken,
-            expiresIn: 3600 // 1 hour in seconds
+            expiresIn: 3600,
+            isEmailVerified: user.isEmailVerified
         };
     }
-    async register(registerDto) {
-        // Delegate registration to UserAccountService
-        const result = await this.userAccountService.register(registerDto);
-        // Generate tokens after successful registration
-        return this.login({
+    async createBranch(createBranchDto) {
+        // Delegate branch creation to UserAccountService
+        const result = await this.userAccountService.createBranch(createBranchDto);
+        // Generate tokens after successful branch creation
+        const loginResult = await this.login({
             email: result.user.email,
-            password: registerDto.user.password,
+            password: createBranchDto.user.password,
             organizationId: result.user.organizationId
         });
+        return Object.assign(Object.assign({}, loginResult), { isEmailVerified: false, verificationToken: result.verificationToken // Only included in development
+         });
     }
     async refreshToken(refreshToken) {
         try {

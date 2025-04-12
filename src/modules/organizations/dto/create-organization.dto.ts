@@ -23,6 +23,7 @@ export enum OrganizationType {
     LABORATORY = 'LABORATORY',
     PHARMACY = 'PHARMACY',
     OTHER = 'OTHER',
+    BRANCH = 'BRANCH',
 }
 
 export enum SubscriptionPlan {

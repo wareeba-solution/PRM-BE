@@ -4,7 +4,8 @@ export declare enum OrganizationType {
     PRACTICE = "PRACTICE",
     LABORATORY = "LABORATORY",
     PHARMACY = "PHARMACY",
-    OTHER = "OTHER"
+    OTHER = "OTHER",
+    BRANCH = "BRANCH"
 }
 export declare enum SubscriptionPlan {
     FREE = "FREE",

@@ -4,7 +4,7 @@ import { Injectable, BadRequestException, NotFoundException, ConflictException, 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { RegisterDto } from '../dto/register.dto';
+import { CreateBranchDto } from '../dto/create-branch.dto';
 import { compare, hash } from 'bcrypt';
 import { Organization, OrganizationStatus } from '../../organizations/entities/organization.entity';
 import { Role } from '../../users/enums/role.enum';
@@ -47,25 +47,120 @@ export class UserAccountService {
     private readonly emailService: EmailService,
   ) {}
 
+  // /**
+  //  * Registers a new user and organization
+  //  * @param registerDto Registration data
+  //  * @returns Created user
+  //  */
+  // async register(registerDto: RegisterDto): Promise<{ user: User }> {
+  //   // Check if user with email already exists
+  //   const existingUser = await this.userRepository.findOne({
+  //     where: { email: registerDto.user.email }
+  //   });
+  //
+  //   if (existingUser) {
+  //     throw new ConflictException('User with this email already exists');
+  //   }
+  //
+  //   // Map subscription plan from RegisterDto to CreateOrganizationDto
+  //   let subscriptionPlan = CreateOrgSubscriptionPlan.FREE;
+  //   if (registerDto.organization.subscriptionPlan) {
+  //     switch (registerDto.organization.subscriptionPlan) {
+  //       case RegisterSubscriptionPlan.BASIC:
+  //         subscriptionPlan = CreateOrgSubscriptionPlan.STARTER;
+  //         break;
+  //       case RegisterSubscriptionPlan.STANDARD:
+  //         subscriptionPlan = CreateOrgSubscriptionPlan.PROFESSIONAL;
+  //         break;
+  //       case RegisterSubscriptionPlan.PREMIUM:
+  //       case RegisterSubscriptionPlan.ENTERPRISE:
+  //         subscriptionPlan = CreateOrgSubscriptionPlan.ENTERPRISE;
+  //         break;
+  //       case RegisterSubscriptionPlan.FREE:
+  //       default:
+  //         subscriptionPlan = CreateOrgSubscriptionPlan.FREE;
+  //     }
+  //   }
+  //
+  //   // Create organization first
+  //   const organization = await this.organizationsService.create({
+  //     name: registerDto.organization.name,
+  //     type: OrganizationType.OTHER,
+  //     email: registerDto.user.email,
+  //     phone: registerDto.organization.phone,
+  //     domain: registerDto.organization.website?.replace(/^https?:\/\//, ''),
+  //     address: registerDto.organization.address,
+  //     primaryContact: {
+  //       name: `${registerDto.user.firstName} ${registerDto.user.lastName}`,
+  //       position: 'Admin',
+  //       email: registerDto.user.email,
+  //       phone: registerDto.user.phone || registerDto.organization.phone
+  //     },
+  //     subscriptionPlan,
+  //     createdById: 'system'
+  //   });
+  //
+  //   // Create user with organization
+  //   const user = await this.usersService.create({
+  //     firstName: registerDto.user.firstName,
+  //     lastName: registerDto.user.lastName,
+  //     email: registerDto.user.email,
+  //     password: registerDto.user.password,
+  //     phoneNumber: registerDto.user.phone,
+  //     role: Role.ADMIN,
+  //     organizationId: organization.id,
+  //     createdBy: 'system'
+  //   });
+  //
+  //   // Create user verification record
+  //   const verificationToken = uuidv4();
+  //   const verificationExpiry = new Date();
+  //   verificationExpiry.setHours(verificationExpiry.getHours() + 24);
+  //
+  //   await this.userVerificationRepository.save({
+  //     userId: user.id,
+  //     isEmailVerified: false,
+  //     emailVerificationToken: verificationToken,
+  //     emailVerificationExpiry: verificationExpiry
+  //   });
+  //
+  //   // Send verification email
+  //   await this.emailService.sendEmail({
+  //     to: user.email,
+  //     subject: 'Verify your email',
+  //     template: 'email-verification',
+  //     context: {
+  //       name: user.firstName,
+  //       verificationLink: `${process.env.APP_URL}/verify-email?token=${verificationToken}`,
+  //       expiresIn: '24 hours'
+  //     }
+  //   });
+  //
+  //   return { user };
+  // }
+
+
+
+
   /**
-   * Registers a new user and organization
-   * @param registerDto Registration data
-   * @returns Created user
+   * Creates a new branch organization within an existing tenant
+   * @param createBranchDto Branch creation data
+   * @returns Created user and verification token for testing
    */
-  async register(registerDto: RegisterDto): Promise<{ user: User }> {
+  async createBranch(createBranchDto: CreateBranchDto): Promise<{ user: User, verificationToken?: string }> {
     // Check if user with email already exists
     const existingUser = await this.userRepository.findOne({
-      where: { email: registerDto.user.email }
+      where: { email: createBranchDto.user.email }
     });
 
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
 
-    // Map subscription plan from RegisterDto to CreateOrganizationDto
+    // Map subscription plan from CreateBranchDto to CreateOrganizationDto
     let subscriptionPlan = CreateOrgSubscriptionPlan.FREE;
-    if (registerDto.organization.subscriptionPlan) {
-      switch (registerDto.organization.subscriptionPlan) {
+    if (createBranchDto.organization.subscriptionPlan) {
+      switch (createBranchDto.organization.subscriptionPlan) {
         case RegisterSubscriptionPlan.BASIC:
           subscriptionPlan = CreateOrgSubscriptionPlan.STARTER;
           break;
@@ -84,17 +179,17 @@ export class UserAccountService {
 
     // Create organization first
     const organization = await this.organizationsService.create({
-      name: registerDto.organization.name,
-      type: OrganizationType.OTHER,
-      email: registerDto.user.email,
-      phone: registerDto.organization.phone,
-      domain: registerDto.organization.website?.replace(/^https?:\/\//, ''),
-      address: registerDto.organization.address,
+      name: createBranchDto.organization.name,
+      type: OrganizationType.BRANCH, // Changed from OTHER to BRANCH
+      email: createBranchDto.user.email,
+      phone: createBranchDto.organization.phone,
+      domain: createBranchDto.organization.website?.replace(/^https?:\/\//, ''),
+      address: createBranchDto.organization.address,
       primaryContact: {
-        name: `${registerDto.user.firstName} ${registerDto.user.lastName}`,
-        position: 'Admin',
-        email: registerDto.user.email,
-        phone: registerDto.user.phone || registerDto.organization.phone
+        name: `${createBranchDto.user.firstName} ${createBranchDto.user.lastName}`,
+        position: 'Branch Admin',
+        email: createBranchDto.user.email,
+        phone: createBranchDto.user.phone || createBranchDto.organization.phone
       },
       subscriptionPlan,
       createdById: 'system'
@@ -102,11 +197,11 @@ export class UserAccountService {
 
     // Create user with organization
     const user = await this.usersService.create({
-      firstName: registerDto.user.firstName,
-      lastName: registerDto.user.lastName,
-      email: registerDto.user.email,
-      password: registerDto.user.password,
-      phoneNumber: registerDto.user.phone,
+      firstName: createBranchDto.user.firstName,
+      lastName: createBranchDto.user.lastName,
+      email: createBranchDto.user.email,
+      password: createBranchDto.user.password,
+      phoneNumber: createBranchDto.user.phone,
       role: Role.ADMIN,
       organizationId: organization.id,
       createdBy: 'system'
@@ -127,7 +222,7 @@ export class UserAccountService {
     // Send verification email
     await this.emailService.sendEmail({
       to: user.email,
-      subject: 'Verify your email',
+      subject: 'Verify your email for your new branch',
       template: 'email-verification',
       context: {
         name: user.firstName,
@@ -136,8 +231,19 @@ export class UserAccountService {
       }
     });
 
-    return { user };
+    // Log verification token in development environment
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`VERIFICATION TOKEN for ${user.email}: ${verificationToken}`);
+    }
+
+    return {
+      user,
+      verificationToken: process.env.NODE_ENV !== 'production' ? verificationToken : undefined
+    };
   }
+
+
+
 
   /**
    * Sends a password reset email to the user
