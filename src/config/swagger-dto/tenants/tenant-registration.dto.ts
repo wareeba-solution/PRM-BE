@@ -1,7 +1,7 @@
 // src/config/swagger-dto/tenants/tenant-registration.dto.ts
 
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { PlanType } from '../../../modules/tenants/entities/tenant.entity';
+import { PlanType } from '@/modules/tenants/entities/tenant.entity';
 
 export class TenantRegistrationDto {
   // Tenant information

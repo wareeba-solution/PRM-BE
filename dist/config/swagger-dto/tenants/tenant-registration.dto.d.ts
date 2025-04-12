@@ -1,4 +1,4 @@
-import { PlanType } from '../../../modules/tenants/entities/tenant.entity';
+import { PlanType } from '@/modules/tenants/entities/tenant.entity';
 export declare class TenantRegistrationDto {
     tenantName: string;
     subdomain: string;

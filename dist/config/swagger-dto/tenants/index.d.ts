@@ -1,3 +1,3 @@
-export * from './tenant.dto';
-export * from './tenant-registration.dto';
-export * from './organization-setup.dto';
+export { TenantDto } from './tenant.dto';
+export { TenantRegistrationDto } from './tenant-registration.dto';
+export { OrganizationSetupDto } from './organization-setup.dto';

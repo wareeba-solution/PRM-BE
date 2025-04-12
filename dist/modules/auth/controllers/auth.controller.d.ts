@@ -2,7 +2,7 @@ import { ModuleRef } from '@nestjs/core';
 import { AuthService, TokenPair } from '../services/auth.service';
 import { UserAccountService } from '../services/user-account.service';
 import { LoginDto } from '../dto/login.dto';
-import { RegisterDto } from '../dto/register.dto';
+import { CreateBranchDto } from '../dto/create-branch.dto';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { User } from '../../users/entities/user.entity';
 import { Request, Response } from 'express';
@@ -12,8 +12,13 @@ export declare class AuthController {
     private readonly moduleRef;
     private readonly logger;
     constructor(authService: AuthService, userAccountService: UserAccountService, moduleRef: ModuleRef);
-    login(loginDto: LoginDto, req: Request, res: Response, headerTenantId: string): Promise<TokenPair>;
-    register(registerDto: RegisterDto, req: Request): Promise<TokenPair>;
+    login(loginDto: LoginDto, req: Request, res: Response, headerTenantId: string): Promise<TokenPair & {
+        isEmailVerified: boolean;
+    }>;
+    createBranch(createBranchDto: CreateBranchDto, req: Request): Promise<TokenPair & {
+        isEmailVerified: boolean;
+        verificationToken?: string;
+    }>;
     refreshToken(refreshTokenDto: RefreshTokenDto): Promise<{
         tokens: TokenPair;
     }>;

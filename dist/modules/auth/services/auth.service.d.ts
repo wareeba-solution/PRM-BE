@@ -8,7 +8,7 @@ import { Role } from '../../users/enums/role.enum';
 import { ConfigService } from '@nestjs/config';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 import { UsersService } from '../../users/services/users.service';
-import { RegisterDto } from '../dto/register.dto';
+import { CreateBranchDto } from '../dto/create-branch.dto';
 import { TenantsService } from '../../tenants/services/tenants.service';
 import { UserAccountService } from './user-account.service';
 import { OrganizationsService } from '../../organizations/services/organizations.service';
@@ -37,8 +37,13 @@ export declare class AuthService {
     private readonly organizationsService;
     private readonly logger;
     constructor(userRepository: Repository<User>, refreshTokenRepository: Repository<RefreshToken>, organizationRepository: Repository<Organization>, tenantRepository: Repository<Tenant>, jwtService: JwtService, configService: ConfigService, usersService: UsersService, tenantsService: TenantsService, userAccountService: UserAccountService, organizationsService: OrganizationsService);
-    login(loginDto: LoginDto): Promise<TokenPair>;
-    register(registerDto: RegisterDto): Promise<TokenPair>;
+    login(loginDto: LoginDto): Promise<TokenPair & {
+        isEmailVerified: boolean;
+    }>;
+    createBranch(createBranchDto: CreateBranchDto): Promise<TokenPair & {
+        isEmailVerified: boolean;
+        verificationToken?: string;
+    }>;
     refreshToken(refreshToken: string): Promise<TokenPair>;
     validateToken(token: string): Promise<TokenPayload>;
     logout(refreshToken: string): Promise<void>;

@@ -1,1 +1,1 @@
-{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../../src/config/swagger-dto/tenants/index.ts"],"names":[],"mappings":";AAAA,0CAA0C;;;;;;;;;;;;;;;;AAE1C,+CAA6B;AAC7B,4DAA0C;AAC1C,2DAAyC"}
+{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../../src/config/swagger-dto/tenants/index.ts"],"names":[],"mappings":";AAAA,0CAA0C;;;AAE1C,2CAAyC;AAAhC,uGAAA,SAAS,OAAA;AAClB,qEAAkE;AAAzD,gIAAA,qBAAqB,OAAA;AAC9B,mEAAgE;AAAvD,8HAAA,oBAAoB,OAAA"}
