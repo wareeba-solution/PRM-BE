@@ -1,6 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Ticket } from './ticket.entity';
-import { User } from '../../users/entities/user.entity';
+import { User } from '../../../modules/users/entities/user.entity';
 import { TicketAttachment } from './ticket-attachment.entity';
 
 @Entity('ticket_comments')
@@ -8,28 +8,25 @@ export class TicketComment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('uuid')
-  organizationId: string;
-
   @Column('text')
   content: string;
 
-  @Column({ default: false })
-  isInternal: boolean;
-
-  @Column('uuid')
+  @Column()
   ticketId: string;
 
-  @ManyToOne(() => Ticket, ticket => ticket.comments, { lazy: true })
+  @ManyToOne(() => Ticket, ticket => ticket.comments)
   @JoinColumn({ name: 'ticketId' })
-  ticket: Promise<Ticket>;
+  ticket: Ticket;
 
-  @Column('uuid')
-  authorId: string;
+  @Column()
+  createdById: string;
 
-  @ManyToOne(() => User, { lazy: true })
-  @JoinColumn({ name: 'authorId' })
-  author: Promise<User>;
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'createdById' })
+  createdBy: User;
+
+  @Column({ default: false })
+  isInternal: boolean;
 
   @OneToMany(() => TicketAttachment, attachment => attachment.comment, { lazy: true })
   attachments: Promise<TicketAttachment[]>;
@@ -49,6 +46,9 @@ export class TicketComment {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 
   @Column({ nullable: true })
   editedAt: Date;

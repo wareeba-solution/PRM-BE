@@ -91,8 +91,15 @@ let RolesGuard = RolesGuard_1 = class RolesGuard {
     }
     // Helper method to check resource ownership
     async checkResourceOwnership(user, resourceId, resourceType) {
-        // Implement resource ownership check logic
-        return this.authService.checkResourceOwnership(user.id, resourceId, resourceType);
+        // Basic implementation of resource ownership check
+        // For now, only super admins and resource owners can access
+        if (user.role === role_enum_1.Role.SUPER_ADMIN) {
+            return true;
+        }
+        // In a real implementation, we would check the database
+        // to see if the user owns or has access to the resource
+        // This is a simplified version
+        return user.id === resourceId;
     }
 };
 RolesGuard = RolesGuard_1 = __decorate([

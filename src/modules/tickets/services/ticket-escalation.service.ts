@@ -5,13 +5,14 @@ import { ConfigService } from '@nestjs/config';
 import { Ticket } from '../entities/ticket.entity';
 import { TicketActivity } from '../entities/ticket-activity.entity';
 import { TicketActivityType } from '../enums/ticket-activity-type.enum';
-import { TicketStatus } from '../enums/ticket-status.enum';
+import { TicketStatus } from '../enums/ticket.enums';
 import { NotificationsService } from '../../notifications/services/notifications.service';
 import { OrganizationsService } from '../../organizations/services/organizations.service';
 import { StaffMember } from '../../organizations/interfaces/staff-member.interface';
+import { PriorityLevel } from '../entities/ticket-priority.entity';
 
 interface EscalationRule {
-  priority: string;
+  priority: PriorityLevel;
   responseTime: number; // in hours
   resolutionTime: number; // in hours
   escalationLevels: {
@@ -24,7 +25,48 @@ interface EscalationRule {
 @Injectable()
 export class TicketEscalationService {
   private readonly logger = new Logger(TicketEscalationService.name);
-  private readonly escalationRules: Record<string, EscalationRule>;
+  private escalationRules: Record<PriorityLevel, EscalationRule> = {
+    [PriorityLevel.LOW]: {
+      priority: PriorityLevel.LOW,
+      responseTime: 24,
+      resolutionTime: 48,
+      escalationLevels: [
+        { level: 1, timeThreshold: 12, notifyRoles: ['AGENT'] },
+        { level: 2, timeThreshold: 24, notifyRoles: ['SUPERVISOR'] },
+        { level: 3, timeThreshold: 36, notifyRoles: ['ADMIN'] }
+      ]
+    },
+    [PriorityLevel.MEDIUM]: {
+      priority: PriorityLevel.MEDIUM,
+      responseTime: 12,
+      resolutionTime: 24,
+      escalationLevels: [
+        { level: 1, timeThreshold: 6, notifyRoles: ['AGENT'] },
+        { level: 2, timeThreshold: 12, notifyRoles: ['SUPERVISOR'] },
+        { level: 3, timeThreshold: 18, notifyRoles: ['ADMIN'] }
+      ]
+    },
+    [PriorityLevel.HIGH]: {
+      priority: PriorityLevel.HIGH,
+      responseTime: 6,
+      resolutionTime: 12,
+      escalationLevels: [
+        { level: 1, timeThreshold: 3, notifyRoles: ['AGENT'] },
+        { level: 2, timeThreshold: 6, notifyRoles: ['SUPERVISOR'] },
+        { level: 3, timeThreshold: 9, notifyRoles: ['ADMIN'] }
+      ]
+    },
+    [PriorityLevel.URGENT]: {
+      priority: PriorityLevel.URGENT,
+      responseTime: 2,
+      resolutionTime: 4,
+      escalationLevels: [
+        { level: 1, timeThreshold: 1, notifyRoles: ['AGENT'] },
+        { level: 2, timeThreshold: 2, notifyRoles: ['SUPERVISOR'] },
+        { level: 3, timeThreshold: 3, notifyRoles: ['ADMIN'] }
+      ]
+    }
+  };
   private readonly firstResponseThreshold = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
   constructor(
@@ -36,60 +78,6 @@ export class TicketEscalationService {
     private readonly organizationsService: OrganizationsService,
     private readonly configService: ConfigService,
   ) {
-    // Initialize escalation rules from config
-    this.escalationRules = {
-      HIGH: {
-        priority: 'HIGH',
-        responseTime: 1, // 1 hour
-        resolutionTime: 4, // 4 hours
-        escalationLevels: [
-          {
-            level: 1,
-            timeThreshold: 1,
-            notifyRoles: ['SUPERVISOR']
-          },
-          {
-            level: 2,
-            timeThreshold: 2,
-            notifyRoles: ['MANAGER']
-          },
-          {
-            level: 3,
-            timeThreshold: 4,
-            notifyRoles: ['DIRECTOR']
-          }
-        ]
-      },
-      MEDIUM: {
-        priority: 'MEDIUM',
-        responseTime: 4, // 4 hours
-        resolutionTime: 24, // 24 hours
-        escalationLevels: [
-          {
-            level: 1,
-            timeThreshold: 4,
-            notifyRoles: ['SUPERVISOR']
-          },
-          {
-            level: 2,
-            timeThreshold: 8,
-            notifyRoles: ['MANAGER']
-          }
-        ]
-      },
-      LOW: {
-        priority: 'LOW',
-        responseTime: 24, // 24 hours
-        resolutionTime: 72, // 72 hours
-        escalationLevels: [
-          {
-            level: 1,
-            timeThreshold: 24,
-            notifyRoles: ['SUPERVISOR']
-          }
-        ]
-      }
-    };
   }
 
   /**
@@ -101,7 +89,7 @@ export class TicketEscalationService {
       where: {
         status: In([TicketStatus.OPEN, TicketStatus.IN_PROGRESS])
       },
-      relations: ['assignee', 'organization', 'activities']
+      relations: ['assignee', 'organization', 'activities', 'priority']
     });
 
     for (const ticket of unresolved) {
@@ -150,7 +138,7 @@ export class TicketEscalationService {
       );
 
       const currentLevel = this.getCurrentEscalationLevel(ticket);
-      const rule = this.escalationRules[ticket.priority];
+      const rule = this.escalationRules[ticket.priority.level as PriorityLevel];
 
       if (!rule) {
         this.logger.warn(`No escalation rule found for priority ${ticket.priority}`);
@@ -280,7 +268,7 @@ export class TicketEscalationService {
       where: { ticketId }
     });
 
-    const rule = this.escalationRules[ticket.priority];
+    const rule = this.escalationRules[ticket.priority.level as PriorityLevel];
     // Check for RESPONSE and RESOLUTION activity types
     const firstResponse = activities.find(
       a => a.type === TicketActivityType.RESPONSE
@@ -320,7 +308,7 @@ export class TicketEscalationService {
     if (!ticket) return;
 
     if (slaStatus.responseTime.breached || slaStatus.resolutionTime.breached) {
-      const rule = this.escalationRules[ticket.priority];
+      const rule = this.escalationRules[ticket.priority.level as PriorityLevel];
       const currentLevel = this.getCurrentEscalationLevel(ticket);
 
       // Find appropriate escalation level based on breach severity
@@ -375,7 +363,7 @@ export class TicketEscalationService {
     }
 
     const currentLevel = this.getCurrentEscalationLevel(ticket);
-    const rule = this.escalationRules[ticket.priority];
+    const rule = this.escalationRules[ticket.priority.level as PriorityLevel];
 
     if (!rule) {
       this.logger.warn(`No escalation rule found for priority ${ticket.priority}`);

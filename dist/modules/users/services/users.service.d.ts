@@ -16,7 +16,6 @@ export declare class UsersService {
     private readonly dataSource;
     private readonly eventEmitter;
     private readonly notificationsService;
-    findUsersByRole(organizationId: string, arg1: string): void;
     private readonly permissionsByRole;
     constructor(userRepository: Repository<User>, activityRepository: Repository<UserActivity>, userSettingsRepository: Repository<UserSettings>, dataSource: DataSource, eventEmitter: EventEmitter2, notificationsService: NotificationsService);
     findByRole(role: string, organizationId: string): Promise<User[]>;
@@ -47,4 +46,9 @@ export declare class UsersService {
         organizationId: string;
     }): Promise<UserActivity[]>;
     getPermissions(userId: string, organizationId: string): Promise<string[]>;
+    findByEmail(email: string, organizationId: string): Promise<User | null>;
+    validatePassword(user: User, password: string): Promise<boolean>;
+    sendPasswordResetEmail(user: User): Promise<void>;
+    resetPassword(token: string, newPassword: string): Promise<void>;
+    findUsersByRole(organizationId: string, role: string): Promise<User[]>;
 }

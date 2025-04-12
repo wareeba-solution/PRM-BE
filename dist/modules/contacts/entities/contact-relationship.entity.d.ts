@@ -18,6 +18,12 @@ export declare enum RelationshipType {
     FRIEND = "FRIEND",
     OTHER = "OTHER"
 }
+export declare enum RelationshipStatus {
+    ACTIVE = "ACTIVE",
+    INACTIVE = "INACTIVE",
+    PENDING = "PENDING",
+    TERMINATED = "TERMINATED"
+}
 export declare class ContactRelationship {
     id: string;
     organizationId: string;
@@ -25,35 +31,31 @@ export declare class ContactRelationship {
     contact: Contact;
     relatedContactId: string;
     relatedContact: Contact;
+    familyId: string;
     type: RelationshipType;
+    status: RelationshipStatus;
     notes: string;
     isActive: boolean;
     isPrimary: boolean;
+    isLegalGuardian: boolean;
+    hasMedicalDecisionAuthority: boolean;
+    permissions: {
+        canViewMedicalRecords: boolean;
+        canMakeAppointments: boolean;
+        canReceiveUpdates: boolean;
+        canPickupPrescriptions: boolean;
+        canAccessPortal: boolean;
+    };
+    metadata: Record<string, any>;
+    inverseType: RelationshipType;
+    startDate: Date;
+    endDate: Date;
     createdById: string;
     updatedById: string;
     createdAt: Date;
     updatedAt: Date;
     deletedAt: Date;
-    /**
-     * Custom metadata for the relationship (JSON field)
-     * This can store additional information specific to the relationship type
-     * For example, for a PARENT-CHILD relationship, it might store custodial information
-     */
-    metadata: Record<string, any>;
-    /**
-     * Inverse relationship type (if applicable)
-     * For example, if this relationship is PARENT, the inverse would be CHILD
-     * This helps maintain consistency when querying from either direction
-     */
-    inverseType: RelationshipType;
-    /**
-     * Start date of the relationship (if applicable)
-     * For example, when a provider became a patient's specialist
-     */
-    startDate: Date;
-    /**
-     * End date of the relationship (if applicable)
-     * For example, when a provider stopped being a patient's specialist
-     */
-    endDate: Date;
+    get isFamilyRelationship(): boolean;
+    get isMedicalRelationship(): boolean;
+    get isEmergencyRelationship(): boolean;
 }

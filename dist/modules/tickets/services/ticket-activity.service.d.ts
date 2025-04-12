@@ -4,7 +4,7 @@ import { TicketActivity } from '../entities/ticket-activity.entity';
 import { Ticket } from '../entities/ticket.entity';
 import { User } from '../../users/entities/user.entity';
 import { TicketActivityType } from '../enums/ticket-activity-type.enum';
-import { TicketStatus } from '../enums/ticket-status.enum';
+import { TicketStatus } from '../enums/ticket.enums';
 interface ActivityOptions {
     ticketId: string;
     performedById: string;

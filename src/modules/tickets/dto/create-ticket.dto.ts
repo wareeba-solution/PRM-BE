@@ -12,9 +12,12 @@ import {
     MinLength,
     IsObject,
     IsDate,
+    IsNumber,
+    Min,
+    Max,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { TicketType } from '../enums/ticket-type.enum';
+import { TicketType } from '../enums/ticket.enums';
 import { TicketPriority } from '../enums/ticket-priority.enum';
 import { TicketSource } from '../enums/ticket-source.enum';
 import { TicketCategory } from '../enums/ticket-category.enum';
@@ -48,9 +51,45 @@ export class CreateTicketDto {
     @IsOptional()
     category?: TicketCategory;
 
+    @IsUUID()
+    @IsOptional()
+    assignedToId?: string;
+
+    @IsUUID()
+    @IsOptional()
+    patientId?: string;
+
+    @IsUUID()
+    @IsOptional()
+    relatedAppointmentId?: string;
+
+    @IsUUID()
+    @IsOptional()
+    relatedLabResultId?: string;
+
+    @IsUUID()
+    @IsOptional()
+    relatedPrescriptionId?: string;
+
+    @IsDate()
+    @IsOptional()
+    dueDate?: Date;
+
     @IsString()
     @IsOptional()
-    assigneeId?: string;
+    patientCondition?: string;
+
+    @IsNumber()
+    @Min(1)
+    @Max(5)
+    @IsOptional()
+    timeSensitivity?: number;
+
+    @IsNumber()
+    @Min(1)
+    @Max(5)
+    @IsOptional()
+    impactLevel?: number;
 
     @IsArray()
     @IsString({ each: true })
@@ -60,10 +99,6 @@ export class CreateTicketDto {
     @IsArray()
     @IsOptional()
     attachments?: TicketAttachment[];
-
-    @IsDate()
-    @IsOptional()
-    dueDate?: Date;
 
     @IsObject()
     @IsOptional()

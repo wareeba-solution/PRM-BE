@@ -36,10 +36,8 @@ const role_enum_1 = require("../enums/role.enum");
 const notifications_service_1 = require("../../notifications/services/notifications.service");
 const nestjs_typeorm_paginate_1 = require("nestjs-typeorm-paginate");
 const user_settings_entity_1 = require("../entities/user-settings.entity");
+const uuid_1 = require("uuid");
 let UsersService = class UsersService {
-    findUsersByRole(organizationId, arg1) {
-        throw new Error('Method not implemented.');
-    }
     constructor(userRepository, activityRepository, userSettingsRepository, dataSource, eventEmitter, notificationsService) {
         this.userRepository = userRepository;
         this.activityRepository = activityRepository;
@@ -267,6 +265,51 @@ let UsersService = class UsersService {
         }
         // Return the permissions for the user's role or an empty array if the role isn't defined
         return this.permissionsByRole[user.role] || [];
+    }
+    async findByEmail(email, organizationId) {
+        return this.userRepository.findOne({
+            where: {
+                email: email.toLowerCase(),
+                organizationId
+            }
+        });
+    }
+    async validatePassword(user, password) {
+        return (0, bcrypt_1.compare)(password, user.password);
+    }
+    async sendPasswordResetEmail(user) {
+        const token = (0, uuid_1.v4)();
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
+        user.passwordResetToken = token;
+        user.passwordResetExpiresAt = expiresAt;
+        await this.userRepository.save(user);
+        // TODO: Implement email sending logic
+        console.log(`Password reset link for ${user.email}: https://your-app.com/reset-password?token=${token}`);
+    }
+    async resetPassword(token, newPassword) {
+        const user = await this.userRepository.findOne({
+            where: { passwordResetToken: token }
+        });
+        if (!user) {
+            throw new common_1.NotFoundException('Invalid or expired reset token');
+        }
+        if (user.passwordResetExpiresAt < new Date()) {
+            throw new common_1.BadRequestException('Reset token has expired');
+        }
+        user.password = await (0, bcrypt_1.hash)(newPassword, 12);
+        user.passwordResetToken = null;
+        user.passwordResetExpiresAt = null;
+        await this.userRepository.save(user);
+    }
+    async findUsersByRole(organizationId, role) {
+        return this.userRepository.find({
+            where: {
+                organizationId,
+                role: role,
+                isActive: true
+            }
+        });
     }
 };
 UsersService = __decorate([

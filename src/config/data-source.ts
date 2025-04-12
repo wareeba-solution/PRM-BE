@@ -16,6 +16,7 @@ import { Department } from '../modules/departments/entities/department.entity';
 import { TicketComment } from '../modules/tickets/entities/ticket-comment.entity';
 import { TicketAttachment } from '../modules/tickets/entities/ticket-attachment.entity';
 import { TicketActivity } from '../modules/tickets/entities/ticket-activity.entity';
+import { TicketPriority } from '../modules/tickets/entities/ticket-priority.entity';
 import { MessageTemplate } from '../modules/messages/entities/message-template.entity';
 import { MessageAttachment } from '../modules/messages/entities/message-attachment.entity';
 import { Document } from '../modules/documents/entities/document.entity';
@@ -27,13 +28,10 @@ import { EmailLog } from '../modules/notifications/entities/email-log.entity';
 import { EmailQueue } from '../modules/notifications/entities/email-queue.entity';
 import { MergedRecord } from '../modules/merged-records/entities/merged-record.entity';
 import { EmailTemplate } from '../modules/email/entities/email-template.entity';
-import { CleanupUsersTable1710000000001 } from '../migrations/1710000000001-CleanupUsersTable';
-import { UserSettingsMigration1710000000005 } from "../migrations/1710000000005-UserSettingsMigration";
-import { CheckUsersTableColumns1710000000006 } from "../migrations/1710000000006-CheckUsersTableColumns";
-import { FixUsersTableColumns1710000000007 } from "../migrations/1710000000007-FixUsersTableColumns";
-import { FixUsersTablePermissions1710000000008 } from "../migrations/1710000000008-FixUsersTablePermissions";
-import { CreateEmailContentsTable1710000000009 } from "../migrations/1710000000009-CreateEmailContentsTable";
-import { AddEmailQueueCcBcc1710000000010 } from "../migrations/1710000000010-AddEmailQueueCcBcc";
+import { Tenant } from '../modules/tenants/entities/tenant.entity';
+import { CreateInitialSchema1712565600021 } from "../database/migrations/1712565600021-CreateInitialSchema";
+import { FixUserSettingsTable1712565600022 } from "../database/migrations/1712565600022-FixUserSettingsTable";
+import { FixUserVerificationTable1712565600023 } from "../database/migrations/1712565600023-FixUserVerificationTable";
 
 dotenv.config();
 
@@ -48,7 +46,7 @@ export const dataSourceOptions: DataSourceOptions = {
     database: process.env.DB_NAME || 'default_database',
     schema: process.env.DB_SCHEMA || 'public',
     synchronize: false,
-    logging: false,
+    logging: true,
     ssl: process.env.DB_SSL === 'true',
     entities: [
         User,
@@ -66,6 +64,7 @@ export const dataSourceOptions: DataSourceOptions = {
         TicketComment,
         TicketAttachment,
         TicketActivity,
+        TicketPriority,
         MessageTemplate,
         MessageAttachment,
         Document,
@@ -76,18 +75,17 @@ export const dataSourceOptions: DataSourceOptions = {
         EmailLog,
         EmailQueue,
         MergedRecord,
-        EmailTemplate
+        EmailTemplate,
+        Tenant
     ],
     migrations: [
-        CleanupUsersTable1710000000001,
-        UserSettingsMigration1710000000005,
-        CheckUsersTableColumns1710000000006,
-        FixUsersTableColumns1710000000007,
-        FixUsersTablePermissions1710000000008,
-        CreateEmailContentsTable1710000000009,
-        AddEmailQueueCcBcc1710000000010
+        CreateInitialSchema1712565600021,
+        FixUserSettingsTable1712565600022,
+        FixUserVerificationTable1712565600023
     ],
+    migrationsTableName: 'migrations',
     migrationsRun: true,
 };
 
-export const AppDataSource = new DataSource(dataSourceOptions); 
+const dataSource = new DataSource(dataSourceOptions);
+export default dataSource; 

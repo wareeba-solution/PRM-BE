@@ -12,9 +12,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RefreshTokenDto = void 0;
 const class_validator_1 = require("class-validator");
+const swagger_1 = require("@nestjs/swagger");
 class RefreshTokenDto {
 }
 __decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Refresh token used to generate new access token',
+        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        required: true
+    }),
     (0, class_validator_1.IsNotEmpty)({ message: 'Refresh token is required' }),
     (0, class_validator_1.IsString)({ message: 'Refresh token must be a string' }),
     __metadata("design:type", String)

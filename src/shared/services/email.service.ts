@@ -39,12 +39,11 @@ export class EmailService {
     private readonly transporter: nodemailer.Transporter;
     private readonly maxRetries = 3;
     private readonly resolveTxt = promisify(dns.resolveTxt);
-    private readonly domainVerificationService: DomainVerificationService;
 
     constructor(
         private readonly configService: ConfigService,
         @Inject(forwardRef(() => DomainVerificationService))
-        domainVerificationService: DomainVerificationService,
+        private readonly domainVerificationService: DomainVerificationService,
         @InjectRepository(EmailTemplate)
         private readonly emailTemplateRepository: Repository<EmailTemplate>,
         @InjectRepository(EmailLog)
@@ -67,7 +66,6 @@ export class EmailService {
             rateDelta: 1000,
             rateLimit: 5,
         });
-        this.domainVerificationService = domainVerificationService;
     }
 
     async send(notification: Notification): Promise<boolean> {

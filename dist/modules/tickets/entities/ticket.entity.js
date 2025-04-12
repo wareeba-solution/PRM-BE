@@ -17,18 +17,13 @@ const user_entity_1 = require("../../users/entities/user.entity");
 const organization_entity_1 = require("../../organizations/entities/organization.entity");
 const ticket_activity_entity_1 = require("./ticket-activity.entity");
 const ticket_attachment_entity_1 = require("./ticket-attachment.entity");
-const ticket_type_enum_1 = require("../enums/ticket-type.enum");
-const ticket_priority_enum_1 = require("../enums/ticket-priority.enum");
-const ticket_status_enum_1 = require("../enums/ticket-status.enum");
+const ticket_priority_entity_1 = require("./ticket-priority.entity");
 const ticket_source_enum_1 = require("../enums/ticket-source.enum");
 const ticket_category_enum_1 = require("../enums/ticket-category.enum");
-// Remove direct entity imports that cause circular dependencies
-// import { Organization } from '../../organizations/entities/organization.entity';
-// import { User } from '../../users/entities/user.entity';
-// import { Contact } from '../../contacts/entities/contact.entity';
 const department_entity_1 = require("../../departments/entities/department.entity");
 const ticket_comment_entity_1 = require("./ticket-comment.entity");
 const contact_entity_1 = require("../../contacts/entities/contact.entity");
+const ticket_enums_1 = require("../enums/ticket.enums");
 let Ticket = Ticket_1 = class Ticket {
     // Virtual properties
     get isEscalated() {
@@ -76,15 +71,19 @@ __decorate([
     __metadata("design:type", String)
 ], Ticket.prototype, "description", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'enum', enum: ticket_type_enum_1.TicketType }),
+    (0, typeorm_1.Column)({
+        type: 'enum',
+        enum: ticket_enums_1.TicketType,
+        default: ticket_enums_1.TicketType.GENERAL
+    }),
     __metadata("design:type", String)
 ], Ticket.prototype, "type", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'enum', enum: ticket_priority_enum_1.TicketPriority, default: ticket_priority_enum_1.TicketPriority.NORMAL }),
-    __metadata("design:type", String)
-], Ticket.prototype, "priority", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'enum', enum: ticket_status_enum_1.TicketStatus }),
+    (0, typeorm_1.Column)({
+        type: 'enum',
+        enum: ticket_enums_1.TicketStatus,
+        default: ticket_enums_1.TicketStatus.OPEN
+    }),
     __metadata("design:type", String)
 ], Ticket.prototype, "status", void 0);
 __decorate([
@@ -195,6 +194,15 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Ticket.prototype, "updatedById", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Ticket.prototype, "priorityId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => ticket_priority_entity_1.TicketPriority),
+    (0, typeorm_1.JoinColumn)({ name: 'priorityId' }),
+    __metadata("design:type", ticket_priority_entity_1.TicketPriority)
+], Ticket.prototype, "priority", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

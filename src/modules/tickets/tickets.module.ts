@@ -8,11 +8,13 @@ import { TicketsController } from './controllers/tickets.controller';
 import { TicketsService } from './services/tickets.service';
 import { TicketActivityService } from './services/ticket-activity.service';
 import { TicketEscalationService } from './services/ticket-escalation.service';
+import { TicketPriorityService } from './services/ticket-priority.service';
 
 import { Ticket } from './entities/ticket.entity';
 import { TicketComment } from './entities/ticket-comment.entity';
 import { TicketAttachment } from './entities/ticket-attachment.entity';
 import { TicketActivity } from './entities/ticket-activity.entity';
+import { TicketPriority } from './entities/ticket-priority.entity';
 import { User } from '../users/entities/user.entity';
 
 import { TicketListener } from './listeners/ticket.listener';
@@ -23,7 +25,8 @@ import { UsersModule } from '../users/users.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { OrganizationsModule } from '../organizations/organizations.module';
 import { AuthModule } from '../auth/auth.module';
-import { DepartmentsModule } from '../departments/departments.module'; // Add this import
+import { DepartmentsModule } from '../departments/departments.module';
+import { MessagesModule } from '../messages/messages.module';
 
 @Module({
     imports: [
@@ -32,6 +35,7 @@ import { DepartmentsModule } from '../departments/departments.module'; // Add th
             TicketComment,
             TicketAttachment,
             TicketActivity,
+            TicketPriority,
             User
         ]),
         EventEmitterModule.forRoot({
@@ -43,7 +47,8 @@ import { DepartmentsModule } from '../departments/departments.module'; // Add th
         forwardRef(() => NotificationsModule),
         forwardRef(() => OrganizationsModule),
         forwardRef(() => AuthModule),
-        DepartmentsModule // Add this line
+        DepartmentsModule,
+        MessagesModule
     ],
     controllers: [
         TicketsController
@@ -52,13 +57,15 @@ import { DepartmentsModule } from '../departments/departments.module'; // Add th
         TicketsService,
         TicketActivityService,
         TicketEscalationService,
+        TicketPriorityService,
         TicketListener,
         TicketAssignmentListener,
         TicketEscalationListener
     ],
     exports: [
         TicketsService,
-        TicketActivityService
+        TicketActivityService,
+        TicketPriorityService
     ]
 })
 export class TicketsModule {}

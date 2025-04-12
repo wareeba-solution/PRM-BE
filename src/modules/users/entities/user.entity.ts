@@ -27,6 +27,7 @@ import { UserProfile } from './user-profile.entity';
 import { UserVerification } from './user-verification.entity';
 import { UserSettings } from './user-settings.entity';
 import { UserReferenceDto } from '../dto/user-reference.dto';
+import { Tenant } from '../../tenants/entities/tenant.entity';
 
 @Entity('users')
 @Index(['organizationId', 'email'])
@@ -34,6 +35,9 @@ import { UserReferenceDto } from '../dto/user-reference.dto';
 export class User {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+    
+    @Column()
+    tenantId: string;
 
     @Column()
     organizationId: string;
@@ -108,6 +112,10 @@ export class User {
     deletedAt?: Date;
 
     // Relations
+    @ManyToOne(() => Tenant, { lazy: true })
+    @JoinColumn({ name: 'tenantId' })
+    tenant: Promise<Tenant>;
+    
     @ManyToOne(() => Organization, { lazy: true })
     @JoinColumn({ name: 'organizationId' })
     organization: Promise<Organization>;

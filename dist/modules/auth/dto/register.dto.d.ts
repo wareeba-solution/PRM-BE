@@ -25,6 +25,7 @@ export declare class RegisterOrganizationDto {
 export declare class RegisterDto {
     user: RegisterUserDto;
     organization: RegisterOrganizationDto;
+    tenantId?: string;
 }
 export interface RegisterResponse {
     user: {

@@ -16,18 +16,13 @@ import { User } from '../../users/entities/user.entity';
 import { Organization } from '../../organizations/entities/organization.entity';
 import { TicketActivity } from './ticket-activity.entity';
 import { TicketAttachment } from './ticket-attachment.entity';
-import { TicketType } from '../enums/ticket-type.enum';
-import { TicketPriority } from '../enums/ticket-priority.enum';
-import { TicketStatus } from '../enums/ticket-status.enum';
+import { TicketPriority } from './ticket-priority.entity';
 import { TicketSource } from '../enums/ticket-source.enum';
 import { TicketCategory } from '../enums/ticket-category.enum';
-// Remove direct entity imports that cause circular dependencies
-// import { Organization } from '../../organizations/entities/organization.entity';
-// import { User } from '../../users/entities/user.entity';
-// import { Contact } from '../../contacts/entities/contact.entity';
 import { Department } from '../../departments/entities/department.entity';
 import { TicketComment } from './ticket-comment.entity';
 import { Contact } from '../../contacts/entities/contact.entity';
+import { TicketStatus, TicketType } from '../enums/ticket.enums';
 
 @Entity('tickets')
 @Index(['organizationId', 'status'])
@@ -48,13 +43,18 @@ export class Ticket {
     @Column('text')
     description: string;
 
-    @Column({ type: 'enum', enum: TicketType })
+    @Column({
+        type: 'enum',
+        enum: TicketType,
+        default: TicketType.GENERAL
+    })
     type: TicketType;
 
-    @Column({ type: 'enum', enum: TicketPriority, default: TicketPriority.NORMAL })
-    priority: TicketPriority;
-
-    @Column({ type: 'enum', enum: TicketStatus })
+    @Column({
+        type: 'enum',
+        enum: TicketStatus,
+        default: TicketStatus.OPEN
+    })
     status: TicketStatus;
 
     @Column({ type: 'enum', enum: TicketSource, default: TicketSource.WEB })
@@ -137,6 +137,13 @@ export class Ticket {
 
     @Column({ nullable: true })
     updatedById?: string;
+
+    @Column({ nullable: true })
+    priorityId: string;
+
+    @ManyToOne(() => TicketPriority)
+    @JoinColumn({ name: 'priorityId' })
+    priority: TicketPriority;
 
     @CreateDateColumn()
     createdAt: Date;

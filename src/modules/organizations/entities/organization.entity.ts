@@ -14,6 +14,7 @@ import { User } from '../../users/entities/user.entity';
 import { Ticket } from '../../tickets/entities/ticket.entity';
 import { OrganizationStatus } from '../enums/organization-status.enum';
 import { SubscriptionTier } from '../enums/subscription-tier.enum';
+import { Tenant } from '../../tenants/entities/tenant.entity';
 
 export { OrganizationStatus, SubscriptionTier };
 
@@ -25,6 +26,13 @@ export class Organization {
     [x: string]: any;
     @PrimaryGeneratedColumn('uuid')
     id: string;
+    
+    @Column()
+    tenantId: string;
+    
+    @ManyToOne(() => Tenant, tenant => tenant.organizations, { lazy: true })
+    @JoinColumn({ name: 'tenantId' })
+    tenant: Promise<Tenant>;
 
     @Column({ length: 100 })
     name: string;

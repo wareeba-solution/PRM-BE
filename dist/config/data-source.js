@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppDataSource = exports.dataSourceOptions = void 0;
+exports.dataSourceOptions = void 0;
 const typeorm_1 = require("typeorm");
 const config_1 = require("@nestjs/config");
 const dotenv = __importStar(require("dotenv"));
@@ -42,6 +42,7 @@ const department_entity_1 = require("../modules/departments/entities/department.
 const ticket_comment_entity_1 = require("../modules/tickets/entities/ticket-comment.entity");
 const ticket_attachment_entity_1 = require("../modules/tickets/entities/ticket-attachment.entity");
 const ticket_activity_entity_1 = require("../modules/tickets/entities/ticket-activity.entity");
+const ticket_priority_entity_1 = require("../modules/tickets/entities/ticket-priority.entity");
 const message_template_entity_1 = require("../modules/messages/entities/message-template.entity");
 const message_attachment_entity_1 = require("../modules/messages/entities/message-attachment.entity");
 const document_entity_1 = require("../modules/documents/entities/document.entity");
@@ -53,13 +54,10 @@ const email_log_entity_1 = require("../modules/notifications/entities/email-log.
 const email_queue_entity_1 = require("../modules/notifications/entities/email-queue.entity");
 const merged_record_entity_1 = require("../modules/merged-records/entities/merged-record.entity");
 const email_template_entity_1 = require("../modules/email/entities/email-template.entity");
-const _1710000000001_CleanupUsersTable_1 = require("../migrations/1710000000001-CleanupUsersTable");
-const _1710000000005_UserSettingsMigration_1 = require("../migrations/1710000000005-UserSettingsMigration");
-const _1710000000006_CheckUsersTableColumns_1 = require("../migrations/1710000000006-CheckUsersTableColumns");
-const _1710000000007_FixUsersTableColumns_1 = require("../migrations/1710000000007-FixUsersTableColumns");
-const _1710000000008_FixUsersTablePermissions_1 = require("../migrations/1710000000008-FixUsersTablePermissions");
-const _1710000000009_CreateEmailContentsTable_1 = require("../migrations/1710000000009-CreateEmailContentsTable");
-const _1710000000010_AddEmailQueueCcBcc_1 = require("../migrations/1710000000010-AddEmailQueueCcBcc");
+const tenant_entity_1 = require("../modules/tenants/entities/tenant.entity");
+const _1712565600021_CreateInitialSchema_1 = require("../database/migrations/1712565600021-CreateInitialSchema");
+const _1712565600022_FixUserSettingsTable_1 = require("../database/migrations/1712565600022-FixUserSettingsTable");
+const _1712565600023_FixUserVerificationTable_1 = require("../database/migrations/1712565600023-FixUserVerificationTable");
 dotenv.config();
 const configService = new config_1.ConfigService();
 exports.dataSourceOptions = {
@@ -71,7 +69,7 @@ exports.dataSourceOptions = {
     database: process.env.DB_NAME || 'default_database',
     schema: process.env.DB_SCHEMA || 'public',
     synchronize: false,
-    logging: false,
+    logging: true,
     ssl: process.env.DB_SSL === 'true',
     entities: [
         user_entity_1.User,
@@ -89,6 +87,7 @@ exports.dataSourceOptions = {
         ticket_comment_entity_1.TicketComment,
         ticket_attachment_entity_1.TicketAttachment,
         ticket_activity_entity_1.TicketActivity,
+        ticket_priority_entity_1.TicketPriority,
         message_template_entity_1.MessageTemplate,
         message_attachment_entity_1.MessageAttachment,
         document_entity_1.Document,
@@ -99,18 +98,17 @@ exports.dataSourceOptions = {
         email_log_entity_1.EmailLog,
         email_queue_entity_1.EmailQueue,
         merged_record_entity_1.MergedRecord,
-        email_template_entity_1.EmailTemplate
+        email_template_entity_1.EmailTemplate,
+        tenant_entity_1.Tenant
     ],
     migrations: [
-        _1710000000001_CleanupUsersTable_1.CleanupUsersTable1710000000001,
-        _1710000000005_UserSettingsMigration_1.UserSettingsMigration1710000000005,
-        _1710000000006_CheckUsersTableColumns_1.CheckUsersTableColumns1710000000006,
-        _1710000000007_FixUsersTableColumns_1.FixUsersTableColumns1710000000007,
-        _1710000000008_FixUsersTablePermissions_1.FixUsersTablePermissions1710000000008,
-        _1710000000009_CreateEmailContentsTable_1.CreateEmailContentsTable1710000000009,
-        _1710000000010_AddEmailQueueCcBcc_1.AddEmailQueueCcBcc1710000000010
+        _1712565600021_CreateInitialSchema_1.CreateInitialSchema1712565600021,
+        _1712565600022_FixUserSettingsTable_1.FixUserSettingsTable1712565600022,
+        _1712565600023_FixUserVerificationTable_1.FixUserVerificationTable1712565600023
     ],
+    migrationsTableName: 'migrations',
     migrationsRun: true,
 };
-exports.AppDataSource = new typeorm_1.DataSource(exports.dataSourceOptions);
+const dataSource = new typeorm_1.DataSource(exports.dataSourceOptions);
+exports.default = dataSource;
 //# sourceMappingURL=data-source.js.map

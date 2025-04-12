@@ -11,7 +11,7 @@ export declare class TicketEscalationService {
     private readonly organizationsService;
     private readonly configService;
     private readonly logger;
-    private readonly escalationRules;
+    private escalationRules;
     private readonly firstResponseThreshold;
     constructor(ticketRepository: Repository<Ticket>, activityRepository: Repository<TicketActivity>, notificationsService: NotificationsService, organizationsService: OrganizationsService, configService: ConfigService);
     /**

@@ -1,56 +1,40 @@
-import { AuthService } from '../services/auth.service';
+import { ModuleRef } from '@nestjs/core';
+import { AuthService, TokenPair } from '../services/auth.service';
+import { UserAccountService } from '../services/user-account.service';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
-import { ForgotPasswordDto } from '../dto/forgot-password.dto';
-import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { User } from '../../users/entities/user.entity';
+import { Request, Response } from 'express';
 export declare class AuthController {
     private readonly authService;
-    constructor(authService: AuthService);
-    login(loginDto: LoginDto, userAgent: string, ip: string): Promise<{
-        user: {
-            id: string;
-            email: string;
-            role: import("../../users/enums/role.enum").Role;
-            organizationId: string;
-        };
-        tokens: {
-            accessToken: string;
-            refreshToken: string;
-        };
-    }>;
-    register(registerDto: RegisterDto, userAgent: string, ip: string): Promise<{
-        message: string;
-        data: {
-            accessToken: string;
-            refreshToken: string;
-            user: {
-                id: string;
-                email: string;
-                role: import("../../users/enums/role.enum").Role;
-                organizationId: string;
-            };
-        };
-    }>;
+    private readonly userAccountService;
+    private readonly moduleRef;
+    private readonly logger;
+    constructor(authService: AuthService, userAccountService: UserAccountService, moduleRef: ModuleRef);
+    login(loginDto: LoginDto, req: Request, res: Response, headerTenantId: string): Promise<TokenPair>;
+    register(registerDto: RegisterDto, req: Request): Promise<TokenPair>;
     refreshToken(refreshTokenDto: RefreshTokenDto): Promise<{
-        tokens: {
-            accessToken: string;
-        };
+        tokens: TokenPair;
     }>;
     logout(user: User, authHeader: string): Promise<{
         message: string;
     }>;
-    forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<{
+    forgotPassword({ email }: {
+        email: string;
+    }, req: Request): Promise<{
         message: string;
     }>;
-    resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{
+    resetPassword({ token, newPassword }: {
+        token: string;
+        newPassword: string;
+    }, req: Request): Promise<{
         message: string;
     }>;
-    getCurrentUser(user: User): Promise<{
+    getCurrentUser(user: User, req: Request): Promise<{
         user: User;
     }>;
-    verifyEmail(token: string): Promise<{
+    verifyEmail(token: string, tenantId: string, req: Request): Promise<{
         message: string;
     }>;
     resendVerification(user: User): Promise<{

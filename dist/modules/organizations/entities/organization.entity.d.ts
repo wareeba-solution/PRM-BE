@@ -2,10 +2,13 @@ import { User } from '../../users/entities/user.entity';
 import { Ticket } from '../../tickets/entities/ticket.entity';
 import { OrganizationStatus } from '../enums/organization-status.enum';
 import { SubscriptionTier } from '../enums/subscription-tier.enum';
+import { Tenant } from '../../tenants/entities/tenant.entity';
 export { OrganizationStatus, SubscriptionTier };
 export declare class Organization {
     [x: string]: any;
     id: string;
+    tenantId: string;
+    tenant: Promise<Tenant>;
     name: string;
     description: string;
     slug: string;

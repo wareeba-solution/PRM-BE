@@ -1,28 +1,26 @@
+import { TicketStatus, TicketType } from '../enums/ticket.enums';
 export declare enum TicketSortField {
     CREATED_AT = "createdAt",
     UPDATED_AT = "updatedAt",
-    PRIORITY = "priority",
-    STATUS = "status",
     DUE_DATE = "dueDate",
-    LAST_ACTIVITY = "lastActivity"
+    PRIORITY = "priority",
+    STATUS = "status"
 }
 export declare enum SortOrder {
     ASC = "ASC",
     DESC = "DESC"
 }
 export declare class TicketQueryDto {
-    searchTerm?: string;
-    priority?: string;
-    type?: string;
+    organizationId: string;
+    status?: TicketStatus[];
+    type?: TicketType;
     assigneeId?: string;
     contactId?: string;
     departmentId?: string;
     search?: string;
-    startDate?: string;
-    endDate?: string;
-    page?: number;
+    startDate?: Date;
+    endDate?: Date;
     limit?: number;
-    status?: string[];
     priorities?: string[];
     category?: string[];
     assigneeIds?: string[];

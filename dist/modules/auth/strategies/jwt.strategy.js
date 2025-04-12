@@ -12,6 +12,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var JwtStrategy_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JwtStrategy = void 0;
 const common_1 = require("@nestjs/common");
@@ -20,50 +21,75 @@ const passport_jwt_1 = require("passport-jwt");
 const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
-const user_entity_1 = require("../entities/user.entity");
-let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
-    constructor(configService, userRepository) {
-        const secret = configService.get('JWT_SECRET');
-        if (!secret) {
-            throw new Error('JWT_SECRET environment variable is not set. Please set it in your environment variables.');
-        }
+const user_entity_1 = require("../../users/entities/user.entity");
+const tenants_service_1 = require("../../tenants/services/tenants.service");
+let JwtStrategy = JwtStrategy_1 = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
+    constructor(configService, userRepository, tenantsService) {
         super({
             jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: secret,
+            secretOrKey: configService.get('JWT_SECRET'),
         });
         this.configService = configService;
         this.userRepository = userRepository;
+        this.tenantsService = tenantsService;
+        this.logger = new common_1.Logger(JwtStrategy_1.name);
     }
     async validate(payload) {
-        const user = await this.userRepository.findOne({
-            where: { id: payload.sub },
-            relations: ['organization'],
-        });
-        if (!user) {
-            throw new common_1.UnauthorizedException('User not found');
+        try {
+            // Log for debugging
+            this.logger.debug(`JWT payload: ${JSON.stringify(payload)}`);
+            if (!payload.sub) {
+                this.logger.error('Missing sub in JWT payload');
+                throw new common_1.UnauthorizedException('Invalid token format');
+            }
+            // Verify that tenantId is in the payload
+            if (!payload.tenantId) {
+                this.logger.error('Missing tenantId in JWT payload');
+                throw new common_1.UnauthorizedException('Invalid token format: missing tenant context');
+            }
+            // Verify that the tenant exists and is active
+            try {
+                const tenant = await this.tenantsService.findOne(payload.tenantId);
+                if (!tenant || !tenant.isActive) {
+                    this.logger.warn(`Invalid or inactive tenant in token: ${payload.tenantId}`);
+                    throw new common_1.UnauthorizedException('Invalid or inactive tenant');
+                }
+            }
+            catch (error) {
+                this.logger.error(`Error verifying tenant from token: ${error.message}`);
+                throw new common_1.UnauthorizedException('Invalid tenant context');
+            }
+            // Find the user with ID only first, to provide better error messages
+            const user = await this.userRepository.findOne({
+                where: { id: payload.sub },
+            });
+            if (!user) {
+                this.logger.warn(`User not found with ID: ${payload.sub}`);
+                throw new common_1.UnauthorizedException('User not found');
+            }
+            // Return user data to be attached to request, including tenantId from token
+            return {
+                id: user.id,
+                email: user.email,
+                role: user.role,
+                tenantId: payload.tenantId,
+                organizationId: user.organizationId,
+                permissions: payload.permissions || user.permissions || []
+            };
         }
-        // Get the organization since it's lazy loaded
-        const organization = await user.organization;
-        // Verify if the user's organization is active
-        if (!(organization === null || organization === void 0 ? void 0 : organization.isActive)) {
-            throw new common_1.UnauthorizedException('Organization is inactive');
+        catch (error) {
+            this.logger.error(`JWT validation error: ${error.message}`);
+            throw new common_1.UnauthorizedException('Invalid or expired token');
         }
-        // Add necessary user information to the request
-        return {
-            id: payload.sub,
-            email: payload.email,
-            role: payload.role,
-            organizationId: payload.organizationId,
-            permissions: user.permissions,
-        };
     }
 };
-JwtStrategy = __decorate([
+JwtStrategy = JwtStrategy_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(1, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __metadata("design:paramtypes", [config_1.ConfigService,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        tenants_service_1.TenantsService])
 ], JwtStrategy);
 exports.JwtStrategy = JwtStrategy;
 //# sourceMappingURL=jwt.strategy.js.map

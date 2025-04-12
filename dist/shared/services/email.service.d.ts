@@ -27,6 +27,7 @@ interface EmailOptions {
 }
 export declare class EmailService {
     private readonly configService;
+    private readonly domainVerificationService;
     private readonly emailTemplateRepository;
     private readonly logRepository;
     private readonly queueRepository;
@@ -35,7 +36,6 @@ export declare class EmailService {
     private readonly transporter;
     private readonly maxRetries;
     private readonly resolveTxt;
-    private readonly domainVerificationService;
     constructor(configService: ConfigService, domainVerificationService: DomainVerificationService, emailTemplateRepository: Repository<EmailTemplate>, logRepository: Repository<EmailLog>, queueRepository: Repository<EmailQueue>, contentRepository: Repository<EmailContent>);
     send(notification: Notification): Promise<boolean>;
     sendEmail(options: EmailOptions): Promise<boolean>;

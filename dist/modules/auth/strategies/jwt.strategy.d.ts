@@ -1,20 +1,24 @@
 import { Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
-import { User } from '../entities/user.entity';
+import { User } from '../../users/entities/user.entity';
+import { TenantsService } from '../../tenants/services/tenants.service';
 declare const JwtStrategy_base: new (...args: unknown[] | [opt: import("passport-jwt").StrategyOptions] | [opt: import("passport-jwt").StrategyOptions]) => Strategy & {
     validate(...args: any[]): unknown;
 };
 export declare class JwtStrategy extends JwtStrategy_base {
     private configService;
     private readonly userRepository;
-    constructor(configService: ConfigService, userRepository: Repository<User>);
+    private readonly tenantsService;
+    private readonly logger;
+    constructor(configService: ConfigService, userRepository: Repository<User>, tenantsService: TenantsService);
     validate(payload: any): Promise<{
-        id: any;
-        email: any;
-        role: any;
-        organizationId: any;
-        permissions: string[];
+        id: string;
+        email: string;
+        role: import("../../users/enums/role.enum").Role;
+        tenantId: any;
+        organizationId: string;
+        permissions: any;
     }>;
 }
 export {};

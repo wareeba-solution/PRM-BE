@@ -30,6 +30,10 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
+], Department.prototype, "tenantId", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
 ], Department.prototype, "organizationId", void 0);
 __decorate([
     (0, typeorm_1.Column)(),

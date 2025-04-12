@@ -12,6 +12,8 @@ import {
 } from 'typeorm';
 import { DepartmentStatus } from '../enums/department-status.enum';
 import { User } from '../../users/entities/user.entity';
+import { Tenant } from '../../tenants/entities/tenant.entity';
+import { Organization } from '../../organizations/entities/organization.entity';
 
 @Entity('departments')
 @Index(['organizationId', 'status'])
@@ -19,6 +21,9 @@ import { User } from '../../users/entities/user.entity';
 export class Department {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+    
+    @Column()
+    tenantId: string;
 
     @Column()
     organizationId: string;

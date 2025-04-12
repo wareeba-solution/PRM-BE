@@ -55,6 +55,7 @@ const Handlebars = __importStar(require("handlebars"));
 let EmailService = EmailService_1 = class EmailService {
     constructor(configService, domainVerificationService, emailTemplateRepository, logRepository, queueRepository, contentRepository) {
         this.configService = configService;
+        this.domainVerificationService = domainVerificationService;
         this.emailTemplateRepository = emailTemplateRepository;
         this.logRepository = logRepository;
         this.queueRepository = queueRepository;
@@ -75,7 +76,6 @@ let EmailService = EmailService_1 = class EmailService {
             rateDelta: 1000,
             rateLimit: 5,
         });
-        this.domainVerificationService = domainVerificationService;
     }
     async send(notification) {
         // Implement notification-specific email sending

@@ -10,12 +10,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MessageTemplate = void 0;
+exports.MessageTemplate = exports.TemplateType = void 0;
 const typeorm_1 = require("typeorm");
-const message_template_type_enum_1 = require("../enums/message-template-type.enum");
 const message_template_category_enum_1 = require("../enums/message-template-category.enum");
 const organization_entity_1 = require("../../organizations/entities/organization.entity");
 const user_entity_1 = require("../../users/entities/user.entity");
+var TemplateType;
+(function (TemplateType) {
+    TemplateType["APPOINTMENT_REMINDER"] = "APPOINTMENT_REMINDER";
+    TemplateType["FOLLOW_UP"] = "FOLLOW_UP";
+    TemplateType["LAB_RESULTS"] = "LAB_RESULTS";
+    TemplateType["REFERRAL"] = "REFERRAL";
+    TemplateType["MEDICATION_REMINDER"] = "MEDICATION_REMINDER";
+    TemplateType["GENERAL"] = "GENERAL";
+})(TemplateType = exports.TemplateType || (exports.TemplateType = {}));
 let MessageTemplate = class MessageTemplate {
 };
 __decorate([
@@ -37,8 +45,8 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
-        enum: message_template_type_enum_1.MessageTemplateType,
-        default: message_template_type_enum_1.MessageTemplateType.EMAIL,
+        enum: TemplateType,
+        default: TemplateType.GENERAL
     }),
     __metadata("design:type", String)
 ], MessageTemplate.prototype, "type", void 0);

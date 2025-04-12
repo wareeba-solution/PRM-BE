@@ -24,6 +24,7 @@ const user_activity_entity_1 = require("./user-activity.entity");
 const user_profile_entity_1 = require("./user-profile.entity");
 const user_verification_entity_1 = require("./user-verification.entity");
 const user_settings_entity_1 = require("./user-settings.entity");
+const tenant_entity_1 = require("../../tenants/entities/tenant.entity");
 let User = User_1 = class User {
     // Virtual properties
     get fullName() {
@@ -42,6 +43,10 @@ __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
     __metadata("design:type", String)
 ], User.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], User.prototype, "tenantId", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
@@ -136,6 +141,11 @@ __decorate([
     (0, typeorm_1.DeleteDateColumn)(),
     __metadata("design:type", Date)
 ], User.prototype, "deletedAt", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => tenant_entity_1.Tenant, { lazy: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'tenantId' }),
+    __metadata("design:type", Promise)
+], User.prototype, "tenant", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => organization_entity_1.Organization, { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'organizationId' }),
