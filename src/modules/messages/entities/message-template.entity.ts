@@ -16,6 +16,15 @@ import { MessageTemplateCategory } from '../enums/message-template-category.enum
 import { Organization } from '../../organizations/entities/organization.entity';
 import { User } from '../../users/entities/user.entity';
 
+export enum TemplateType {
+    APPOINTMENT_REMINDER = 'APPOINTMENT_REMINDER',
+    FOLLOW_UP = 'FOLLOW_UP',
+    LAB_RESULTS = 'LAB_RESULTS',
+    REFERRAL = 'REFERRAL',
+    MEDICATION_REMINDER = 'MEDICATION_REMINDER',
+    GENERAL = 'GENERAL'
+}
+
 @Entity('message_templates')
 @Index(['organizationId', 'type'])
 @Index(['organizationId', 'category'])
@@ -34,10 +43,10 @@ export class MessageTemplate {
 
     @Column({
         type: 'enum',
-        enum: MessageTemplateType,
-        default: MessageTemplateType.EMAIL,
+        enum: TemplateType,
+        default: TemplateType.GENERAL
     })
-    type: MessageTemplateType;
+    type: TemplateType;
 
     @Column({
         type: 'enum',

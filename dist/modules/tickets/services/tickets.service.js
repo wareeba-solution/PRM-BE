@@ -22,13 +22,17 @@ const ticket_entity_1 = require("../entities/ticket.entity");
 const ticket_comment_entity_1 = require("../entities/ticket-comment.entity");
 const ticket_attachment_entity_1 = require("../entities/ticket-attachment.entity");
 const ticket_activity_entity_1 = require("../entities/ticket-activity.entity");
-const ticket_status_enum_1 = require("../enums/ticket-status.enum");
+const ticket_query_dto_1 = require("../dto/ticket-query.dto");
 const notifications_service_1 = require("../../notifications/services/notifications.service");
 const user_entity_1 = require("../../users/entities/user.entity");
 const nestjs_typeorm_paginate_1 = require("nestjs-typeorm-paginate");
 const ticket_activity_type_enum_1 = require("../enums/ticket-activity-type.enum");
+const ticket_priority_service_1 = require("./ticket-priority.service");
+const message_template_service_1 = require("../../messages/services/message-template.service");
+const message_template_entity_1 = require("../../messages/entities/message-template.entity");
+const ticket_enums_1 = require("../enums/ticket.enums");
 let TicketsService = class TicketsService {
-    constructor(ticketRepository, commentRepository, attachmentRepository, activityRepository, dataSource, userRepository, eventEmitter, notificationsService) {
+    constructor(ticketRepository, commentRepository, attachmentRepository, activityRepository, dataSource, userRepository, eventEmitter, notificationsService, ticketPriorityService, messageTemplateService) {
         this.ticketRepository = ticketRepository;
         this.commentRepository = commentRepository;
         this.attachmentRepository = attachmentRepository;
@@ -37,6 +41,8 @@ let TicketsService = class TicketsService {
         this.userRepository = userRepository;
         this.eventEmitter = eventEmitter;
         this.notificationsService = notificationsService;
+        this.ticketPriorityService = ticketPriorityService;
+        this.messageTemplateService = messageTemplateService;
     }
     async getRelatedTickets(ticketId, organizationId) {
         // Implement the logic to get related tickets
@@ -44,19 +50,15 @@ let TicketsService = class TicketsService {
     }
     async remove(id, organizationId) {
         const ticket = await this.findOne(id, organizationId);
-        // Make sure TicketStatus.DELETED exists in your enum
-        ticket.status = ticket_status_enum_1.TicketStatus.DELETED;
         ticket.deletedAt = new Date();
         await this.ticketRepository.save(ticket);
     }
     async reopenTicket(id, reopenDetails) {
-        // Implement the logic to reopen a ticket
-        // Example:
         const ticket = await this.ticketRepository.findOne({ where: { id, organizationId: reopenDetails.organizationId } });
         if (!ticket) {
             throw new common_1.NotFoundException('Ticket not found');
         }
-        ticket.status = ticket_status_enum_1.TicketStatus.REOPENED;
+        ticket.status = ticket_enums_1.TicketStatus.OPEN;
         ticket.reopenReason = reopenDetails.reason;
         const reopenedByUser = await this.userRepository.findOne({ where: { id: reopenDetails.reopenedBy } });
         if (!reopenedByUser) {
@@ -72,18 +74,23 @@ let TicketsService = class TicketsService {
         if (!createdByUser) {
             throw new common_1.NotFoundException('User not found');
         }
-        const assigneeUser = data.assigneeId ? await this.userRepository.findOne({ where: { id: data.assigneeId } }) : null;
+        const assigneeUser = data.assignedToId ? await this.userRepository.findOne({ where: { id: data.assignedToId } }) : null;
+        // Determine priority based on criteria
+        const priority = await this.ticketPriorityService.determinePriority(data.organizationId, {
+            patientCondition: data.patientCondition,
+            timeSensitivity: data.timeSensitivity,
+            impactLevel: data.impactLevel,
+        });
         const ticket = this.ticketRepository.create({
             organizationId: data.organizationId,
             title: data.title,
             description: data.description,
             type: data.type,
-            priority: data.priority,
-            category: data.category,
-            status: ticket_status_enum_1.TicketStatus.OPEN,
+            priorityId: priority.id,
+            status: ticket_enums_1.TicketStatus.OPEN,
             createdBy: Promise.resolve(createdByUser),
             attachments: Promise.resolve([]),
-            assigneeId: data.assigneeId,
+            assigneeId: data.assignedToId,
             tags: data.tags,
             metadata: data.metadata,
         });
@@ -101,10 +108,12 @@ let TicketsService = class TicketsService {
             savedTicket.attachments = Promise.resolve(attachments);
             await this.ticketRepository.save(savedTicket);
         }
+        // Send notification based on ticket type
+        await this.sendTicketNotification(savedTicket);
         return savedTicket;
     }
     async findAll(query) {
-        const { organizationId, status, priority, type, assigneeId, contactId, departmentId, search, startDate, endDate, page = 1, limit = 10, } = query;
+        const { organizationId, status, type, assigneeId, contactId, departmentId, search, startDate, endDate, limit = 10, offset = 0, } = query;
         const queryBuilder = this.ticketRepository
             .createQueryBuilder('ticket')
             .where('ticket.organizationId = :organizationId', { organizationId })
@@ -112,10 +121,7 @@ let TicketsService = class TicketsService {
             .leftJoinAndSelect('ticket.contact', 'contact')
             .leftJoinAndSelect('ticket.department', 'department');
         if (status) {
-            queryBuilder.andWhere('ticket.status = :status', { status });
-        }
-        if (priority) {
-            queryBuilder.andWhere('ticket.priority = :priority', { priority });
+            queryBuilder.andWhere('ticket.status IN (:...status)', { status });
         }
         if (type) {
             queryBuilder.andWhere('ticket.type = :type', { type });
@@ -139,7 +145,7 @@ let TicketsService = class TicketsService {
             queryBuilder.andWhere('ticket.createdAt <= :endDate', { endDate });
         }
         queryBuilder.orderBy('ticket.createdAt', 'DESC');
-        return (0, nestjs_typeorm_paginate_1.paginate)(queryBuilder, { page, limit });
+        return (0, nestjs_typeorm_paginate_1.paginate)(queryBuilder, { page: Math.floor(offset / limit) + 1, limit });
     }
     async findOne(id, organizationId) {
         // Using query builder to avoid TypeORM find() type issues
@@ -178,16 +184,15 @@ let TicketsService = class TicketsService {
             await queryRunner.manager.save(ticket);
             // Create activity record for status change
             if (data.status && data.status !== oldStatus) {
-                const activity = this.activityRepository.create({
-                    ticketId: id,
-                    organizationId: data.organizationId,
-                    performedById: data.updatedBy,
-                    type: ticket_activity_type_enum_1.TicketActivityType.STATUS_CHANGED,
-                    data: {
-                        status: data.status,
-                        note: data.statusNote
-                    }
-                });
+                const activity = new ticket_activity_entity_1.TicketActivity();
+                activity.ticketId = id;
+                activity.organizationId = data.organizationId;
+                activity.performedById = data.updatedBy;
+                activity.type = ticket_activity_type_enum_1.TicketActivityType.STATUS_CHANGED;
+                activity.data = {
+                    status: data.status,
+                    note: data.note
+                };
                 await queryRunner.manager.save(activity);
                 // Send notification for status change
                 if (ticket.assigneeId) {
@@ -224,16 +229,15 @@ let TicketsService = class TicketsService {
         }
         await this.ticketRepository.save(ticket);
         // Create activity record
-        const activity = this.activityRepository.create({
-            ticketId: id,
-            organizationId: data.organizationId,
-            performedById: data.assignedBy,
-            type: ticket_activity_type_enum_1.TicketActivityType.ASSIGNED,
-            data: {
-                assigneeId: data.assigneeId,
-                note: data.note
-            }
-        });
+        const activity = new ticket_activity_entity_1.TicketActivity();
+        activity.ticketId = id;
+        activity.organizationId = data.organizationId;
+        activity.performedById = data.assignedBy;
+        activity.type = ticket_activity_type_enum_1.TicketActivityType.ASSIGNED;
+        activity.data = {
+            assigneeId: data.assigneeId,
+            note: data.note
+        };
         await this.activityRepository.save(activity);
         // Send notification to new assignee
         await this.notificationsService.create({
@@ -250,23 +254,18 @@ let TicketsService = class TicketsService {
         const ticket = await this.findOne(id, data.organizationId);
         // Create comment
         const comment = new ticket_comment_entity_1.TicketComment();
-        // Copy properties from data (content, isInternal, etc.)
-        Object.assign(comment, data);
-        comment.ticketId = ticket.id;
-        comment.organizationId = data.organizationId;
-        comment.authorId = data.userId; // Changed from userId to authorId
+        Object.assign(comment, Object.assign(Object.assign({}, data), { ticketId: ticket.id, userId: data.userId }));
         await this.commentRepository.save(comment);
         // Update ticket's last activity
         ticket.lastActivityAt = new Date();
         await this.ticketRepository.save(ticket);
         // Create activity record
-        const activity = this.activityRepository.create({
-            ticketId: id,
-            organizationId: data.organizationId,
-            performedById: data.userId,
-            type: ticket_activity_type_enum_1.TicketActivityType.COMMENT_ADDED,
-            data: { commentId: comment.id }
-        });
+        const activity = new ticket_activity_entity_1.TicketActivity();
+        activity.ticketId = id;
+        activity.organizationId = data.organizationId;
+        activity.performedById = data.userId;
+        activity.type = ticket_activity_type_enum_1.TicketActivityType.COMMENT_ADDED;
+        activity.data = { commentId: comment.id };
         await this.activityRepository.save(activity);
         // Send notification if internal note
         if (data.isInternal && ticket.assigneeId !== data.userId) {
@@ -283,7 +282,7 @@ let TicketsService = class TicketsService {
     }
     async escalateTicket(id, data) {
         const ticket = await this.findOne(id, data.organizationId);
-        ticket.status = ticket_status_enum_1.TicketStatus.ESCALATED;
+        ticket.status = ticket_enums_1.TicketStatus.IN_PROGRESS;
         ticket.escalatedAt = new Date();
         ticket.escalatedById = data.escalatedBy;
         ticket.escalationReason = data.reason;
@@ -293,13 +292,12 @@ let TicketsService = class TicketsService {
         }
         await this.ticketRepository.save(ticket);
         // Create activity record
-        const activity = this.activityRepository.create({
-            ticketId: id,
-            organizationId: data.organizationId,
-            performedById: data.escalatedBy,
-            type: ticket_activity_type_enum_1.TicketActivityType.ESCALATED,
-            data: { reason: data.reason }
-        });
+        const activity = new ticket_activity_entity_1.TicketActivity();
+        activity.ticketId = id;
+        activity.organizationId = data.organizationId;
+        activity.performedById = data.escalatedBy;
+        activity.type = ticket_activity_type_enum_1.TicketActivityType.ESCALATED;
+        activity.data = { reason: data.reason };
         await this.activityRepository.save(activity);
         // Notify administrators
         await this.notificationsService.create({
@@ -315,7 +313,7 @@ let TicketsService = class TicketsService {
     }
     async resolveTicket(id, data) {
         const ticket = await this.findOne(id, data.organizationId);
-        ticket.status = ticket_status_enum_1.TicketStatus.RESOLVED;
+        ticket.status = ticket_enums_1.TicketStatus.RESOLVED;
         ticket.resolvedAt = new Date();
         ticket.resolvedById = data.resolvedBy;
         ticket.resolution = data.resolution;
@@ -325,13 +323,12 @@ let TicketsService = class TicketsService {
         }
         await this.ticketRepository.save(ticket);
         // Create activity record
-        const activity = this.activityRepository.create({
-            ticketId: id,
-            organizationId: data.organizationId,
-            performedById: data.resolvedBy,
-            type: ticket_activity_type_enum_1.TicketActivityType.RESOLUTION,
-            data: { resolution: data.resolution }
-        });
+        const activity = new ticket_activity_entity_1.TicketActivity();
+        activity.ticketId = id;
+        activity.organizationId = data.organizationId;
+        activity.performedById = data.resolvedBy;
+        activity.type = ticket_activity_type_enum_1.TicketActivityType.RESOLUTION;
+        activity.data = { resolution: data.resolution };
         await this.activityRepository.save(activity);
         // Notify ticket creator if different from resolver
         if (ticket.createdById !== data.resolvedBy) {
@@ -347,7 +344,7 @@ let TicketsService = class TicketsService {
         return ticket;
     }
     async getAssignedTickets(query) {
-        const { organizationId, userId, status, priority, type, contactId, departmentId, search, startDate, endDate, page = 1, limit = 10, } = query;
+        const { organizationId, userId, status, type, contactId, departmentId, search, startDate, endDate, limit = 10, offset = 0, } = query;
         const queryBuilder = this.ticketRepository
             .createQueryBuilder('ticket')
             .where('ticket.organizationId = :organizationId', { organizationId })
@@ -355,10 +352,7 @@ let TicketsService = class TicketsService {
             .leftJoinAndSelect('ticket.contact', 'contact')
             .leftJoinAndSelect('ticket.department', 'department');
         if (status) {
-            queryBuilder.andWhere('ticket.status = :status', { status });
-        }
-        if (priority) {
-            queryBuilder.andWhere('ticket.priority = :priority', { priority });
+            queryBuilder.andWhere('ticket.status IN (:...status)', { status });
         }
         if (type) {
             queryBuilder.andWhere('ticket.type = :type', { type });
@@ -379,7 +373,7 @@ let TicketsService = class TicketsService {
             queryBuilder.andWhere('ticket.createdAt <= :endDate', { endDate });
         }
         queryBuilder.orderBy('ticket.createdAt', 'DESC');
-        return (0, nestjs_typeorm_paginate_1.paginate)(queryBuilder, { page, limit });
+        return (0, nestjs_typeorm_paginate_1.paginate)(queryBuilder, { page: Math.floor(offset / limit) + 1, limit });
     }
     async getTimeline(id, organizationId) {
         // Using query builder to avoid TypeORM find() type issues
@@ -400,15 +394,181 @@ let TicketsService = class TicketsService {
             'COUNT(*) as total',
             'COUNT(CASE WHEN status = :open THEN 1 END) as open',
             'COUNT(CASE WHEN status = :inProgress THEN 1 END) as inProgress',
-            'COUNT(CASE WHEN status = :escalated THEN 1 END) as escalated',
+            'COUNT(CASE WHEN status = :inProgress THEN 1 END) as escalated',
             'COUNT(CASE WHEN priority = :urgent THEN 1 END) as urgent',
         ])
-            .setParameter('open', ticket_status_enum_1.TicketStatus.OPEN)
-            .setParameter('inProgress', ticket_status_enum_1.TicketStatus.IN_PROGRESS)
-            .setParameter('escalated', ticket_status_enum_1.TicketStatus.ESCALATED)
+            .setParameter('open', ticket_enums_1.TicketStatus.OPEN)
+            .setParameter('inProgress', ticket_enums_1.TicketStatus.IN_PROGRESS)
             .setParameter('urgent', 'URGENT')
             .getRawOne();
         return stats;
+    }
+    async sendTicketNotification(ticket) {
+        var _a;
+        let templateType;
+        let context = {
+            ticketId: ticket.id,
+            ticketTitle: ticket.title,
+            ticketDescription: ticket.description,
+            priority: (_a = ticket.priority) === null || _a === void 0 ? void 0 : _a.name,
+        };
+        switch (ticket.type) {
+            case ticket_enums_1.TicketType.APPOINTMENT_REQUEST:
+                templateType = message_template_entity_1.TemplateType.APPOINTMENT_REMINDER;
+                break;
+            case ticket_enums_1.TicketType.LAB_RESULTS:
+                templateType = message_template_entity_1.TemplateType.LAB_RESULTS;
+                break;
+            case ticket_enums_1.TicketType.REFERRAL:
+                templateType = message_template_entity_1.TemplateType.REFERRAL;
+                break;
+            default:
+                templateType = message_template_entity_1.TemplateType.GENERAL;
+        }
+        const template = await this.messageTemplateService.findAll(ticket.organizationId, templateType);
+        if (template.length > 0) {
+            const renderedContent = await this.messageTemplateService.renderTemplate(template[0], context);
+            // TODO: Implement actual notification sending (email, SMS, etc.)
+            console.log('Notification content:', renderedContent);
+        }
+    }
+    async getTicketMetrics(organizationId) {
+        const query = new ticket_query_dto_1.TicketQueryDto();
+        query.organizationId = organizationId;
+        const tickets = await this.findAll(query);
+        const metrics = {
+            total: tickets.items.length,
+            byStatus: {},
+            byType: {},
+            byPriority: {},
+            averageResolutionTime: 0,
+        };
+        // Calculate metrics
+        tickets.items.forEach(ticket => {
+            // Count by status
+            metrics.byStatus[ticket.status] = (metrics.byStatus[ticket.status] || 0) + 1;
+            // Count by type
+            metrics.byType[ticket.type] = (metrics.byType[ticket.type] || 0) + 1;
+            // Count by priority
+            if (ticket.priority) {
+                metrics.byPriority[ticket.priority.level] = (metrics.byPriority[ticket.priority.level] || 0) + 1;
+            }
+            // Calculate resolution time for resolved tickets
+            if (ticket.status === ticket_enums_1.TicketStatus.RESOLVED && ticket.resolvedAt && ticket.createdAt) {
+                const resolutionTime = ticket.resolvedAt.getTime() - ticket.createdAt.getTime();
+                metrics.averageResolutionTime += resolutionTime;
+            }
+        });
+        // Calculate average resolution time
+        const resolvedCount = metrics.byStatus[ticket_enums_1.TicketStatus.RESOLVED] || 0;
+        metrics.averageResolutionTime = resolvedCount > 0
+            ? metrics.averageResolutionTime / resolvedCount
+            : 0;
+        return metrics;
+    }
+    async bulkAssignTickets(data) {
+        const { ticketIds, assigneeId, note, organizationId, assignedBy } = data;
+        const assignee = await this.userRepository.findOne({
+            where: { id: assigneeId, organizationId },
+        });
+        if (!assignee) {
+            throw new common_1.NotFoundException('Assignee not found');
+        }
+        const tickets = await this.ticketRepository.find({
+            where: {
+                id: (0, typeorm_2.In)(ticketIds),
+                organizationId,
+            },
+        });
+        if (tickets.length !== ticketIds.length) {
+            throw new common_1.NotFoundException('One or more tickets not found');
+        }
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+        try {
+            for (const ticket of tickets) {
+                ticket.assigneeId = assigneeId;
+                const updatedByUser = await this.userRepository.findOne({ where: { id: assignedBy } });
+                if (updatedByUser) {
+                    ticket.updatedBy = Promise.resolve(updatedByUser);
+                }
+                await queryRunner.manager.save(ticket);
+                // Create activity record
+                const activity = new ticket_activity_entity_1.TicketActivity();
+                activity.ticketId = ticket.id;
+                activity.organizationId = organizationId;
+                activity.performedById = assignedBy;
+                activity.type = ticket_activity_type_enum_1.TicketActivityType.ASSIGNED;
+                activity.data = {
+                    description: `Ticket assigned to ${assignee.firstName} ${assignee.lastName}`,
+                    previousAssigneeId: ticket.assigneeId,
+                    newAssigneeId: assigneeId,
+                    note,
+                };
+                await queryRunner.manager.save(activity);
+                // Emit event
+                this.eventEmitter.emit('ticket.assigned', {
+                    ticket,
+                    assignee,
+                    assignedBy,
+                    note,
+                });
+            }
+            await queryRunner.commitTransaction();
+        }
+        catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        }
+        finally {
+            await queryRunner.release();
+        }
+    }
+    async uploadAttachment(ticketId, file, organizationId, uploadedById) {
+        const ticket = await this.findOne(ticketId, organizationId);
+        const attachment = new ticket_attachment_entity_1.TicketAttachment();
+        attachment.ticketId = ticketId;
+        attachment.organizationId = organizationId;
+        attachment.fileName = file.originalname;
+        attachment.fileSize = file.size;
+        attachment.mimeType = file.mimetype;
+        attachment.storageKey = file.path;
+        attachment.uploadedById = uploadedById;
+        const savedAttachment = await this.attachmentRepository.save(attachment);
+        // Create activity record
+        const activity = new ticket_activity_entity_1.TicketActivity();
+        activity.ticketId = ticketId;
+        activity.organizationId = organizationId;
+        activity.performedById = uploadedById;
+        activity.type = ticket_activity_type_enum_1.TicketActivityType.ATTACHMENT_ADDED;
+        activity.data = {
+            description: `Attachment ${file.originalname} added`,
+            attachmentId: savedAttachment.id,
+            fileName: file.originalname,
+            fileSize: file.size,
+        };
+        await this.activityRepository.save(activity);
+        // Emit event
+        this.eventEmitter.emit('ticket.attachment.added', {
+            ticket,
+            attachment: savedAttachment,
+            uploadedBy: uploadedById,
+        });
+        return savedAttachment;
+    }
+    async getTicketActivities(ticketId, organizationId) {
+        const ticket = await this.findOne(ticketId, organizationId);
+        return this.activityRepository.find({
+            where: {
+                ticketId,
+                organizationId,
+            },
+            order: {
+                createdAt: 'DESC',
+            },
+            relations: ['user'],
+        });
     }
 };
 TicketsService = __decorate([
@@ -425,7 +585,9 @@ TicketsService = __decorate([
         typeorm_2.DataSource,
         typeorm_2.Repository,
         event_emitter_1.EventEmitter2,
-        notifications_service_1.NotificationsService])
+        notifications_service_1.NotificationsService,
+        ticket_priority_service_1.TicketPriorityService,
+        message_template_service_1.MessageTemplateService])
 ], TicketsService);
 exports.TicketsService = TicketsService;
 //# sourceMappingURL=tickets.service.js.map

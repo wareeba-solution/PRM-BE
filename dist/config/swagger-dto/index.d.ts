@@ -15,3 +15,4 @@ export { DepartmentDto } from './departments/department.dto';
 export { DocumentDto } from './documents/document.dto';
 export { MedicalHistoryDto } from './medical-history/medical-history.dto';
 export { MergedRecordDto } from './merged-records/merged-record.dto';
+export { TenantDto, TenantRegistrationDto, OrganizationSetupDto } from './tenants';

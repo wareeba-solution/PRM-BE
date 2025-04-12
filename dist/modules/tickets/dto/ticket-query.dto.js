@@ -12,14 +12,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TicketQueryDto = exports.SortOrder = exports.TicketSortField = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
+const ticket_enums_1 = require("../enums/ticket.enums");
 var TicketSortField;
 (function (TicketSortField) {
     TicketSortField["CREATED_AT"] = "createdAt";
     TicketSortField["UPDATED_AT"] = "updatedAt";
+    TicketSortField["DUE_DATE"] = "dueDate";
     TicketSortField["PRIORITY"] = "priority";
     TicketSortField["STATUS"] = "status";
-    TicketSortField["DUE_DATE"] = "dueDate";
-    TicketSortField["LAST_ACTIVITY"] = "lastActivity";
 })(TicketSortField = exports.TicketSortField || (exports.TicketSortField = {}));
 var SortOrder;
 (function (SortOrder) {
@@ -28,75 +28,62 @@ var SortOrder;
 })(SortOrder = exports.SortOrder || (exports.SortOrder = {}));
 class TicketQueryDto {
     constructor() {
-        this.page = 1;
         this.limit = 10;
-        this.limit2 = 20; // Fixed missing property name
+        this.limit2 = 20;
         this.offset = 0;
     }
 }
 __decorate([
-    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], TicketQueryDto.prototype, "searchTerm", void 0);
+], TicketQueryDto.prototype, "organizationId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], TicketQueryDto.prototype, "priority", void 0);
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsEnum)(ticket_enums_1.TicketStatus, { each: true }),
+    __metadata("design:type", Array)
+], TicketQueryDto.prototype, "status", void 0);
 __decorate([
+    (0, class_validator_1.IsEnum)(ticket_enums_1.TicketType),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], TicketQueryDto.prototype, "type", void 0);
 __decorate([
-    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], TicketQueryDto.prototype, "assigneeId", void 0);
 __decorate([
-    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], TicketQueryDto.prototype, "contactId", void 0);
 __decorate([
-    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], TicketQueryDto.prototype, "departmentId", void 0);
 __decorate([
-    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], TicketQueryDto.prototype, "search", void 0);
 __decorate([
+    (0, class_validator_1.IsDate)(),
     (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
+    __metadata("design:type", Date)
 ], TicketQueryDto.prototype, "startDate", void 0);
 __decorate([
+    (0, class_validator_1.IsDate)(),
     (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
+    __metadata("design:type", Date)
 ], TicketQueryDto.prototype, "endDate", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.Min)(1),
-    __metadata("design:type", Number)
-], TicketQueryDto.prototype, "page", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)
 ], TicketQueryDto.prototype, "limit", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsString)({ each: true }),
-    __metadata("design:type", Array)
-], TicketQueryDto.prototype, "status", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),

@@ -11,7 +11,9 @@ exports.ContactsModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const contacts_controller_1 = require("./controllers/contacts.controller");
+const family_controller_1 = require("./controllers/family.controller");
 const contacts_service_1 = require("./services/contacts.service");
+const family_service_1 = require("./services/family.service");
 const contact_entity_1 = require("./entities/contact.entity");
 const contact_relationship_entity_1 = require("./entities/contact-relationship.entity");
 const medical_history_entity_1 = require("../medical-history/medical-history.entity");
@@ -38,9 +40,9 @@ ContactsModule = __decorate([
             users_module_1.UsersModule,
             organizations_module_1.OrganizationsModule
         ],
-        controllers: [contacts_controller_1.ContactsController],
-        providers: [contacts_service_1.ContactsService],
-        exports: [contacts_service_1.ContactsService]
+        controllers: [contacts_controller_1.ContactsController, family_controller_1.FamilyController],
+        providers: [contacts_service_1.ContactsService, family_service_1.FamilyService],
+        exports: [contacts_service_1.ContactsService, family_service_1.FamilyService]
     })
 ], ContactsModule);
 exports.ContactsModule = ContactsModule;

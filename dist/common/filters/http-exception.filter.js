@@ -19,6 +19,11 @@ let HttpExceptionFilter = HttpExceptionFilter_1 = class HttpExceptionFilter {
         const ctx = host.switchToHttp();
         const response = ctx.getResponse();
         const request = ctx.getRequest();
+        // Check if headers are already sent to prevent "Cannot set headers after they are sent" error
+        if (response.headersSent) {
+            this.logger.error(`Headers already sent, cannot send exception response for ${request.method} ${request.url}`);
+            return;
+        }
         let status = common_1.HttpStatus.INTERNAL_SERVER_ERROR;
         let message = 'Internal server error';
         let error = 'Internal Server Error';
@@ -45,9 +50,22 @@ let HttpExceptionFilter = HttpExceptionFilter_1 = class HttpExceptionFilter {
                 message = 'A record with this value already exists';
                 error = 'Duplicate Entry';
             }
+            // Check for specific database errors - column not found errors
+            if (exception.message.includes('column') && exception.message.includes('does not exist')) {
+                const match = exception.message.match(/column ["']?([^"']+)["']? of relation ["']?([^"']+)["']?/);
+                if (match) {
+                    const [, column, table] = match;
+                    message = `Database schema error: column "${column}" does not exist in table "${table}"`;
+                }
+            }
         }
         else if (exception instanceof Error) {
             message = exception.message;
+            // Special handling for common errors
+            if (exception.name === 'TypeError' && exception.message.includes('headers')) {
+                this.logger.error('Headers-related error:', exception);
+                message = 'A request handling error occurred';
+            }
         }
         // Create the error response
         const errorResponse = {
@@ -59,12 +77,18 @@ let HttpExceptionFilter = HttpExceptionFilter_1 = class HttpExceptionFilter {
             method: request.method,
             correlationId: request.headers['x-correlation-id'],
         };
-        // Log the error
-        this.logError(errorResponse, exception);
-        // Send the response
-        response
-            .status(status)
-            .json(errorResponse);
+        // Log the error with useful context
+        this.logError(errorResponse, exception, request);
+        try {
+            // Send the response
+            response
+                .status(status)
+                .json(errorResponse);
+        }
+        catch (sendError) {
+            // Handle errors that occur while sending the response
+            this.logger.error(`Failed to send error response: ${sendError instanceof Error ? sendError.message : 'Unknown error'}`, sendError instanceof Error ? sendError.stack : undefined);
+        }
     }
     getErrorName(status) {
         switch (status) {
@@ -92,65 +116,33 @@ let HttpExceptionFilter = HttpExceptionFilter_1 = class HttpExceptionFilter {
                 return 'Error';
         }
     }
-    logError(errorResponse, exception) {
-        const logMessage = Object.assign(Object.assign({}, errorResponse), { stack: exception instanceof Error ? exception.stack : undefined });
+    logError(errorResponse, exception, request) {
+        const tenant = request['tenantId'] ? `tenant: ${request['tenantId']}` : 'no tenant';
+        // Fix the user property access to avoid TypeScript errors
+        let userInfo = 'unauthenticated';
+        if (request['user'] && typeof request['user'] === 'object' && 'id' in request['user']) {
+            userInfo = `user: ${request['user'].id}`;
+        }
+        const logMessage = Object.assign(Object.assign({}, errorResponse), { stack: exception instanceof Error ? exception.stack : undefined, context: `${tenant}, ${userInfo}`, headers: this.sanitizeHeaders(request.headers) });
         if (errorResponse.statusCode >= 500) {
-            this.logger.error(JSON.stringify(logMessage));
+            this.logger.error(`Server error for ${request.method} ${request.url}`, JSON.stringify(logMessage));
         }
         else {
-            this.logger.warn(JSON.stringify(logMessage));
+            this.logger.warn(`Client error for ${request.method} ${request.url}`, JSON.stringify(logMessage));
         }
-        // If you're using error monitoring service like Sentry
-        // Sentry.captureException(exception, {
-        //     extra: errorResponse,
-        //     tags: {
-        //         path: errorResponse.path,
-        //         method: errorResponse.method,
-        //     },
-        // });
+    }
+    sanitizeHeaders(headers) {
+        // Create a sanitized copy of headers, removing sensitive information
+        const sanitized = Object.assign({}, headers);
+        if (sanitized.authorization)
+            sanitized.authorization = 'REDACTED';
+        if (sanitized.cookie)
+            sanitized.cookie = 'REDACTED';
+        return sanitized;
     }
 };
 HttpExceptionFilter = HttpExceptionFilter_1 = __decorate([
     (0, common_1.Catch)()
 ], HttpExceptionFilter);
 exports.HttpExceptionFilter = HttpExceptionFilter;
-// Example usage in main.ts:
-/*
-async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
-    
-    // Apply the filter globally
-    app.useGlobalFilters(new HttpExceptionFilter());
-    
-    await app.listen(3000);
-}
-*/
-// Example custom exceptions:
-/*
-export class ValidationException extends HttpException {
-    constructor(message: string | string[]) {
-        super(
-            {
-                statusCode: HttpStatus.BAD_REQUEST,
-                message,
-                error: 'Validation Error',
-            },
-            HttpStatus.BAD_REQUEST,
-        );
-    }
-}
-
-export class NotFoundException extends HttpException {
-    constructor(resource: string) {
-        super(
-            {
-                statusCode: HttpStatus.NOT_FOUND,
-                message: `${resource} not found`,
-                error: 'Not Found',
-            },
-            HttpStatus.NOT_FOUND,
-        );
-    }
-}
-*/ 
 //# sourceMappingURL=http-exception.filter.js.map

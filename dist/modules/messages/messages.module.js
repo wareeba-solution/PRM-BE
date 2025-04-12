@@ -31,6 +31,7 @@ const message_delivery_service_1 = require("./services/message-delivery.service"
 const message_scheduler_service_1 = require("./services/message-scheduler.service");
 const template_service_1 = require("./services/template.service");
 const message_repository_1 = require("./repositories/message.repository");
+const message_template_service_1 = require("./services/message-template.service");
 let MessagesModule = class MessagesModule {
 };
 MessagesModule = __decorate([
@@ -66,12 +67,14 @@ MessagesModule = __decorate([
             message_event_handler_1.MessageEventHandler,
             message_delivery_listener_1.MessageDeliveryListener,
             message_queue_listener_1.MessageQueueListener,
-            message_repository_1.MessageRepository
+            message_repository_1.MessageRepository,
+            message_template_service_1.MessageTemplateService
         ],
         exports: [
             messages_service_1.MessagesService,
             message_delivery_service_1.MessageDeliveryService,
-            template_service_1.TemplateService
+            template_service_1.TemplateService,
+            message_template_service_1.MessageTemplateService
         ]
     })
 ], MessagesModule);

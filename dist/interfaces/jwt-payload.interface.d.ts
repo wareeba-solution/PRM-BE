@@ -3,10 +3,13 @@ export interface JwtPayload {
     sub: string;
     email: string;
     role: Role;
-    organizationId?: string;
+    organizationId: string;
     permissions: string[];
+    organizationName?: string;
+    organizationSlug?: string;
     sessionId: string;
     deviceId?: string;
+    isEmailVerified?: boolean;
     iat?: number;
     exp?: number;
     iss?: string;

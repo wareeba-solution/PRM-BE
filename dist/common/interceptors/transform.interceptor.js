@@ -55,14 +55,25 @@ let TransformInterceptor = class TransformInterceptor {
         return this.buildResponse(items, status, request, paginationMeta);
     }
     transformData(data) {
-        // Transform class instances to plain objects
-        if (data && typeof data === 'object') {
-            return (0, class_transformer_1.classToPlain)(data, {
-                excludePrefixes: ['_'],
-                enableCircularCheck: true,
-            });
+        // Add null/undefined check
+        if (data === null || data === undefined) {
+            return data;
         }
-        return data;
+        try {
+            // Transform class instances to plain objects
+            if (data && typeof data === 'object') {
+                return (0, class_transformer_1.classToPlain)(data, {
+                    excludePrefixes: ['_'],
+                    enableCircularCheck: true,
+                });
+            }
+            return data;
+        }
+        catch (error) {
+            console.error('Error transforming data:', error);
+            // Return original data if transformation fails
+            return data;
+        }
     }
     isPaginatedResponse(data) {
         return (data &&

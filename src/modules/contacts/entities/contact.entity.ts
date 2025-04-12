@@ -21,11 +21,12 @@ import { Appointment } from '../../appointments/entities/appointment.entity';
 import { Document } from '../../documents/entities/document.entity';
 import { MedicalHistory } from '../../medical-history/medical-history.entity';
 import { MergedRecord } from '../../merged-records/entities/merged-record.entity';
+import { Tenant } from '../../tenants/entities/tenant.entity';
 
 export enum ContactType {
     PATIENT = 'PATIENT',
-    EMERGENCY_CONTACT = 'EMERGENCY_CONTACT',
     FAMILY_MEMBER = 'FAMILY_MEMBER',
+    EMERGENCY_CONTACT = 'EMERGENCY_CONTACT',
     OTHER = 'OTHER',
 }
 
@@ -48,12 +49,25 @@ export enum BloodType {
     UNKNOWN = 'UNKNOWN',
 }
 
+export enum MaritalStatus {
+    SINGLE = 'SINGLE',
+    MARRIED = 'MARRIED',
+    DIVORCED = 'DIVORCED',
+    WIDOWED = 'WIDOWED',
+    SEPARATED = 'SEPARATED',
+    OTHER = 'OTHER',
+}
+
 @Entity('contacts')
 @Index(['organizationId', 'email'])
-@Index(['organizationId', 'phoneNumber'])
+@Index(['organizationId', 'type'])
+@Index(['organizationId', 'familyId'])
 export class Contact {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+    
+    @Column()
+    tenantId: string;
     
     @Column({ nullable: true })
     status: string;
@@ -69,6 +83,9 @@ export class Contact {
 
     @Column({ type: 'enum', enum: ContactType, default: ContactType.PATIENT })
     type: ContactType;
+
+    @Column({ nullable: true })
+    familyId: string; // For grouping family members together
 
     @Column()
     firstName: string;
@@ -98,6 +115,9 @@ export class Contact {
     @Column({ type: 'date', nullable: true })
     dateOfBirth?: Date;
 
+    @Column({ type: 'enum', enum: MaritalStatus, nullable: true })
+    maritalStatus?: MaritalStatus;
+
     @Column({ type: 'enum', enum: BloodType, default: BloodType.UNKNOWN })
     bloodType: BloodType;
 
@@ -108,15 +128,18 @@ export class Contact {
         state: string;
         postalCode: string;
         country: string;
-    };
+        isPrimary: boolean;
+        type?: 'HOME' | 'WORK' | 'OTHER';
+    }[];
 
     @Column({ type: 'jsonb', nullable: true })
-    emergencyContact?: {
+    emergencyContacts?: {
         name: string;
         relationship: string;
         phoneNumber: string;
         address?: string;
-    };
+        isPrimary: boolean;
+    }[];
 
     @Column({ type: 'simple-array', nullable: true })
     allergies?: string[];
@@ -124,8 +147,79 @@ export class Contact {
     @Column({ type: 'simple-array', nullable: true })
     medications?: string[];
 
+    @Column({ type: 'jsonb', nullable: true })
+    insurance?: {
+        provider: string;
+        policyNumber: string;
+        groupNumber?: string;
+        type: 'PRIMARY' | 'SECONDARY' | 'TERTIARY';
+        coverageStartDate?: Date;
+        coverageEndDate?: Date;
+        isActive: boolean;
+    }[];
+
     @Column({ nullable: true })
     occupation?: string;
+
+    @Column({ type: 'jsonb', nullable: true })
+    employment?: {
+        employer?: string;
+        position?: string;
+        workPhone?: string;
+        workEmail?: string;
+        startDate?: Date;
+        endDate?: Date;
+    };
+
+    @Column({ type: 'jsonb', nullable: true })
+    familyHistory?: {
+        condition: string;
+        relationship: string;
+        notes?: string;
+    }[];
+
+    @Column({ type: 'jsonb', nullable: true })
+    socialHistory?: {
+        smoking?: {
+            status: 'CURRENT' | 'FORMER' | 'NEVER';
+            years?: number;
+            packsPerDay?: number;
+            quitDate?: Date;
+        };
+        alcohol?: {
+            status: 'CURRENT' | 'FORMER' | 'NEVER';
+            frequency?: string;
+            amount?: string;
+            quitDate?: Date;
+        };
+        exercise?: {
+            frequency?: string;
+            type?: string;
+            duration?: string;
+        };
+        diet?: {
+            type?: string;
+            restrictions?: string[];
+        };
+    };
+
+    @Column({ type: 'jsonb', nullable: true })
+    medicalConditions?: {
+        condition: string;
+        diagnosisDate?: Date;
+        status: 'ACTIVE' | 'RESOLVED' | 'CHRONIC';
+        severity?: 'MILD' | 'MODERATE' | 'SEVERE';
+        notes?: string;
+    }[];
+
+    @Column({ type: 'jsonb', nullable: true })
+    immunizations?: {
+        vaccine: string;
+        date: Date;
+        administeredBy?: string;
+        lotNumber?: string;
+        nextDueDate?: Date;
+    }[];
 
     @Column({ nullable: true })
     notes?: string;
@@ -158,6 +252,10 @@ export class Contact {
     deletedAt?: Date;
 
     // Relations - all using string references to avoid circular dependencies
+    @ManyToOne(() => Tenant, { lazy: true })
+    @JoinColumn({ name: 'tenantId' })
+    tenant: Promise<Tenant>;
+    
     @ManyToOne(() => Organization, { lazy: true })
     @JoinColumn({ name: 'organizationId' })
     organization: Promise<Organization>;
@@ -182,12 +280,15 @@ export class Contact {
     @OneToMany(() => ContactRelationship, relationship => relationship.contact, { lazy: true })
     relationships: Promise<ContactRelationship[]>;
 
+    @OneToMany(() => ContactRelationship, relationship => relationship.relatedContact, { lazy: true })
+    relatedRelationships: Promise<ContactRelationship[]>;
+
     @OneToMany(() => MergedRecord, mergedRecord => mergedRecord.primaryContact, { lazy: true })
     mergedRecords: Promise<MergedRecord[]>;
 
     // Virtual properties
     get fullName(): string {
-        return `${this.firstName} ${this.lastName}`;
+        return `${this.firstName} ${this.lastName}`.trim();
     }
 
     get age(): number | null {
@@ -200,5 +301,29 @@ export class Contact {
             age--;
         }
         return age;
+    }
+
+    get isPatient(): boolean {
+        return this.type === ContactType.PATIENT;
+    }
+
+    get isFamilyMember(): boolean {
+        return this.type === ContactType.FAMILY_MEMBER;
+    }
+
+    get isEmergencyContact(): boolean {
+        return this.type === ContactType.EMERGENCY_CONTACT;
+    }
+
+    get primaryAddress(): any {
+        return this.address?.find(addr => addr.isPrimary);
+    }
+
+    get primaryEmergencyContact(): any {
+        return this.emergencyContacts?.find(contact => contact.isPrimary);
+    }
+
+    get primaryInsurance(): any {
+        return this.insurance?.find(ins => ins.type === 'PRIMARY');
     }
 }

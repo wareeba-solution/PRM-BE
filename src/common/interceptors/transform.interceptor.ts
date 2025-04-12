@@ -94,14 +94,25 @@ export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> 
     }
 
     private transformData(data: any): any {
-        // Transform class instances to plain objects
-        if (data && typeof data === 'object') {
-            return classToPlain(data, {
-                excludePrefixes: ['_'],
-                enableCircularCheck: true,
-            });
+        // Add null/undefined check
+        if (data === null || data === undefined) {
+            return data;
         }
-        return data;
+
+        try {
+            // Transform class instances to plain objects
+            if (data && typeof data === 'object') {
+                return classToPlain(data, {
+                    excludePrefixes: ['_'],
+                    enableCircularCheck: true,
+                });
+            }
+            return data;
+        } catch (error) {
+            console.error('Error transforming data:', error);
+            // Return original data if transformation fails
+            return data;
+        }
     }
 
     private isPaginatedResponse(data: any): data is PaginatedResponse<T> {

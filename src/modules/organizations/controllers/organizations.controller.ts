@@ -14,7 +14,7 @@ import {
     NotFoundException,
     BadRequestException,
     ForbiddenException,
-    UnauthorizedException,
+    UnauthorizedException, Version,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
@@ -29,7 +29,8 @@ import { UpdateSubscriptionDto } from '../dto/update-subscription.dto';
 import { CustomRequest } from '../../../interfaces/request.interface';
 import { Repository } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { InjectRepository } from '@nestjs/typeorm'; 
+import { InjectRepository } from '@nestjs/typeorm';
+
 
 @Controller('organizations')
 @UseGuards(JwtAuthGuard, RolesGuard)

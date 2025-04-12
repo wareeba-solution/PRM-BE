@@ -12,7 +12,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateTicketDto = void 0;
 const class_validator_1 = require("class-validator");
-const ticket_type_enum_1 = require("../enums/ticket-type.enum");
+const ticket_enums_1 = require("../enums/ticket.enums");
 const ticket_priority_enum_1 = require("../enums/ticket-priority.enum");
 const ticket_source_enum_1 = require("../enums/ticket-source.enum");
 const ticket_category_enum_1 = require("../enums/ticket-category.enum");
@@ -35,7 +35,7 @@ __decorate([
     __metadata("design:type", String)
 ], CreateTicketDto.prototype, "description", void 0);
 __decorate([
-    (0, class_validator_1.IsEnum)(ticket_type_enum_1.TicketType),
+    (0, class_validator_1.IsEnum)(ticket_enums_1.TicketType),
     __metadata("design:type", String)
 ], CreateTicketDto.prototype, "type", void 0);
 __decorate([
@@ -54,10 +54,54 @@ __decorate([
     __metadata("design:type", String)
 ], CreateTicketDto.prototype, "category", void 0);
 __decorate([
+    (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateTicketDto.prototype, "assignedToId", void 0);
+__decorate([
+    (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateTicketDto.prototype, "patientId", void 0);
+__decorate([
+    (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateTicketDto.prototype, "relatedAppointmentId", void 0);
+__decorate([
+    (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateTicketDto.prototype, "relatedLabResultId", void 0);
+__decorate([
+    (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateTicketDto.prototype, "relatedPrescriptionId", void 0);
+__decorate([
+    (0, class_validator_1.IsDate)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Date)
+], CreateTicketDto.prototype, "dueDate", void 0);
+__decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
-], CreateTicketDto.prototype, "assigneeId", void 0);
+], CreateTicketDto.prototype, "patientCondition", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(5),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], CreateTicketDto.prototype, "timeSensitivity", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(5),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], CreateTicketDto.prototype, "impactLevel", void 0);
 __decorate([
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.IsString)({ each: true }),
@@ -69,11 +113,6 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Array)
 ], CreateTicketDto.prototype, "attachments", void 0);
-__decorate([
-    (0, class_validator_1.IsDate)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Date)
-], CreateTicketDto.prototype, "dueDate", void 0);
 __decorate([
     (0, class_validator_1.IsObject)(),
     (0, class_validator_1.IsOptional)(),

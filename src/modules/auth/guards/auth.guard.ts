@@ -53,7 +53,8 @@ export class AuthGuard {
           throw new UnauthorizedException('User account is locked');
         }
 
-        if (this.authService.requireEmailVerification) {
+        // Check if user's email is verified if required
+        if (user.verification) {
           const verification = await user.verification;
           if (!verification?.isEmailVerified) {
             throw new UnauthorizedException('Email verification required');

@@ -4,7 +4,7 @@
  * This file exports all DTOs used for Swagger documentation to avoid circular dependencies
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MergedRecordDto = exports.MedicalHistoryDto = exports.DocumentDto = exports.DepartmentDto = exports.MessageDto = exports.NotificationDto = exports.AppointmentDto = exports.ContactRelationshipDto = exports.ContactDto = exports.TicketDto = exports.OrganizationDto = exports.UserDto = exports.BaseDto = void 0;
+exports.OrganizationSetupDto = exports.TenantRegistrationDto = exports.TenantDto = exports.MergedRecordDto = exports.MedicalHistoryDto = exports.DocumentDto = exports.DepartmentDto = exports.MessageDto = exports.NotificationDto = exports.AppointmentDto = exports.ContactRelationshipDto = exports.ContactDto = exports.TicketDto = exports.OrganizationDto = exports.UserDto = exports.BaseDto = void 0;
 // Base DTO
 var base_dto_1 = require("./base.dto");
 Object.defineProperty(exports, "BaseDto", { enumerable: true, get: function () { return base_dto_1.BaseDto; } });
@@ -43,4 +43,9 @@ Object.defineProperty(exports, "MedicalHistoryDto", { enumerable: true, get: fun
 // Merged Records DTOs
 var merged_record_dto_1 = require("./merged-records/merged-record.dto");
 Object.defineProperty(exports, "MergedRecordDto", { enumerable: true, get: function () { return merged_record_dto_1.MergedRecordDto; } });
+// Tenant DTOs
+var tenants_1 = require("./tenants");
+Object.defineProperty(exports, "TenantDto", { enumerable: true, get: function () { return tenants_1.TenantDto; } });
+Object.defineProperty(exports, "TenantRegistrationDto", { enumerable: true, get: function () { return tenants_1.TenantRegistrationDto; } });
+Object.defineProperty(exports, "OrganizationSetupDto", { enumerable: true, get: function () { return tenants_1.OrganizationSetupDto; } });
 //# sourceMappingURL=index.js.map

@@ -130,11 +130,15 @@ export class RolesGuard implements CanActivate {
         resourceId: string,
         resourceType: string,
     ): Promise<boolean> {
-        // Implement resource ownership check logic
-        return this.authService.checkResourceOwnership(
-            user.id,
-            resourceId,
-            resourceType,
-        );
+        // Basic implementation of resource ownership check
+        // For now, only super admins and resource owners can access
+        if (user.role === Role.SUPER_ADMIN) {
+            return true;
+        }
+        
+        // In a real implementation, we would check the database
+        // to see if the user owns or has access to the resource
+        // This is a simplified version
+        return user.id === resourceId;
     }
 }

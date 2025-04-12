@@ -17,6 +17,7 @@ const organization_status_enum_1 = require("../enums/organization-status.enum");
 Object.defineProperty(exports, "OrganizationStatus", { enumerable: true, get: function () { return organization_status_enum_1.OrganizationStatus; } });
 const subscription_tier_enum_1 = require("../enums/subscription-tier.enum");
 Object.defineProperty(exports, "SubscriptionTier", { enumerable: true, get: function () { return subscription_tier_enum_1.SubscriptionTier; } });
+const tenant_entity_1 = require("../../tenants/entities/tenant.entity");
 let Organization = class Organization {
     get isActive() {
         return this.status === organization_status_enum_1.OrganizationStatus.ACTIVE;
@@ -32,6 +33,15 @@ __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
     __metadata("design:type", String)
 ], Organization.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Organization.prototype, "tenantId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => tenant_entity_1.Tenant, tenant => tenant.organizations, { lazy: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'tenantId' }),
+    __metadata("design:type", Promise)
+], Organization.prototype, "tenant", void 0);
 __decorate([
     (0, typeorm_1.Column)({ length: 100 }),
     __metadata("design:type", String)

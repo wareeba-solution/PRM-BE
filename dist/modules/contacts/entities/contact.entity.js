@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Contact = exports.BloodType = exports.Gender = exports.ContactType = void 0;
+exports.Contact = exports.MaritalStatus = exports.BloodType = exports.Gender = exports.ContactType = void 0;
 const typeorm_1 = require("typeorm");
 const contact_relationship_entity_1 = require("./contact-relationship.entity");
 const organization_entity_1 = require("../../organizations/entities/organization.entity");
@@ -19,11 +19,12 @@ const appointment_entity_1 = require("../../appointments/entities/appointment.en
 const document_entity_1 = require("../../documents/entities/document.entity");
 const medical_history_entity_1 = require("../../medical-history/medical-history.entity");
 const merged_record_entity_1 = require("../../merged-records/entities/merged-record.entity");
+const tenant_entity_1 = require("../../tenants/entities/tenant.entity");
 var ContactType;
 (function (ContactType) {
     ContactType["PATIENT"] = "PATIENT";
-    ContactType["EMERGENCY_CONTACT"] = "EMERGENCY_CONTACT";
     ContactType["FAMILY_MEMBER"] = "FAMILY_MEMBER";
+    ContactType["EMERGENCY_CONTACT"] = "EMERGENCY_CONTACT";
     ContactType["OTHER"] = "OTHER";
 })(ContactType = exports.ContactType || (exports.ContactType = {}));
 var Gender;
@@ -45,10 +46,19 @@ var BloodType;
     BloodType["AB_NEGATIVE"] = "AB-";
     BloodType["UNKNOWN"] = "UNKNOWN";
 })(BloodType = exports.BloodType || (exports.BloodType = {}));
+var MaritalStatus;
+(function (MaritalStatus) {
+    MaritalStatus["SINGLE"] = "SINGLE";
+    MaritalStatus["MARRIED"] = "MARRIED";
+    MaritalStatus["DIVORCED"] = "DIVORCED";
+    MaritalStatus["WIDOWED"] = "WIDOWED";
+    MaritalStatus["SEPARATED"] = "SEPARATED";
+    MaritalStatus["OTHER"] = "OTHER";
+})(MaritalStatus = exports.MaritalStatus || (exports.MaritalStatus = {}));
 let Contact = class Contact {
     // Virtual properties
     get fullName() {
-        return `${this.firstName} ${this.lastName}`;
+        return `${this.firstName} ${this.lastName}`.trim();
     }
     get age() {
         if (!this.dateOfBirth)
@@ -62,11 +72,36 @@ let Contact = class Contact {
         }
         return age;
     }
+    get isPatient() {
+        return this.type === ContactType.PATIENT;
+    }
+    get isFamilyMember() {
+        return this.type === ContactType.FAMILY_MEMBER;
+    }
+    get isEmergencyContact() {
+        return this.type === ContactType.EMERGENCY_CONTACT;
+    }
+    get primaryAddress() {
+        var _a;
+        return (_a = this.address) === null || _a === void 0 ? void 0 : _a.find(addr => addr.isPrimary);
+    }
+    get primaryEmergencyContact() {
+        var _a;
+        return (_a = this.emergencyContacts) === null || _a === void 0 ? void 0 : _a.find(contact => contact.isPrimary);
+    }
+    get primaryInsurance() {
+        var _a;
+        return (_a = this.insurance) === null || _a === void 0 ? void 0 : _a.find(ins => ins.type === 'PRIMARY');
+    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
     __metadata("design:type", String)
 ], Contact.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", String)
+], Contact.prototype, "tenantId", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
@@ -87,6 +122,10 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'enum', enum: ContactType, default: ContactType.PATIENT }),
     __metadata("design:type", String)
 ], Contact.prototype, "type", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Contact.prototype, "familyId", void 0);
 __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
@@ -125,17 +164,21 @@ __decorate([
     __metadata("design:type", Date)
 ], Contact.prototype, "dateOfBirth", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'enum', enum: MaritalStatus, nullable: true }),
+    __metadata("design:type", String)
+], Contact.prototype, "maritalStatus", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: 'enum', enum: BloodType, default: BloodType.UNKNOWN }),
     __metadata("design:type", String)
 ], Contact.prototype, "bloodType", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
-    __metadata("design:type", Object)
+    __metadata("design:type", Array)
 ], Contact.prototype, "address", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
-    __metadata("design:type", Object)
-], Contact.prototype, "emergencyContact", void 0);
+    __metadata("design:type", Array)
+], Contact.prototype, "emergencyContacts", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'simple-array', nullable: true }),
     __metadata("design:type", Array)
@@ -145,9 +188,33 @@ __decorate([
     __metadata("design:type", Array)
 ], Contact.prototype, "medications", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
+    __metadata("design:type", Array)
+], Contact.prototype, "insurance", void 0);
+__decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Contact.prototype, "occupation", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
+    __metadata("design:type", Object)
+], Contact.prototype, "employment", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
+    __metadata("design:type", Array)
+], Contact.prototype, "familyHistory", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
+    __metadata("design:type", Object)
+], Contact.prototype, "socialHistory", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
+    __metadata("design:type", Array)
+], Contact.prototype, "medicalConditions", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
+    __metadata("design:type", Array)
+], Contact.prototype, "immunizations", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
@@ -189,6 +256,11 @@ __decorate([
     __metadata("design:type", Date)
 ], Contact.prototype, "deletedAt", void 0);
 __decorate([
+    (0, typeorm_1.ManyToOne)(() => tenant_entity_1.Tenant, { lazy: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'tenantId' }),
+    __metadata("design:type", Promise)
+], Contact.prototype, "tenant", void 0);
+__decorate([
     (0, typeorm_1.ManyToOne)(() => organization_entity_1.Organization, { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'organizationId' }),
     __metadata("design:type", Promise)
@@ -220,13 +292,18 @@ __decorate([
     __metadata("design:type", Promise)
 ], Contact.prototype, "relationships", void 0);
 __decorate([
+    (0, typeorm_1.OneToMany)(() => contact_relationship_entity_1.ContactRelationship, relationship => relationship.relatedContact, { lazy: true }),
+    __metadata("design:type", Promise)
+], Contact.prototype, "relatedRelationships", void 0);
+__decorate([
     (0, typeorm_1.OneToMany)(() => merged_record_entity_1.MergedRecord, mergedRecord => mergedRecord.primaryContact, { lazy: true }),
     __metadata("design:type", Promise)
 ], Contact.prototype, "mergedRecords", void 0);
 Contact = __decorate([
     (0, typeorm_1.Entity)('contacts'),
     (0, typeorm_1.Index)(['organizationId', 'email']),
-    (0, typeorm_1.Index)(['organizationId', 'phoneNumber'])
+    (0, typeorm_1.Index)(['organizationId', 'type']),
+    (0, typeorm_1.Index)(['organizationId', 'familyId'])
 ], Contact);
 exports.Contact = Contact;
 //# sourceMappingURL=contact.entity.js.map

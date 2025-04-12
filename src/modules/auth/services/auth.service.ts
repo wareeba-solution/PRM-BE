@@ -1,395 +1,293 @@
 // src/modules/auth/services/auth.service.ts
 
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, NotFoundException, Logger, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { LoginDto } from '../dto/login.dto';
-import { RegisterDto } from '../dto/register.dto';
 import { compare, hash } from 'bcrypt';
-import { Organization, OrganizationStatus, SubscriptionTier } from '../../organizations/entities/organization.entity';
+import { Organization, OrganizationStatus } from '../../organizations/entities/organization.entity';
 import { Role } from '../../users/enums/role.enum';
-import { JwtPayload } from '../../../interfaces/jwt-payload.interface';
-import { UsersService } from '../../users/services/users.service';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
-import { UserSettings } from '../../users/entities/user-settings.entity';
+import { Tenant } from '../../tenants/entities/tenant.entity';
+import { UsersService } from '../../users/services/users.service';
+import { RegisterDto } from '../dto/register.dto';
+import { TenantsService } from '../../tenants/services/tenants.service';
+import { UserAccountService } from './user-account.service';
+import { OrganizationsService } from '../../organizations/services/organizations.service';
+
+// Define interfaces for token payloads and responses
+interface TokenPayload {
+  sub: string;
+  email: string;
+  role: Role;
+  organizationId: string;
+  tenantId: string;
+}
+
+export interface TokenPair {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+}
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(RefreshToken)
-    private readonly refreshTokenRepository: Repository<RefreshToken>,
-    @InjectRepository(Organization)
-    private readonly organizationRepository: Repository<Organization>,
-    private readonly jwtService: JwtService,
-    private readonly usersService: UsersService,
-    private readonly configService: ConfigService,
-    @InjectRepository(UserSettings)
-    private readonly userSettingsRepository: Repository<UserSettings>,
-  ) { }
+      @InjectRepository(User)
+      private readonly userRepository: Repository<User>,
+      @InjectRepository(RefreshToken)
+      private readonly refreshTokenRepository: Repository<RefreshToken>,
+      @InjectRepository(Organization)
+      private readonly organizationRepository: Repository<Organization>,
+      @InjectRepository(Tenant)
+      private readonly tenantRepository: Repository<Tenant>,
+      private readonly jwtService: JwtService,
+      private readonly configService: ConfigService,
+        private readonly usersService: UsersService,
+        private readonly tenantsService: TenantsService,
+        private readonly userAccountService: UserAccountService,
+        private readonly organizationsService: OrganizationsService,
+    ) {}
 
-  /**
-   * Checks if a token has been blacklisted
-   * @param token The JWT token to check
-   * @returns boolean True if the token is blacklisted, false otherwise
-   */
-  isTokenBlacklisted(token: string): boolean {
-    // In a real implementation, you would:
-    // 1. Either check a cache (Redis) or database table for blacklisted tokens
-    // 2. Or verify against a token revocation list
-    
-    // For now, return false as a placeholder
-    // You can implement token blacklisting using the refresh token repository
-    // by checking if there's a revoked token matching this one
-    
-    // Example implementation (uncomment and adapt when you have the proper setup):
-    /*
-    try {
-      const decodedToken = this.jwtService.decode(token) as JwtPayload;
-      if (!decodedToken || !decodedToken.sessionId) {
-        return false;
-      }
-      
-      // Check if a refresh token with this session ID has been revoked
-      const revokedToken = this.refreshTokenRepository.findOne({
-        where: {
-          sessionId: decodedToken.sessionId,
-          isRevoked: true
+    async login(loginDto: LoginDto): Promise<TokenPair> {
+        const { email, password, organizationId } = loginDto;
+
+        // Find user by email and organization
+        const user = await this.usersService.findByEmail(email, organizationId);
+        if (!user) {
+            throw new UnauthorizedException('Invalid credentials');
         }
-      });
-      
-      return !!revokedToken;
-    } catch (error) {
-      // If we can't decode the token, assume it's not blacklisted
-      return false;
-    }
-    */
-    
-    return false;
-  }
 
-  /**
-   * Determines if email verification is required
-   * @returns boolean True if email verification is required, false otherwise
-   */
-  get requireEmailVerification(): boolean {
-    // Read this from your application config
-    // You might want different settings for different environments
-    const requireVerification = this.configService?.get<boolean>('EMAIL_VERIFICATION_REQUIRED') ?? true;
-    return requireVerification;
+        // Verify password
+        const isValidPassword = await this.usersService.validatePassword(user, password);
+        if (!isValidPassword) {
+            throw new UnauthorizedException('Invalid credentials');
+        }
+
+        // Check if user is active
+        if (!user.isActive) {
+            throw new UnauthorizedException('Account is deactivated');
+        }
+
+        // Get tenant ID from user or request
+        const tenantId = user.tenantId || loginDto.tenantId;
+
+        if (!tenantId) {
+            throw new BadRequestException('Tenant ID is required for authentication');
+        }
+
+        // Generate tokens with tenantId included
+        const accessToken = this.jwtService.sign(
+            {
+                sub: user.id,
+                email: user.email,
+                role: user.role,
+                organizationId: user.organizationId,
+                tenantId: tenantId // Include tenant ID in token
+            },
+            { expiresIn: '1h' }
+        );
+
+        const refreshToken = this.jwtService.sign(
+            {
+                sub: user.id,
+                email: user.email,
+                role: user.role,
+                organizationId: user.organizationId,
+                tenantId: tenantId // Include tenant ID in token
+            },
+            { expiresIn: '7d' }
+        );
+
+        return {
+            accessToken,
+            refreshToken,
+            expiresIn: 3600 // 1 hour in seconds
+        };
+    }
+
+    async register(registerDto: RegisterDto): Promise<TokenPair> {
+        // Delegate registration to UserAccountService
+        const result = await this.userAccountService.register(registerDto);
+        
+        // Generate tokens after successful registration
+        return this.login({ 
+            email: result.user.email, 
+            password: registerDto.user.password,
+            organizationId: result.user.organizationId 
+        });
+    }
+
+    async refreshToken(refreshToken: string): Promise<TokenPair> {
+        try {
+            const payload = this.jwtService.verify(refreshToken);
+            const user = await this.usersService.findById(payload.sub);
+
+            if (!user) {
+                throw new UnauthorizedException('Invalid refresh token');
+            }
+
+            // Use tenantId from payload or from user
+            const tenantId = payload.tenantId || user.tenantId;
+
+            if (!tenantId) {
+                throw new BadRequestException('Tenant ID is required for authentication');
+            }
+
+            const accessToken = this.jwtService.sign(
+                {
+                    sub: user.id,
+                    email: user.email,
+                    role: user.role,
+                    organizationId: user.organizationId,
+                    tenantId: tenantId // Include tenant ID in token
+                },
+                { expiresIn: '1h' }
+            );
+
+            const newRefreshToken = this.jwtService.sign(
+                {
+                    sub: user.id,
+                    email: user.email,
+                    role: user.role,
+                    organizationId: user.organizationId,
+                    tenantId: tenantId // Include tenant ID in token
+                },
+                { expiresIn: '7d' }
+            );
+
+            return {
+                accessToken,
+                refreshToken: newRefreshToken,
+                expiresIn: 3600 // 1 hour in seconds
+            };
+        } catch (error) {
+            throw new UnauthorizedException('Invalid refresh token');
+        }
+    }
+
+    async validateToken(token: string): Promise<TokenPayload> {
+        try {
+            return this.jwtService.verify(token);
+        } catch (error) {
+            throw new UnauthorizedException('Invalid token');
+        }
+    }
+
+    async logout(refreshToken: string): Promise<void> {
+        try {
+            const payload = this.jwtService.verify(refreshToken);
+            await this.refreshTokenRepository.delete({ userId: payload.sub });
+        } catch (error) {
+            this.logger.error(`Error during logout: ${error.message}`);
+        }
   }
 
   async checkOrganizationAccess(userId: string, organizationId: string): Promise<boolean> {
-    // Check if the user has access to the organization
-    const user = await this.usersService.findById(userId);
-    return user?.organizationId === organizationId;
+    const user = await this.userRepository.createQueryBuilder('user')
+        .where('user.id = :userId', { userId })
+        .getOne();
+    if (!user) {
+      return false;
+    }
+    return user.organizationId === organizationId;
   }
 
   async getUserPermissions(userId: string): Promise<string[]> {
-    // Implement the logic to get user permissions
-    // This is a placeholder implementation
-    return ['permission1', 'permission2'];
-  }
-
-  async checkResourceOwnership(userId: string, resourceId: string, resourceType: string): Promise<boolean> {
-    // Implement the logic to check resource ownership
-    // For example, query the database to verify ownership
-    return true; // or false based on the check
-  }
-
-  async validateUser(email: string, password: string) {
-    const user = await this.userRepository.findOne({
-      where: { email },
-      relations: ['organization'],
-    });
-
-    if (user && (await compare(password, user.password))) {
-      // Use destructuring to exclude the password field
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: _password, ...result } = user;
-      return result;
-    }
-    return null;
-  }
-
-  async login(loginDto: LoginDto, metadata: { userAgent: string; ip: string }) {
-    const user = await this.validateUser(loginDto.email, loginDto.password);
-
+    const user = await this.userRepository.createQueryBuilder('user')
+        .where('user.id = :userId', { userId })
+        .getOne();
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new NotFoundException('User not found');
     }
 
-    // Verify organization subscription status
-    const organization = await this.organizationRepository.findOne({
-      where: { id: user.organizationId },
-    });
+    const permissions = [];
+    permissions.push('user:read');
 
-    if (!organization) {
-      throw new UnauthorizedException('Organization not found');
+    if (user.role === Role.SUPER_ADMIN) {
+      permissions.push('user:create', 'user:update', 'user:delete');
+      permissions.push('organization:read', 'organization:update');
+      permissions.push('billing:read', 'billing:update');
+    } else if (user.role === Role.ADMIN) {
+      permissions.push('user:create', 'user:update');
+      permissions.push('organization:read');
+      permissions.push('billing:read');
     }
 
-    if (!organization.isSubscriptionActive) {
-      throw new UnauthorizedException('Organization subscription is inactive');
-    }
-
-    const payload: JwtPayload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-      organizationId: organization.id,
-      permissions: [],
-      sessionId: uuidv4(),
-    };
-
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = await this.generateRefreshToken(user.id, metadata);
-
-    return {
-      accessToken,
-      refreshToken: refreshToken.token,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        organizationId: organization.id,
-      },
-    };
+    return permissions;
   }
 
-  async register(registerDto: RegisterDto, metadata: { userAgent: string; ip: string }) {
-    // Check if user with the same email already exists
-    const existingUser = await this.userRepository.findOne({
-      where: { email: registerDto.user.email },
-    });
-
-    if (existingUser) {
-      throw new UnauthorizedException('User with this email already exists');
-    }
-
-    // Create organization
-    const organization = new Organization();
-    organization.name = registerDto.organization.name;
-    organization.slug = this.generateSlug(registerDto.organization.name);
-    organization.status = OrganizationStatus.ACTIVE;
-    organization.isSubscriptionActive = true;
-    organization.subscriptionTier = SubscriptionTier.FREE;
-    organization.subscriptionExpiresAt = new Date();
-    organization.subscriptionExpiresAt.setFullYear(
-      organization.subscriptionExpiresAt.getFullYear() + 1,
-    );
-
-    const savedOrganization = await this.organizationRepository.save(organization);
-
-    // Create user
-    const user = new User();
-    user.email = registerDto.user.email;
-    user.password = await hash(registerDto.user.password, 10);
-    user.firstName = registerDto.user.firstName;
-    user.lastName = registerDto.user.lastName;
-    user.role = registerDto.user.role || Role.ADMIN;
-    user.organizationId = savedOrganization.id;
-    user.isActive = true;
-    user.isEmailVerified = false;
-    user.lastLoginAt = new Date();
-
-    // System created
-    const savedUser = await this.userRepository.save(user);
-
-    // Create user settings
-    const settings = new UserSettings();
-    settings.userId = savedUser.id;
-    settings.phone = registerDto.user.phone;
-    settings.notificationPreferences = {
-      email: true,
-      sms: !!registerDto.user.phone,
-      inApp: true,
-      push: false
-    };
-    settings.metadata = {
-      platform: this.extractPlatform(metadata.userAgent),
-      browser: this.extractBrowser(metadata.userAgent),
-      lastLoginIp: metadata.ip,
-      lastUsed: new Date()
-    };
-    await this.userSettingsRepository.save(settings);
-
-    // Generate tokens
-    const payload: JwtPayload = {
-      sub: savedUser.id,
-      email: savedUser.email,
-      role: savedUser.role,
-      organizationId: savedOrganization.id,
-      permissions: [],
-      sessionId: uuidv4(),
-    };
-
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = await this.generateRefreshToken(savedUser.id, metadata);
-
-    return {
-      accessToken,
-      refreshToken: refreshToken.token,
-      user: {
-        id: savedUser.id,
-        email: savedUser.email,
-        role: savedUser.role,
-        organizationId: savedOrganization.id,
-      },
-    };
-  }
-
-  async refreshToken(token: string) {
-    const refreshToken = await this.refreshTokenRepository.findOne({
-      where: { token },
-      relations: ['user'],
-    });
-
-    if (!refreshToken || refreshToken.isExpired() || refreshToken.isRevoked) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    // Update last used timestamp
-    refreshToken.updateLastUsed();
-    await this.refreshTokenRepository.save(refreshToken);
-
-    const user = await this.userRepository.findOne({
-      where: { id: refreshToken.userId }
-    });
-
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
-
-    const payload: JwtPayload = {
-      sub: refreshToken.userId,
-      email: user.email,
-      role: user.role,
-      organizationId: refreshToken.organizationId || user.organizationId,
-      permissions: [],
-      sessionId: uuidv4(),
-    };
-
-    const accessToken = this.jwtService.sign(payload);
-    return { accessToken };
-  }
-
-  private async generateRefreshToken(userId: string, metadata: { userAgent: string; ip: string }) {
-    const refreshToken = new RefreshToken();
-    refreshToken.userId = userId;
-    refreshToken.token = uuidv4();
-    refreshToken.expiresAt = new Date();
-    refreshToken.expiresAt.setDate(refreshToken.expiresAt.getDate() + 7); // 7 days
-    refreshToken.userAgent = metadata.userAgent;
-    refreshToken.ipAddress = metadata.ip;
-    refreshToken.isRevoked = false;
-    refreshToken.createdAt = new Date();
-    refreshToken.updatedAt = new Date();
-
-    return this.refreshTokenRepository.save(refreshToken);
-  }
-
-  async logout(userId: string) {
-    await this.refreshTokenRepository.update(
-      { userId },
-      { isRevoked: true, revokedAt: new Date(), revokedReason: 'User logout' }
-    );
-    return { message: 'Logged out successfully' };
-  }
-
-  async validateOrganizationAccess(userId: string, organizationId: string): Promise<boolean> {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['organization'],
-    });
-    return user?.organizationId === organizationId;
-  }
-
-  // Helper methods
-  private generateSlug(name: string): string {
+  generateSlug(name: string): string {
     return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)+/g, '');
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
   }
 
-  private extractPlatform(userAgent: string): string {
-    if (userAgent.includes('Windows')) return 'windows';
-    if (userAgent.includes('Mac')) return 'mac';
-    if (userAgent.includes('Linux')) return 'linux';
-    if (userAgent.includes('Android')) return 'android';
-    if (userAgent.includes('iOS')) return 'ios';
-    return 'unknown';
+  extractPlatform(userAgent: string): string {
+    if (userAgent.includes('Windows')) return 'Windows';
+    if (userAgent.includes('Mac')) return 'Mac';
+    if (userAgent.includes('Linux')) return 'Linux';
+    if (userAgent.includes('Android')) return 'Android';
+    if (userAgent.includes('iOS')) return 'iOS';
+    return 'Unknown';
   }
 
-  private extractBrowser(userAgent: string): string {
-    if (userAgent.includes('Chrome')) return 'chrome';
-    if (userAgent.includes('Firefox')) return 'firefox';
-    if (userAgent.includes('Safari')) return 'safari';
-    if (userAgent.includes('Edge')) return 'edge';
-    if (userAgent.includes('Opera')) return 'opera';
-    return 'unknown';
+  extractBrowser(userAgent: string): string {
+    if (userAgent.includes('Chrome')) return 'Chrome';
+    if (userAgent.includes('Firefox')) return 'Firefox';
+    if (userAgent.includes('Safari')) return 'Safari';
+    if (userAgent.includes('Edge')) return 'Edge';
+    if (userAgent.includes('MSIE') || userAgent.includes('Trident/')) return 'Internet Explorer';
+    return 'Unknown';
   }
 
-  // Password reset methods
-  async sendPasswordResetEmail(email: string): Promise<void> {
-    const user = await this.userRepository.findOne({ where: { email } });
-    if (!user) {
-      // Don't reveal that the user doesn't exist
-      return;
+    async forgotPassword(email: string, tenantId: string) {
+        try {
+          // Verify tenant exists and is active
+          const tenant = await this.tenantsService.findOne(tenantId);
+          if (!tenant || !tenant.isActive) {
+            throw new UnauthorizedException('Invalid or inactive tenant');
+          }
+
+          // Find user within the tenant
+          const user = await this.usersService.findByEmail(email, tenantId);
+          if (!user) {
+            // Don't reveal if user exists or not
+            return { message: 'If an account exists, password reset instructions have been sent' };
+          }
+
+          // Generate and send reset token
+          await this.usersService.sendPasswordResetEmail(user);
+
+          return { message: 'Password reset instructions sent to email' };
+        } catch (error) {
+          this.logger.error('Forgot password error:', error);
+          throw error;
+        }
     }
 
-    // Generate reset token
-    const resetToken = uuidv4();
-    const resetTokenExpiry = new Date();
-    resetTokenExpiry.setHours(resetTokenExpiry.getHours() + 1); // 1 hour expiry
+    async resetPassword(token: string, newPassword: string, tenantId: string) {
+        try {
+          // Verify tenant exists and is active
+          const tenant = await this.tenantsService.findOne(tenantId);
+          if (!tenant || !tenant.isActive) {
+            throw new UnauthorizedException('Invalid or inactive tenant');
+          }
 
-    // Save reset token to user
-    user.passwordResetToken = resetToken;
-    user.passwordResetExpiresAt = resetTokenExpiry;
-    await this.userRepository.save(user);
+          // Reset password
+          await this.usersService.resetPassword(token, newPassword);
 
-    // Send email with reset link
-    // This would typically use a mail service
-    console.log(`Password reset link: https://your-app.com/reset-password?token=${resetToken}`);
-  }
-
-  async changePassword(token: string, newPassword: string): Promise<void> {
-    const user = await this.userRepository.findOne({
-      where: { passwordResetToken: token },
-    });
-
-    if (!user) {
-      throw new UnauthorizedException('Invalid or expired reset token');
-    }
-
-    if (user.passwordResetExpiresAt < new Date()) {
-      throw new UnauthorizedException('Reset token has expired');
-    }
-
-    // Update password
-    user.password = await hash(newPassword, 10);
-    user.passwordResetToken = null;
-    user.passwordResetExpiresAt = null;
-    await this.userRepository.save(user);
-  }
-
-  // Email verification methods
-  async confirmEmail(token: string): Promise<void> {
-    // Validate token and confirm email logic would go here
-    // This is a placeholder implementation
-  }
-
-  async sendVerificationEmail(userId: string): Promise<void> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
-    // Generate verification token, save it, and send email logic would go here
-    // This is a placeholder implementation
+          return { message: 'Password reset successful' };
+        } catch (error) {
+          this.logger.error('Reset password error:', error);
+          throw error;
+        }
   }
 }

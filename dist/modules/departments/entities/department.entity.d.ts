@@ -1,6 +1,7 @@
 import { DepartmentStatus } from '../enums/department-status.enum';
 export declare class Department {
     id: string;
+    tenantId: string;
     organizationId: string;
     name: string;
     description?: string;

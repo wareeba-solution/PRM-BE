@@ -1,13 +1,13 @@
 import { IsOptional, IsEnum, IsUUID, IsString, IsArray, IsDate, IsBoolean, IsInt, Min, Max, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+import { TicketStatus, TicketType } from '../enums/ticket.enums';
 
 export enum TicketSortField {
     CREATED_AT = 'createdAt',
     UPDATED_AT = 'updatedAt',
-    PRIORITY = 'priority',
-    STATUS = 'status',
     DUE_DATE = 'dueDate',
-    LAST_ACTIVITY = 'lastActivity'
+    PRIORITY = 'priority',
+    STATUS = 'status'
 }
 
 export enum SortOrder {
@@ -16,190 +16,155 @@ export enum SortOrder {
 }
 
 export class TicketQueryDto {
-    @IsOptional()
     @IsString()
-    searchTerm?: string;
+    organizationId: string;
 
     @IsOptional()
-    @IsString()
-    priority?: string;
+    @IsArray()
+    @IsEnum(TicketStatus, { each: true })
+    status?: TicketStatus[];
 
+    @IsEnum(TicketType)
     @IsOptional()
-    @IsString()
-    type?: string;
+    type?: TicketType;
 
-    @IsOptional()
     @IsUUID()
+    @IsOptional()
     assigneeId?: string;
 
-    @IsOptional()
     @IsUUID()
+    @IsOptional()
     contactId?: string;
 
-    @IsOptional()
     @IsUUID()
+    @IsOptional()
     departmentId?: string;
 
-    @IsOptional()
     @IsString()
+    @IsOptional()
     search?: string;
 
+    @IsDate()
     @IsOptional()
-    startDate?: string;
+    startDate?: Date;
+
+    @IsDate()
+    @IsOptional()
+    endDate?: Date;
 
     @IsOptional()
-    endDate?: string;
-
-    @IsOptional()
-    @Type(() => Number)
-    @IsInt()
-    @Min(1)
-    page?: number = 1;
-
-    @IsOptional()
-    @Type(() => Number)
     @IsInt()
     @Min(1)
     limit?: number = 10;
 
-
     @IsOptional()
     @IsArray()
     @IsString({ each: true })
-    status?: string[];
-
-
-    @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
-    priorities?: string[]; // Fixed missing property name
-
+    priorities?: string[];
 
     @IsOptional()
     @IsArray()
     @IsString({ each: true })
     category?: string[];
 
-
     @IsOptional()
     @IsArray()
     @IsUUID('4', { each: true })
     assigneeIds?: string[];
-
 
     @IsOptional()
     @IsArray()
     @IsUUID('4', { each: true })
     creatorIds?: string[];
 
-
     @IsOptional()
     @IsArray()
     @IsString({ each: true })
     tags?: string[];
-
 
     @IsOptional()
     @Type(() => Date)
     @IsDate()
     createdAfter?: Date;
 
-
     @IsOptional()
     @Type(() => Date)
     @IsDate()
     createdBefore?: Date;
-
 
     @IsOptional()
     @Type(() => Date)
     @IsDate()
     updatedAfter?: Date;
 
-
     @IsOptional()
     @Type(() => Date)
     @IsDate()
     updatedBefore?: Date;
-
 
     @IsOptional()
     @Type(() => Date)
     @IsDate()
     dueDateStart?: Date;
 
-
     @IsOptional()
     @Type(() => Date)
     @IsDate()
     dueDateEnd?: Date;
 
-
     @IsOptional()
     @IsBoolean()
     includeArchived?: boolean;
-
 
     @IsOptional()
     @IsBoolean()
     hasUnreadUpdates?: boolean;
 
-
     @IsOptional()
     @IsBoolean()
     hasAttachments?: boolean;
-
 
     @IsOptional()
     @IsEnum(TicketSortField)
     sortField?: TicketSortField;
 
-
     @IsOptional()
     @IsEnum(SortOrder)
     sortOrder?: SortOrder;
-
 
     @IsOptional()
     @IsInt()
     @Min(1)
     @Max(100)
-    limit2?: number = 20; // Fixed missing property name
-
+    limit2?: number = 20;
 
     @IsOptional()
     @IsInt()
     @Min(0)
     offset?: number = 0;
 
-
     @IsOptional()
     @ValidateNested()
     @Type(() => Object)
     customFields?: Record<string, any>;
-
 
     @IsOptional()
     @IsArray()
     @IsUUID('4', { each: true })
     relatedTicketIds?: string[];
 
-
     @IsOptional()
     @IsBoolean()
     requiresAttention?: boolean;
-
 
     @IsOptional()
     @IsBoolean()
     hasSlaBreach?: boolean;
 
-
     @IsOptional()
     @IsArray()
     @IsString({ each: true })
     slaStatus?: string[];
-
 
     @IsOptional()
     @IsArray()

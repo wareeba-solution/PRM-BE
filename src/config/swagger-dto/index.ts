@@ -39,3 +39,6 @@ export { MedicalHistoryDto } from './medical-history/medical-history.dto';
 
 // Merged Records DTOs
 export { MergedRecordDto } from './merged-records/merged-record.dto';
+
+// Tenant DTOs
+export { TenantDto, TenantRegistrationDto, OrganizationSetupDto } from './tenants';

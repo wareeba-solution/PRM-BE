@@ -13,7 +13,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TicketComment = void 0;
 const typeorm_1 = require("typeorm");
 const ticket_entity_1 = require("./ticket.entity");
-const user_entity_1 = require("../../users/entities/user.entity");
+const user_entity_1 = require("../../../modules/users/entities/user.entity");
 const ticket_attachment_entity_1 = require("./ticket-attachment.entity");
 let TicketComment = TicketComment_1 = class TicketComment {
 };
@@ -22,35 +22,31 @@ __decorate([
     __metadata("design:type", String)
 ], TicketComment.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)('uuid'),
-    __metadata("design:type", String)
-], TicketComment.prototype, "organizationId", void 0);
-__decorate([
     (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], TicketComment.prototype, "content", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: false }),
-    __metadata("design:type", Boolean)
-], TicketComment.prototype, "isInternal", void 0);
-__decorate([
-    (0, typeorm_1.Column)('uuid'),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], TicketComment.prototype, "ticketId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => ticket_entity_1.Ticket, ticket => ticket.comments, { lazy: true }),
+    (0, typeorm_1.ManyToOne)(() => ticket_entity_1.Ticket, ticket => ticket.comments),
     (0, typeorm_1.JoinColumn)({ name: 'ticketId' }),
-    __metadata("design:type", Promise)
+    __metadata("design:type", ticket_entity_1.Ticket)
 ], TicketComment.prototype, "ticket", void 0);
 __decorate([
-    (0, typeorm_1.Column)('uuid'),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
-], TicketComment.prototype, "authorId", void 0);
+], TicketComment.prototype, "createdById", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { lazy: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'authorId' }),
-    __metadata("design:type", Promise)
-], TicketComment.prototype, "author", void 0);
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
+    (0, typeorm_1.JoinColumn)({ name: 'createdById' }),
+    __metadata("design:type", user_entity_1.User)
+], TicketComment.prototype, "createdBy", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], TicketComment.prototype, "isInternal", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => ticket_attachment_entity_1.TicketAttachment, attachment => attachment.comment, { lazy: true }),
     __metadata("design:type", Promise)
@@ -76,6 +72,10 @@ __decorate([
     (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
 ], TicketComment.prototype, "updatedAt", void 0);
+__decorate([
+    (0, typeorm_1.DeleteDateColumn)(),
+    __metadata("design:type", Date)
+], TicketComment.prototype, "deletedAt", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", Date)

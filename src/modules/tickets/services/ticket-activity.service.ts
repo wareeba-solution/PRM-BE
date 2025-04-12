@@ -6,13 +6,13 @@ import { TicketActivity } from '../entities/ticket-activity.entity';
 import { Ticket } from '../entities/ticket.entity';
 import { User } from '../../users/entities/user.entity';
 import { TicketActivityType } from '../enums/ticket-activity-type.enum';
-import { TicketStatus } from '../enums/ticket-status.enum';
+import { TicketStatus } from '../enums/ticket.enums';
 
 interface ActivityOptions {
     ticketId: string;
     performedById: string;
     organizationId: string;
-    userId: string; // Add this line
+    userId: string;
     type: TicketActivityType;
     data?: Record<string, any>;
     metadata?: Record<string, any>;

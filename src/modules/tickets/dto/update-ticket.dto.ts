@@ -1,24 +1,62 @@
 // src/modules/tickets/dto/update-ticket.dto.ts
 
-import { CreateTicketDto } from './create-ticket.dto';
-import { TicketStatus } from '../enums/ticket-status.enum';
-import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
-import { PartialType, OmitType } from '@nestjs/mapped-types';
+import { IsString, IsEnum, IsOptional, IsUUID, IsDate, IsNumber, Min, Max, IsObject, IsArray, IsBoolean } from 'class-validator';
+import { TicketStatus, TicketType } from '../enums/ticket.enums';
 
-export class UpdateTicketDto extends PartialType(
-    OmitType(CreateTicketDto, ['type', 'source'] as const)
-) {
+export class UpdateTicketDto {
+    @IsString()
     @IsOptional()
+    title?: string;
+
+    @IsString()
+    @IsOptional()
+    description?: string;
+
+    @IsEnum(TicketType)
+    @IsOptional()
+    type?: TicketType;
+
     @IsEnum(TicketStatus)
+    @IsOptional()
     status?: TicketStatus;
 
+    @IsUUID()
     @IsOptional()
-    @IsString()
-    @MaxLength(1000)
-    statusNote?: string;
+    assignedToId?: string;
 
+    @IsUUID()
     @IsOptional()
+    patientId?: string;
+
+    @IsUUID()
+    @IsOptional()
+    relatedAppointmentId?: string;
+
+    @IsUUID()
+    @IsOptional()
+    relatedLabResultId?: string;
+
+    @IsUUID()
+    @IsOptional()
+    relatedPrescriptionId?: string;
+
+    @IsDate()
+    @IsOptional()
+    dueDate?: Date;
+
     @IsString()
-    @MaxLength(1000)
-    resolution?: string;
+    @IsOptional()
+    patientCondition?: string;
+
+    @IsNumber()
+    @Min(1)
+    @Max(5)
+    @IsOptional()
+    timeSensitivity?: number;
+
+    @IsNumber()
+    @Min(1)
+    @Max(5)
+    @IsOptional()
+    impactLevel?: number;
 }

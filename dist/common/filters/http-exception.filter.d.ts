@@ -4,4 +4,5 @@ export declare class HttpExceptionFilter implements ExceptionFilter {
     catch(exception: unknown, host: ArgumentsHost): void;
     private getErrorName;
     private logError;
+    private sanitizeHeaders;
 }

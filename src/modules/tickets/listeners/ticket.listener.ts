@@ -1,6 +1,6 @@
 // src/modules/tickets/listeners/ticket.listener.ts
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Ticket } from '../entities/ticket.entity';
 import { TicketActivityService } from '../services/ticket-activity.service';
@@ -8,6 +8,7 @@ import { NotificationsService } from '../../notifications/services/notifications
 import { NotificationPriority, NotificationType } from '@/modules/notifications/dto/create-notification.dto';
 import { UsersService } from '../../users/services/users.service';
 import { Role } from '../../users/enums/role.enum';
+import { TicketStatus } from '../enums/ticket.enums';
 
 interface AdminUser {
   id: string;

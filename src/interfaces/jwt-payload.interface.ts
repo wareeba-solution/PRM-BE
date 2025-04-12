@@ -6,10 +6,13 @@ export interface JwtPayload {
     sub: string;               // User ID
     email: string;            // User email
     role: Role;               // User role
-    organizationId?: string;  // Organization ID (optional for super admin)
+    organizationId: string;   // Current active organization ID
     permissions: string[];    // User permissions
+    organizationName?: string; // Organization name for display purposes
+    organizationSlug?: string; // Organization slug for routing
     sessionId: string;        // Unique session identifier
     deviceId?: string;        // Device identifier (optional)
+    isEmailVerified?: boolean; // Whether the user's email is verified
     iat?: number;            // Issued at timestamp
     exp?: number;            // Expiration timestamp
     iss?: string;            // Token issuer

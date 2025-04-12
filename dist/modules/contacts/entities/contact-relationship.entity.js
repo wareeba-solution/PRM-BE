@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContactRelationship = exports.RelationshipType = void 0;
+exports.ContactRelationship = exports.RelationshipStatus = exports.RelationshipType = void 0;
 const typeorm_1 = require("typeorm");
 /**
  * Represents different types of relationships between contacts
@@ -32,7 +32,35 @@ var RelationshipType;
     RelationshipType["FRIEND"] = "FRIEND";
     RelationshipType["OTHER"] = "OTHER";
 })(RelationshipType = exports.RelationshipType || (exports.RelationshipType = {}));
+var RelationshipStatus;
+(function (RelationshipStatus) {
+    RelationshipStatus["ACTIVE"] = "ACTIVE";
+    RelationshipStatus["INACTIVE"] = "INACTIVE";
+    RelationshipStatus["PENDING"] = "PENDING";
+    RelationshipStatus["TERMINATED"] = "TERMINATED";
+})(RelationshipStatus = exports.RelationshipStatus || (exports.RelationshipStatus = {}));
 let ContactRelationship = class ContactRelationship {
+    get isFamilyRelationship() {
+        return [
+            RelationshipType.SPOUSE,
+            RelationshipType.PARENT,
+            RelationshipType.CHILD,
+            RelationshipType.SIBLING,
+            RelationshipType.GUARDIAN,
+            RelationshipType.DEPENDENT,
+            RelationshipType.RELATIVE,
+        ].includes(this.type);
+    }
+    get isMedicalRelationship() {
+        return [
+            RelationshipType.PRIMARY_CARE_PROVIDER,
+            RelationshipType.SPECIALIST,
+            RelationshipType.CAREGIVER,
+        ].includes(this.type);
+    }
+    get isEmergencyRelationship() {
+        return this.type === RelationshipType.EMERGENCY_CONTACT;
+    }
 };
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
@@ -68,6 +96,11 @@ __decorate([
     __metadata("design:type", Function)
 ], ContactRelationship.prototype, "relatedContact", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
+    (0, typeorm_1.Index)(),
+    __metadata("design:type", String)
+], ContactRelationship.prototype, "familyId", void 0);
+__decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
         enum: RelationshipType,
@@ -75,6 +108,14 @@ __decorate([
     }),
     __metadata("design:type", String)
 ], ContactRelationship.prototype, "type", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: 'enum',
+        enum: RelationshipStatus,
+        default: RelationshipStatus.ACTIVE,
+    }),
+    __metadata("design:type", String)
+], ContactRelationship.prototype, "status", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'text', nullable: true }),
     __metadata("design:type", String)
@@ -88,25 +129,17 @@ __decorate([
     __metadata("design:type", Boolean)
 ], ContactRelationship.prototype, "isPrimary", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
-    __metadata("design:type", String)
-], ContactRelationship.prototype, "createdById", void 0);
+    (0, typeorm_1.Column)({ type: 'boolean', default: false }),
+    __metadata("design:type", Boolean)
+], ContactRelationship.prototype, "isLegalGuardian", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
-    __metadata("design:type", String)
-], ContactRelationship.prototype, "updatedById", void 0);
+    (0, typeorm_1.Column)({ type: 'boolean', default: false }),
+    __metadata("design:type", Boolean)
+], ContactRelationship.prototype, "hasMedicalDecisionAuthority", void 0);
 __decorate([
-    (0, typeorm_1.CreateDateColumn)({ type: 'timestamptz' }),
-    __metadata("design:type", Date)
-], ContactRelationship.prototype, "createdAt", void 0);
-__decorate([
-    (0, typeorm_1.UpdateDateColumn)({ type: 'timestamptz' }),
-    __metadata("design:type", Date)
-], ContactRelationship.prototype, "updatedAt", void 0);
-__decorate([
-    (0, typeorm_1.DeleteDateColumn)({ type: 'timestamptz', nullable: true }),
-    __metadata("design:type", Date)
-], ContactRelationship.prototype, "deletedAt", void 0);
+    (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
+    __metadata("design:type", Object)
+], ContactRelationship.prototype, "permissions", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
     __metadata("design:type", Object)
@@ -127,10 +160,31 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'date', nullable: true }),
     __metadata("design:type", Date)
 ], ContactRelationship.prototype, "endDate", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
+    __metadata("design:type", String)
+], ContactRelationship.prototype, "createdById", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
+    __metadata("design:type", String)
+], ContactRelationship.prototype, "updatedById", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)({ type: 'timestamptz' }),
+    __metadata("design:type", Date)
+], ContactRelationship.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.UpdateDateColumn)({ type: 'timestamptz' }),
+    __metadata("design:type", Date)
+], ContactRelationship.prototype, "updatedAt", void 0);
+__decorate([
+    (0, typeorm_1.DeleteDateColumn)({ type: 'timestamptz', nullable: true }),
+    __metadata("design:type", Date)
+], ContactRelationship.prototype, "deletedAt", void 0);
 ContactRelationship = __decorate([
     (0, typeorm_1.Entity)('contact_relationships'),
     (0, typeorm_1.Index)(['organizationId', 'contactId']),
-    (0, typeorm_1.Index)(['organizationId', 'relatedContactId'])
+    (0, typeorm_1.Index)(['organizationId', 'relatedContactId']),
+    (0, typeorm_1.Index)(['organizationId', 'familyId'])
 ], ContactRelationship);
 exports.ContactRelationship = ContactRelationship;
 //# sourceMappingURL=contact-relationship.entity.js.map

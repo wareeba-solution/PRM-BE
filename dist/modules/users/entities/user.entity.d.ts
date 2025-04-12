@@ -8,8 +8,10 @@ import { UserActivity } from './user-activity.entity';
 import { UserProfile } from './user-profile.entity';
 import { UserVerification } from './user-verification.entity';
 import { UserSettings } from './user-settings.entity';
+import { Tenant } from '../../tenants/entities/tenant.entity';
 export declare class User {
     id: string;
+    tenantId: string;
     organizationId: string;
     firstName: string;
     lastName: string;
@@ -32,6 +34,7 @@ export declare class User {
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;
+    tenant: Promise<Tenant>;
     organization: Promise<Organization>;
     createdBy: Promise<User>;
     updatedBy?: Promise<User>;

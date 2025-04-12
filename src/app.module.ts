@@ -32,6 +32,7 @@ import { MessagesModule } from './modules/messages/messages.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { DomainModule } from './modules/domain/domain.module';
 import { SharedModule } from './shared/shared.module';
+import { TenantsModule } from './modules/tenants/tenants.module';
 
 // Configuration
 import appConfig from './config/app.config';
@@ -92,7 +93,7 @@ import { ThrottlerConfigService } from './config/throttler.config';
       database: process.env.DB_NAME,
       schema: process.env.DB_SCHEMA || 'public',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      // synchronize: process.env.NODE_ENV !== 'production',
+      // Disable synchronize since we're handling schema creation manually
       synchronize: false,
       logging: ['error'],
       ssl: process.env.DB_SSL === 'true' ? {
@@ -125,6 +126,7 @@ import { ThrottlerConfigService } from './config/throttler.config';
     SharedModule,
     forwardRef(() => DomainModule),
     forwardRef(() => NotificationsModule),
+    TenantsModule, // Import TenantsModule early as it provides middleware for other modules
     UsersModule,
     AuthModule,
     OrganizationsModule,

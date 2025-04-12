@@ -6,22 +6,27 @@ import {
     BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, In } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Ticket } from '../entities/ticket.entity';
 import { TicketComment } from '../entities/ticket-comment.entity';
 import { TicketAttachment } from '../entities/ticket-attachment.entity';
 import { TicketActivity } from '../entities/ticket-activity.entity';
 import { CreateTicketDto } from '../dto/create-ticket.dto';
-import { TicketStatus } from '../enums/ticket-status.enum';
 import { UpdateTicketDto } from '../dto/update-ticket.dto';
 import { CreateTicketCommentDto } from '../dto/ticket-comment.dto';
 import { BulkTicketAssignmentDto } from '../dto/ticket-assignment.dto';
 import { TicketQueryDto } from '../dto/ticket-query.dto';
 import { NotificationsService } from '../../notifications/services/notifications.service';
 import { User } from '../../users/entities/user.entity';
-import { paginate } from 'nestjs-typeorm-paginate';
+import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { TicketActivityType } from '../enums/ticket-activity-type.enum';
+import { TicketPriorityService } from './ticket-priority.service';
+import { MessageTemplateService } from '../../messages/services/message-template.service';
+import { TemplateType } from '../../messages/entities/message-template.entity';
+import { TicketStatus, TicketType } from '../enums/ticket.enums';
+import { Express } from 'express';
+import * as multer from 'multer';
 
 
 // Define a simplified assignment DTO for single assignment operations
@@ -46,7 +51,8 @@ export class TicketsService {
         private readonly userRepository: Repository<User>,
         private readonly eventEmitter: EventEmitter2,
         private readonly notificationsService: NotificationsService,
-
+        private readonly ticketPriorityService: TicketPriorityService,
+        private readonly messageTemplateService: MessageTemplateService,
     ) { }
     async getRelatedTickets(ticketId: string, organizationId: string): Promise<any> {
         // Implement the logic to get related tickets
@@ -58,22 +64,16 @@ export class TicketsService {
         organizationId: string
     ): Promise<void> {
         const ticket = await this.findOne(id, organizationId);
-
-        // Make sure TicketStatus.DELETED exists in your enum
-        ticket.status = TicketStatus.DELETED;
         ticket.deletedAt = new Date();
-
         await this.ticketRepository.save(ticket);
     }
 
     async reopenTicket(id: string, reopenDetails: { reason: string; organizationId: string; reopenedBy: string }) {
-        // Implement the logic to reopen a ticket
-        // Example:
         const ticket = await this.ticketRepository.findOne({ where: { id, organizationId: reopenDetails.organizationId } });
         if (!ticket) {
             throw new NotFoundException('Ticket not found');
         }
-        ticket.status = TicketStatus.REOPENED;
+        ticket.status = TicketStatus.OPEN;
         ticket.reopenReason = reopenDetails.reason;
         const reopenedByUser = await this.userRepository.findOne({ where: { id: reopenDetails.reopenedBy } });
         if (!reopenedByUser) {
@@ -90,19 +90,25 @@ export class TicketsService {
             throw new NotFoundException('User not found');
         }
 
-        const assigneeUser = data.assigneeId ? await this.userRepository.findOne({ where: { id: data.assigneeId } }) : null;
+        const assigneeUser = data.assignedToId ? await this.userRepository.findOne({ where: { id: data.assignedToId } }) : null;
+
+        // Determine priority based on criteria
+        const priority = await this.ticketPriorityService.determinePriority(data.organizationId, {
+            patientCondition: data.patientCondition,
+            timeSensitivity: data.timeSensitivity,
+            impactLevel: data.impactLevel,
+        });
 
         const ticket = this.ticketRepository.create({
             organizationId: data.organizationId,
             title: data.title,
             description: data.description,
             type: data.type,
-            priority: data.priority,
-            category: data.category,
+            priorityId: priority.id,
             status: TicketStatus.OPEN,
             createdBy: Promise.resolve(createdByUser),
             attachments: Promise.resolve([]),
-            assigneeId: data.assigneeId,
+            assigneeId: data.assignedToId,
             tags: data.tags,
             metadata: data.metadata,
         });
@@ -124,6 +130,9 @@ export class TicketsService {
             await this.ticketRepository.save(savedTicket);
         }
 
+        // Send notification based on ticket type
+        await this.sendTicketNotification(savedTicket);
+
         return savedTicket;
     }
 
@@ -131,7 +140,6 @@ export class TicketsService {
         const {
             organizationId,
             status,
-            priority,
             type,
             assigneeId,
             contactId,
@@ -139,8 +147,8 @@ export class TicketsService {
             search,
             startDate,
             endDate,
-            page = 1,
             limit = 10,
+            offset = 0,
         } = query;
 
         const queryBuilder = this.ticketRepository
@@ -151,11 +159,7 @@ export class TicketsService {
             .leftJoinAndSelect('ticket.department', 'department');
 
         if (status) {
-            queryBuilder.andWhere('ticket.status = :status', { status });
-        }
-
-        if (priority) {
-            queryBuilder.andWhere('ticket.priority = :priority', { priority });
+            queryBuilder.andWhere('ticket.status IN (:...status)', { status });
         }
 
         if (type) {
@@ -191,7 +195,7 @@ export class TicketsService {
 
         queryBuilder.orderBy('ticket.createdAt', 'DESC');
 
-        return paginate(queryBuilder, { page, limit });
+        return paginate(queryBuilder, { page: Math.floor(offset / limit) + 1, limit });
     }
 
     async findOne(id: string, organizationId: string): Promise<Ticket> {
@@ -217,7 +221,7 @@ export class TicketsService {
 
     async update(
         id: string,
-        data: UpdateTicketDto & { organizationId: string; updatedBy: string }
+        data: UpdateTicketDto & { organizationId: string; updatedBy: string; note?: string }
     ): Promise<Ticket> {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
@@ -242,17 +246,15 @@ export class TicketsService {
 
             // Create activity record for status change
             if (data.status && data.status !== oldStatus) {
-                const activity = this.activityRepository.create({
-                    ticketId: id,
-                    organizationId: data.organizationId,
-                    performedById: data.updatedBy,
-                    type: TicketActivityType.STATUS_CHANGED,
-                    data: {
-                        status: data.status,
-                        note: data.statusNote
-                    }
-                });
-
+                const activity = new TicketActivity();
+                activity.ticketId = id;
+                activity.organizationId = data.organizationId;
+                activity.performedById = data.updatedBy;
+                activity.type = TicketActivityType.STATUS_CHANGED;
+                activity.data = {
+                    status: data.status,
+                    note: data.note
+                };
                 await queryRunner.manager.save(activity);
 
                 // Send notification for status change
@@ -295,17 +297,15 @@ export class TicketsService {
         await this.ticketRepository.save(ticket);
     
         // Create activity record
-        const activity = this.activityRepository.create({
-            ticketId: id,
-            organizationId: data.organizationId,
-            performedById: data.assignedBy,
-            type: TicketActivityType.ASSIGNED,
-            data: {
-                assigneeId: data.assigneeId,
-                note: data.note
-            }
-        });
-        
+        const activity = new TicketActivity();
+        activity.ticketId = id;
+        activity.organizationId = data.organizationId;
+        activity.performedById = data.assignedBy;
+        activity.type = TicketActivityType.ASSIGNED;
+        activity.data = {
+            assigneeId: data.assigneeId,
+            note: data.note
+        };
         await this.activityRepository.save(activity);
     
         // Send notification to new assignee
@@ -329,11 +329,11 @@ export class TicketsService {
 
         // Create comment
         const comment = new TicketComment();
-        // Copy properties from data (content, isInternal, etc.)
-        Object.assign(comment, data);
-        comment.ticketId = ticket.id;
-        comment.organizationId = data.organizationId;
-        comment.authorId = data.userId; // Changed from userId to authorId
+        Object.assign(comment, {
+            ...data,
+            ticketId: ticket.id,
+            userId: data.userId
+        });
 
         await this.commentRepository.save(comment);
 
@@ -342,14 +342,12 @@ export class TicketsService {
         await this.ticketRepository.save(ticket);
 
         // Create activity record
-        const activity = this.activityRepository.create({
-            ticketId: id,
-            organizationId: data.organizationId,
-            performedById: data.userId,
-            type: TicketActivityType.COMMENT_ADDED,
-            data: { commentId: comment.id }
-        });
-
+        const activity = new TicketActivity();
+        activity.ticketId = id;
+        activity.organizationId = data.organizationId;
+        activity.performedById = data.userId;
+        activity.type = TicketActivityType.COMMENT_ADDED;
+        activity.data = { commentId: comment.id };
         await this.activityRepository.save(activity);
 
         // Send notification if internal note
@@ -373,7 +371,7 @@ export class TicketsService {
     ): Promise<Ticket> {
         const ticket = await this.findOne(id, data.organizationId);
 
-        ticket.status = TicketStatus.ESCALATED;
+        ticket.status = TicketStatus.IN_PROGRESS;
         ticket.escalatedAt = new Date();
         ticket.escalatedById = data.escalatedBy;
         ticket.escalationReason = data.reason;
@@ -386,14 +384,12 @@ export class TicketsService {
         await this.ticketRepository.save(ticket);
 
         // Create activity record
-        const activity = this.activityRepository.create({
-            ticketId: id,
-            organizationId: data.organizationId,
-            performedById: data.escalatedBy,
-            type: TicketActivityType.ESCALATED,
-            data: { reason: data.reason }
-        });
-
+        const activity = new TicketActivity();
+        activity.ticketId = id;
+        activity.organizationId = data.organizationId;
+        activity.performedById = data.escalatedBy;
+        activity.type = TicketActivityType.ESCALATED;
+        activity.data = { reason: data.reason };
         await this.activityRepository.save(activity);
 
         // Notify administrators
@@ -429,14 +425,12 @@ export class TicketsService {
         await this.ticketRepository.save(ticket);
 
         // Create activity record
-        const activity = this.activityRepository.create({
-            ticketId: id,
-            organizationId: data.organizationId,
-            performedById: data.resolvedBy,
-            type: TicketActivityType.RESOLUTION,
-            data: { resolution: data.resolution }
-        });
-
+        const activity = new TicketActivity();
+        activity.ticketId = id;
+        activity.organizationId = data.organizationId;
+        activity.performedById = data.resolvedBy;
+        activity.type = TicketActivityType.RESOLUTION;
+        activity.data = { resolution: data.resolution };
         await this.activityRepository.save(activity);
 
         // Notify ticket creator if different from resolver
@@ -459,15 +453,14 @@ export class TicketsService {
             organizationId,
             userId,
             status,
-            priority,
             type,
             contactId,
             departmentId,
             search,
             startDate,
             endDate,
-            page = 1,
             limit = 10,
+            offset = 0,
         } = query;
 
         const queryBuilder = this.ticketRepository
@@ -478,11 +471,7 @@ export class TicketsService {
             .leftJoinAndSelect('ticket.department', 'department');
 
         if (status) {
-            queryBuilder.andWhere('ticket.status = :status', { status });
-        }
-
-        if (priority) {
-            queryBuilder.andWhere('ticket.priority = :priority', { priority });
+            queryBuilder.andWhere('ticket.status IN (:...status)', { status });
         }
 
         if (type) {
@@ -514,7 +503,7 @@ export class TicketsService {
 
         queryBuilder.orderBy('ticket.createdAt', 'DESC');
 
-        return paginate(queryBuilder, { page, limit });
+        return paginate(queryBuilder, { page: Math.floor(offset / limit) + 1, limit });
     }
 
     async getTimeline(id: string, organizationId: string) {
@@ -538,15 +527,211 @@ export class TicketsService {
                 'COUNT(*) as total',
                 'COUNT(CASE WHEN status = :open THEN 1 END) as open',
                 'COUNT(CASE WHEN status = :inProgress THEN 1 END) as inProgress',
-                'COUNT(CASE WHEN status = :escalated THEN 1 END) as escalated',
+                'COUNT(CASE WHEN status = :inProgress THEN 1 END) as escalated',
                 'COUNT(CASE WHEN priority = :urgent THEN 1 END) as urgent',
             ])
             .setParameter('open', TicketStatus.OPEN)
             .setParameter('inProgress', TicketStatus.IN_PROGRESS)
-            .setParameter('escalated', TicketStatus.ESCALATED)
             .setParameter('urgent', 'URGENT')
             .getRawOne();
 
         return stats;
+    }
+
+    private async sendTicketNotification(ticket: Ticket) {
+        let templateType: TemplateType;
+        let context: Record<string, any> = {
+            ticketId: ticket.id,
+            ticketTitle: ticket.title,
+            ticketDescription: ticket.description,
+            priority: ticket.priority?.name,
+        };
+
+        switch (ticket.type) {
+            case TicketType.APPOINTMENT_REQUEST:
+                templateType = TemplateType.APPOINTMENT_REMINDER;
+                break;
+            case TicketType.LAB_RESULTS:
+                templateType = TemplateType.LAB_RESULTS;
+                break;
+            case TicketType.REFERRAL:
+                templateType = TemplateType.REFERRAL;
+                break;
+            default:
+                templateType = TemplateType.GENERAL;
+        }
+
+        const template = await this.messageTemplateService.findAll(ticket.organizationId, templateType);
+        if (template.length > 0) {
+            const renderedContent = await this.messageTemplateService.renderTemplate(template[0], context);
+            // TODO: Implement actual notification sending (email, SMS, etc.)
+            console.log('Notification content:', renderedContent);
+        }
+    }
+
+    async getTicketMetrics(organizationId: string) {
+        const query = new TicketQueryDto();
+        query.organizationId = organizationId;
+        const tickets = await this.findAll(query);
+        
+        const metrics = {
+            total: tickets.items.length,
+            byStatus: {},
+            byType: {},
+            byPriority: {},
+            averageResolutionTime: 0,
+        };
+
+        // Calculate metrics
+        tickets.items.forEach(ticket => {
+            // Count by status
+            metrics.byStatus[ticket.status] = (metrics.byStatus[ticket.status] || 0) + 1;
+            
+            // Count by type
+            metrics.byType[ticket.type] = (metrics.byType[ticket.type] || 0) + 1;
+            
+            // Count by priority
+            if (ticket.priority) {
+                metrics.byPriority[ticket.priority.level] = (metrics.byPriority[ticket.priority.level] || 0) + 1;
+            }
+
+            // Calculate resolution time for resolved tickets
+            if (ticket.status === TicketStatus.RESOLVED && ticket.resolvedAt && ticket.createdAt) {
+                const resolutionTime = ticket.resolvedAt.getTime() - ticket.createdAt.getTime();
+                metrics.averageResolutionTime += resolutionTime;
+            }
+        });
+
+        // Calculate average resolution time
+        const resolvedCount = metrics.byStatus[TicketStatus.RESOLVED] || 0;
+        metrics.averageResolutionTime = resolvedCount > 0 
+            ? metrics.averageResolutionTime / resolvedCount 
+            : 0;
+
+        return metrics;
+    }
+
+    async bulkAssignTickets(data: BulkTicketAssignmentDto & { organizationId: string; assignedBy: string }): Promise<void> {
+        const { ticketIds, assigneeId, note, organizationId, assignedBy } = data;
+
+        const assignee = await this.userRepository.findOne({
+            where: { id: assigneeId, organizationId },
+        });
+
+        if (!assignee) {
+            throw new NotFoundException('Assignee not found');
+        }
+
+        const tickets = await this.ticketRepository.find({
+            where: {
+                id: In(ticketIds),
+                organizationId,
+            },
+        });
+
+        if (tickets.length !== ticketIds.length) {
+            throw new NotFoundException('One or more tickets not found');
+        }
+
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            for (const ticket of tickets) {
+                ticket.assigneeId = assigneeId;
+                const updatedByUser = await this.userRepository.findOne({ where: { id: assignedBy } });
+                if (updatedByUser) {
+                    ticket.updatedBy = Promise.resolve(updatedByUser);
+                }
+                await queryRunner.manager.save(ticket);
+
+                // Create activity record
+                const activity = new TicketActivity();
+                activity.ticketId = ticket.id;
+                activity.organizationId = organizationId;
+                activity.performedById = assignedBy;
+                activity.type = TicketActivityType.ASSIGNED;
+                activity.data = {
+                    description: `Ticket assigned to ${assignee.firstName} ${assignee.lastName}`,
+                    previousAssigneeId: ticket.assigneeId,
+                    newAssigneeId: assigneeId,
+                    note,
+                };
+                await queryRunner.manager.save(activity);
+
+                // Emit event
+                this.eventEmitter.emit('ticket.assigned', {
+                    ticket,
+                    assignee,
+                    assignedBy,
+                    note,
+                });
+            }
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
+    async uploadAttachment(
+        ticketId: string,
+        file: multer.File,
+        organizationId: string,
+        uploadedById: string,
+    ): Promise<TicketAttachment> {
+        const ticket = await this.findOne(ticketId, organizationId);
+
+        const attachment = new TicketAttachment();
+        attachment.ticketId = ticketId;
+        attachment.organizationId = organizationId;
+        attachment.fileName = file.originalname;
+        attachment.fileSize = file.size;
+        attachment.mimeType = file.mimetype;
+        attachment.storageKey = file.path;
+        attachment.uploadedById = uploadedById;
+
+        const savedAttachment = await this.attachmentRepository.save(attachment);
+
+        // Create activity record
+        const activity = new TicketActivity();
+        activity.ticketId = ticketId;
+        activity.organizationId = organizationId;
+        activity.performedById = uploadedById;
+        activity.type = TicketActivityType.ATTACHMENT_ADDED;
+        activity.data = {
+            description: `Attachment ${file.originalname} added`,
+            attachmentId: savedAttachment.id,
+            fileName: file.originalname,
+            fileSize: file.size,
+        };
+        await this.activityRepository.save(activity);
+
+        // Emit event
+        this.eventEmitter.emit('ticket.attachment.added', {
+            ticket,
+            attachment: savedAttachment,
+            uploadedBy: uploadedById,
+        });
+
+        return savedAttachment;
+    }
+
+    async getTicketActivities(ticketId: string, organizationId: string): Promise<TicketActivity[]> {
+        const ticket = await this.findOne(ticketId, organizationId);
+        return this.activityRepository.find({
+            where: {
+                ticketId,
+                organizationId,
+            },
+            order: {
+                createdAt: 'DESC',
+            },
+            relations: ['user'],
+        });
     }
 }

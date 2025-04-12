@@ -27,6 +27,7 @@ import { MessageDeliveryService } from './services/message-delivery.service';
 import { MessageSchedulerService } from './services/message-scheduler.service';
 import { TemplateService } from './services/template.service';
 import { MessageRepository } from './repositories/message.repository';
+import { MessageTemplateService } from './services/message-template.service';
 
 @Module({
     imports: [
@@ -60,12 +61,14 @@ import { MessageRepository } from './repositories/message.repository';
         MessageEventHandler,
         MessageDeliveryListener,
         MessageQueueListener,
-        MessageRepository
+        MessageRepository,
+        MessageTemplateService
     ],
     exports: [
         MessagesService,
         MessageDeliveryService,
-        TemplateService
+        TemplateService,
+        MessageTemplateService
     ]
 })
 export class MessagesModule {}

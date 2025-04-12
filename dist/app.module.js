@@ -62,6 +62,7 @@ const messages_module_1 = require("./modules/messages/messages.module");
 const notifications_module_1 = require("./modules/notifications/notifications.module");
 const domain_module_1 = require("./modules/domain/domain.module");
 const shared_module_1 = require("./shared/shared.module");
+const tenants_module_1 = require("./modules/tenants/tenants.module");
 // Configuration
 const app_config_1 = __importDefault(require("./config/app.config"));
 const database_config_1 = __importDefault(require("./config/database.config"));
@@ -120,7 +121,7 @@ AppModule = __decorate([
                 database: process.env.DB_NAME,
                 schema: process.env.DB_SCHEMA || 'public',
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
-                // synchronize: process.env.NODE_ENV !== 'production',
+                // Disable synchronize since we're handling schema creation manually
                 synchronize: false,
                 logging: ['error'],
                 ssl: process.env.DB_SSL === 'true' ? {
@@ -149,6 +150,7 @@ AppModule = __decorate([
             shared_module_1.SharedModule,
             (0, common_1.forwardRef)(() => domain_module_1.DomainModule),
             (0, common_1.forwardRef)(() => notifications_module_1.NotificationsModule),
+            tenants_module_1.TenantsModule,
             users_module_1.UsersModule,
             auth_module_1.AuthModule,
             organizations_module_1.OrganizationsModule,

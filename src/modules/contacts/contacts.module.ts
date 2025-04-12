@@ -3,7 +3,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ContactsController } from './controllers/contacts.controller';
+import { FamilyController } from './controllers/family.controller';
 import { ContactsService } from './services/contacts.service';
+import { FamilyService } from './services/family.service';
 import { Contact } from './entities/contact.entity';
 import { ContactRelationship } from './entities/contact-relationship.entity';
 import { MedicalHistory } from '../medical-history/medical-history.entity';
@@ -28,8 +30,8 @@ import { OrganizationsModule } from '../organizations/organizations.module';
         UsersModule,
         OrganizationsModule
     ],
-    controllers: [ContactsController],
-    providers: [ContactsService],
-    exports: [ContactsService]
+    controllers: [ContactsController, FamilyController],
+    providers: [ContactsService, FamilyService],
+    exports: [ContactsService, FamilyService]
 })
 export class ContactsModule {}

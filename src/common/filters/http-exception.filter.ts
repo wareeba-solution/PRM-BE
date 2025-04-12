@@ -38,6 +38,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const response = ctx.getResponse<Response>();
         const request = ctx.getRequest<Request>();
 
+        // Check if headers are already sent to prevent "Cannot set headers after they are sent" error
+        if (response.headersSent) {
+            this.logger.error(`Headers already sent, cannot send exception response for ${request.method} ${request.url}`);
+            return;
+        }
+
         let status = HttpStatus.INTERNAL_SERVER_ERROR;
         let message: string | string[] = 'Internal server error';
         let error = 'Internal Server Error';
@@ -46,7 +52,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         if (exception instanceof HttpException) {
             status = exception.getStatus();
             const errorResponse = exception.getResponse() as HttpExceptionResponse;
-            
+
             if (typeof errorResponse === 'object' && 'message' in errorResponse) {
                 message = errorResponse.message;
                 error = errorResponse.error || this.getErrorName(status);
@@ -65,8 +71,23 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 message = 'A record with this value already exists';
                 error = 'Duplicate Entry';
             }
+
+            // Check for specific database errors - column not found errors
+            if ((exception.message as string).includes('column') && (exception.message as string).includes('does not exist')) {
+                const match = (exception.message as string).match(/column ["']?([^"']+)["']? of relation ["']?([^"']+)["']?/);
+                if (match) {
+                    const [, column, table] = match;
+                    message = `Database schema error: column "${column}" does not exist in table "${table}"`;
+                }
+            }
         } else if (exception instanceof Error) {
             message = exception.message;
+
+            // Special handling for common errors
+            if (exception.name === 'TypeError' && exception.message.includes('headers')) {
+                this.logger.error('Headers-related error:', exception);
+                message = 'A request handling error occurred';
+            }
         }
 
         // Create the error response
@@ -80,13 +101,21 @@ export class HttpExceptionFilter implements ExceptionFilter {
             correlationId: request.headers['x-correlation-id'] as string,
         };
 
-        // Log the error
-        this.logError(errorResponse, exception);
+        // Log the error with useful context
+        this.logError(errorResponse, exception, request);
 
-        // Send the response
-        response
-            .status(status)
-            .json(errorResponse);
+        try {
+            // Send the response
+            response
+                .status(status)
+                .json(errorResponse);
+        } catch (sendError) {
+            // Handle errors that occur while sending the response
+            this.logger.error(
+                `Failed to send error response: ${sendError instanceof Error ? sendError.message : 'Unknown error'}`,
+                sendError instanceof Error ? sendError.stack : undefined
+            );
+        }
     }
 
     private getErrorName(status: number): string {
@@ -116,66 +145,34 @@ export class HttpExceptionFilter implements ExceptionFilter {
         }
     }
 
-    private logError(errorResponse: ErrorResponse, exception: unknown) {
+    private logError(errorResponse: ErrorResponse, exception: unknown, request: Request) {
+        const tenant = request['tenantId'] ? `tenant: ${request['tenantId']}` : 'no tenant';
+
+        // Fix the user property access to avoid TypeScript errors
+        let userInfo = 'unauthenticated';
+        if (request['user'] && typeof request['user'] === 'object' && 'id' in request['user']) {
+            userInfo = `user: ${request['user'].id}`;
+        }
+
         const logMessage = {
             ...errorResponse,
             stack: exception instanceof Error ? exception.stack : undefined,
+            context: `${tenant}, ${userInfo}`,
+            headers: this.sanitizeHeaders(request.headers),
         };
 
         if (errorResponse.statusCode >= 500) {
-            this.logger.error(JSON.stringify(logMessage));
+            this.logger.error(`Server error for ${request.method} ${request.url}`, JSON.stringify(logMessage));
         } else {
-            this.logger.warn(JSON.stringify(logMessage));
+            this.logger.warn(`Client error for ${request.method} ${request.url}`, JSON.stringify(logMessage));
         }
+    }
 
-        // If you're using error monitoring service like Sentry
-        // Sentry.captureException(exception, {
-        //     extra: errorResponse,
-        //     tags: {
-        //         path: errorResponse.path,
-        //         method: errorResponse.method,
-        //     },
-        // });
+    private sanitizeHeaders(headers: Record<string, any>): Record<string, any> {
+        // Create a sanitized copy of headers, removing sensitive information
+        const sanitized = { ...headers };
+        if (sanitized.authorization) sanitized.authorization = 'REDACTED';
+        if (sanitized.cookie) sanitized.cookie = 'REDACTED';
+        return sanitized;
     }
 }
-
-// Example usage in main.ts:
-/*
-async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
-    
-    // Apply the filter globally
-    app.useGlobalFilters(new HttpExceptionFilter());
-    
-    await app.listen(3000);
-}
-*/
-
-// Example custom exceptions:
-/*
-export class ValidationException extends HttpException {
-    constructor(message: string | string[]) {
-        super(
-            {
-                statusCode: HttpStatus.BAD_REQUEST,
-                message,
-                error: 'Validation Error',
-            },
-            HttpStatus.BAD_REQUEST,
-        );
-    }
-}
-
-export class NotFoundException extends HttpException {
-    constructor(resource: string) {
-        super(
-            {
-                statusCode: HttpStatus.NOT_FOUND,
-                message: `${resource} not found`,
-                error: 'Not Found',
-            },
-            HttpStatus.NOT_FOUND,
-        );
-    }
-}
-*/

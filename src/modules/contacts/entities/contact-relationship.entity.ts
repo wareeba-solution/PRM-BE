@@ -34,9 +34,17 @@ export enum RelationshipType {
     OTHER = 'OTHER',
 }
 
+export enum RelationshipStatus {
+    ACTIVE = 'ACTIVE',
+    INACTIVE = 'INACTIVE',
+    PENDING = 'PENDING',
+    TERMINATED = 'TERMINATED',
+}
+
 @Entity('contact_relationships')
 @Index(['organizationId', 'contactId'])
 @Index(['organizationId', 'relatedContactId'])
+@Index(['organizationId', 'familyId'])
 export class ContactRelationship {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -65,12 +73,23 @@ export class ContactRelationship {
     @JoinColumn({ name: 'relatedContactId' })
     relatedContact: Contact;
 
+    @Column({ type: 'uuid', nullable: true })
+    @Index()
+    familyId: string; // For grouping family relationships
+
     @Column({
         type: 'enum',
         enum: RelationshipType,
         default: RelationshipType.OTHER,
     })
     type: RelationshipType;
+
+    @Column({
+        type: 'enum',
+        enum: RelationshipStatus,
+        default: RelationshipStatus.ACTIVE,
+    })
+    status: RelationshipStatus;
 
     @Column({ type: 'text', nullable: true })
     notes: string;
@@ -80,6 +99,37 @@ export class ContactRelationship {
 
     @Column({ type: 'boolean', default: false })
     isPrimary: boolean;
+
+    @Column({ type: 'boolean', default: false })
+    isLegalGuardian: boolean;
+
+    @Column({ type: 'boolean', default: false })
+    hasMedicalDecisionAuthority: boolean;
+
+    @Column({ type: 'jsonb', nullable: true })
+    permissions: {
+        canViewMedicalRecords: boolean;
+        canMakeAppointments: boolean;
+        canReceiveUpdates: boolean;
+        canPickupPrescriptions: boolean;
+        canAccessPortal: boolean;
+    };
+
+    @Column({ type: 'jsonb', nullable: true })
+    metadata: Record<string, any>;
+
+    @Column({
+        type: 'enum',
+        enum: RelationshipType,
+        nullable: true,
+    })
+    inverseType: RelationshipType;
+
+    @Column({ type: 'date', nullable: true })
+    startDate: Date;
+
+    @Column({ type: 'date', nullable: true })
+    endDate: Date;
 
     @Column({ type: 'uuid', nullable: true })
     createdById: string;
@@ -96,37 +146,27 @@ export class ContactRelationship {
     @DeleteDateColumn({ type: 'timestamptz', nullable: true })
     deletedAt: Date;
 
-    /**
-     * Custom metadata for the relationship (JSON field)
-     * This can store additional information specific to the relationship type
-     * For example, for a PARENT-CHILD relationship, it might store custodial information
-     */
-    @Column({ type: 'jsonb', nullable: true })
-    metadata: Record<string, any>;
+    get isFamilyRelationship(): boolean {
+        return [
+            RelationshipType.SPOUSE,
+            RelationshipType.PARENT,
+            RelationshipType.CHILD,
+            RelationshipType.SIBLING,
+            RelationshipType.GUARDIAN,
+            RelationshipType.DEPENDENT,
+            RelationshipType.RELATIVE,
+        ].includes(this.type);
+    }
 
-    /**
-     * Inverse relationship type (if applicable)
-     * For example, if this relationship is PARENT, the inverse would be CHILD
-     * This helps maintain consistency when querying from either direction
-     */
-    @Column({
-        type: 'enum',
-        enum: RelationshipType,
-        nullable: true,
-    })
-    inverseType: RelationshipType;
+    get isMedicalRelationship(): boolean {
+        return [
+            RelationshipType.PRIMARY_CARE_PROVIDER,
+            RelationshipType.SPECIALIST,
+            RelationshipType.CAREGIVER,
+        ].includes(this.type);
+    }
 
-    /**
-     * Start date of the relationship (if applicable)
-     * For example, when a provider became a patient's specialist
-     */
-    @Column({ type: 'date', nullable: true })
-    startDate: Date;
-
-    /**
-     * End date of the relationship (if applicable)
-     * For example, when a provider stopped being a patient's specialist
-     */
-    @Column({ type: 'date', nullable: true })
-    endDate: Date;
+    get isEmergencyRelationship(): boolean {
+        return this.type === RelationshipType.EMERGENCY_CONTACT;
+    }
 }
