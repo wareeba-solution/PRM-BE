@@ -86,6 +86,8 @@ let ContactsService = class ContactsService {
         Object.assign(contact, contactData);
         // Set createdBy properly - use the string ID directly instead of object
         contact.createdById = data.createdBy;
+        // Ensure tenantId is set
+        contact.tenantId = data.tenantId;
         // Handle documents properly if present
         if (documentIds && Array.isArray(documentIds)) {
             // Find existing documents or create references using the IDs

@@ -34,8 +34,8 @@ export declare class User {
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date;
-    tenant: Promise<Tenant>;
-    organization: Promise<Organization>;
+    tenant: Tenant;
+    organization: Organization;
     createdBy: Promise<User>;
     updatedBy?: Promise<User>;
     profile: Promise<UserProfile>;

@@ -8,7 +8,7 @@ export declare class Organization {
     [x: string]: any;
     id: string;
     tenantId: string;
-    tenant: Promise<Tenant>;
+    tenant: Tenant;
     name: string;
     description: string;
     slug: string;

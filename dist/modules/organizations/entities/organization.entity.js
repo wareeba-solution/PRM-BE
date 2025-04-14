@@ -38,9 +38,9 @@ __decorate([
     __metadata("design:type", String)
 ], Organization.prototype, "tenantId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => tenant_entity_1.Tenant, tenant => tenant.organizations, { lazy: true }),
+    (0, typeorm_1.ManyToOne)(() => tenant_entity_1.Tenant),
     (0, typeorm_1.JoinColumn)({ name: 'tenantId' }),
-    __metadata("design:type", Promise)
+    __metadata("design:type", tenant_entity_1.Tenant)
 ], Organization.prototype, "tenant", void 0);
 __decorate([
     (0, typeorm_1.Column)({ length: 100 }),

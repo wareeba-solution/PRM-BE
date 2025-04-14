@@ -40,6 +40,7 @@ export declare class ContactsService {
     constructor(contactRepository: Repository<Contact>, mergedRecordRepository: Repository<MergedRecord>, relationshipRepository: Repository<ContactRelationship>, medicalHistoryRepository: Repository<MedicalHistory>, appointmentRepository: Repository<Appointment>, documentRepository: Repository<Document>, dataSource: DataSource);
     create(data: CreateContactDto & {
         organizationId: string;
+        tenantId: string;
         createdBy: string;
     }): Promise<Contact>;
     findAll(query: ContactQueryDto & {

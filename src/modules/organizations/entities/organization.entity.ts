@@ -29,10 +29,10 @@ export class Organization {
     
     @Column()
     tenantId: string;
-    
-    @ManyToOne(() => Tenant, tenant => tenant.organizations, { lazy: true })
+
+    @ManyToOne(() => Tenant)
     @JoinColumn({ name: 'tenantId' })
-    tenant: Promise<Tenant>;
+    tenant: Tenant;
 
     @Column({ length: 100 })
     name: string;

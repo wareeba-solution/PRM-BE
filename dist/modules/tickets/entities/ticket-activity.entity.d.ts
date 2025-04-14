@@ -1,12 +1,11 @@
 import { Ticket } from './ticket.entity';
 import { User } from '../../users/entities/user.entity';
-import { TicketActivityType } from '../enums/ticket-activity-type.enum';
 export declare class TicketActivity {
     id: string;
     ticketId: string;
     organizationId: string;
     performedById: string;
-    type: TicketActivityType;
+    type: string;
     data: Record<string, any>;
     metadata?: Record<string, any>;
     timestamp: Date;

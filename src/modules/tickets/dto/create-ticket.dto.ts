@@ -25,23 +25,33 @@ import { TicketAttachment } from '../entities/ticket-attachment.entity';
 
 export class CreateTicketDto {
     @IsString()
-    organizationId: string;
+    @IsOptional() // Make optional to support frontend flow
+    organizationId?: string;
 
     @IsString()
-    createdBy: string;
+    @IsOptional() // Make optional to support frontend flow
+    createdBy?: string;
 
     @IsString()
-    title: string;
+    @IsOptional() // For backward compatibility
+    title?: string;
+
+    // Frontend field - maps to title
+    @IsString()
+    @IsOptional()
+    subject?: string;
 
     @IsString()
-    description: string;
+    @IsOptional() // Make optional
+    description?: string;
 
     @IsEnum(TicketType)
-    type: TicketType;
+    @IsOptional() // Make optional with default in controller
+    type?: TicketType;
 
     @IsEnum(TicketPriority)
     @IsOptional()
-    priority?: TicketPriority;
+    priority?: string;
 
     @IsEnum(TicketSource)
     @IsOptional()
@@ -55,9 +65,20 @@ export class CreateTicketDto {
     @IsOptional()
     assignedToId?: string;
 
+    // Frontend field - can map to multiple fields
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    tagTeamMembers?: string[];
+
     @IsUUID()
     @IsOptional()
     patientId?: string;
+
+    // Frontend field - maps to patientId
+    @IsString()
+    @IsOptional()
+    patient?: string;
 
     @IsUUID()
     @IsOptional()

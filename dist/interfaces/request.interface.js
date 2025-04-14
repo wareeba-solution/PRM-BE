@@ -12,11 +12,11 @@ export function authMiddleware(
             // Add user to request
             const token = extractTokenFromHeader(req);
             const decodedToken = verifyToken(token);
-            
+
             req.user = await getUserFromToken(decodedToken);
             req.deviceId = decodedToken.deviceId;
             req.sessionId = decodedToken.sessionId;
-            
+
             // Check roles if specified
             if (options.roles && !options.roles.includes(req.user.role)) {
                 throw new ForbiddenException('Insufficient role');

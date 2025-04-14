@@ -11,12 +11,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TicketsController = void 0;
 const common_1 = require("@nestjs/common");
+const typeorm_1 = require("typeorm");
 const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
-const organization_guard_1 = require("../../organizations/guards/organization.guard");
 const roles_decorator_1 = require("../../../common/decorators/roles.decorator");
 const role_enum_1 = require("../../users/enums/role.enum");
 const tickets_service_1 = require("../services/tickets.service");
@@ -25,7 +24,6 @@ const update_ticket_dto_1 = require("../dto/update-ticket.dto");
 const ticket_comment_dto_1 = require("../dto/ticket-comment.dto");
 const ticket_assignment_dto_1 = require("../dto/ticket-assignment.dto");
 const ticket_query_dto_1 = require("../dto/ticket-query.dto");
-const platform_express_1 = require("@nestjs/platform-express");
 const swagger_1 = require("@nestjs/swagger");
 const current_user_decorator_1 = require("../../auth/decorators/current-user.decorator");
 const user_entity_1 = require("../../users/entities/user.entity");
@@ -34,63 +32,146 @@ const ticket_comment_entity_1 = require("../entities/ticket-comment.entity");
 const ticket_attachment_entity_1 = require("../entities/ticket-attachment.entity");
 const ticket_activity_entity_1 = require("../entities/ticket-activity.entity");
 const nestjs_typeorm_paginate_1 = require("nestjs-typeorm-paginate");
-const multer_1 = require("multer");
+const platform_express_1 = require("@nestjs/platform-express");
 const ticket_enums_1 = require("../enums/ticket.enums");
 let TicketsController = class TicketsController {
-    constructor(ticketsService) {
+    constructor(ticketsService, dataSource) {
         this.ticketsService = ticketsService;
+        this.dataSource = dataSource;
     }
-    create(createTicketDto, user, req) {
-        return this.ticketsService.create(Object.assign(Object.assign({}, createTicketDto), { organizationId: req.organization.id, createdBy: user.id }));
+    async create(ticketDto, user, req) {
+        var _a, _b;
+        try {
+            // Process frontend fields
+            if (!ticketDto.title && ticketDto.subject) {
+                ticketDto.title = ticketDto.subject;
+            }
+            if (ticketDto.patient && !ticketDto.patientId) {
+                ticketDto.patientId = ticketDto.patient;
+            }
+            if (((_a = ticketDto.tagTeamMembers) === null || _a === void 0 ? void 0 : _a.length) > 0 && !ticketDto.assignedToId) {
+                ticketDto.assignedToId = ticketDto.tagTeamMembers[0];
+            }
+            if (ticketDto.tagTeamMembers) {
+                ticketDto.tags = [...(ticketDto.tags || []), ...ticketDto.tagTeamMembers];
+            }
+            const organizationId = ((_b = req.organization) === null || _b === void 0 ? void 0 : _b.id) || user.organizationId;
+            // Execute direct database query to create ticket
+            const queryResult = await this.dataSource.query(`
+            INSERT INTO tickets 
+            ("organizationId", title, description, status, "createdById", "assigneeId")
+            VALUES 
+            ($1, $2, $3, $4, $5, $6)
+            RETURNING *
+        `, [
+                organizationId,
+                ticketDto.title,
+                ticketDto.description || '',
+                'OPEN',
+                user.id,
+                ticketDto.assignedToId || null
+            ]);
+            // Create activity with the correct column names
+            try {
+                await this.dataSource.query(`
+                INSERT INTO ticket_activities
+                ("ticketId", "organizationId", "userId", action, description, metadata, "createdAt")
+                VALUES
+                ($1, $2, $3, $4, $5, $6, NOW())
+            `, [
+                    queryResult[0].id,
+                    organizationId,
+                    user.id,
+                    'CREATED',
+                    'Ticket created',
+                    JSON.stringify({ source: 'web' }) // metadata field
+                ]);
+            }
+            catch (activityError) {
+                console.warn('Could not create activity record:', activityError);
+                // Continue even if activity creation fails
+            }
+            return queryResult[0];
+        }
+        catch (error) {
+            console.error('Ticket creation failed:', error);
+            throw new common_1.BadRequestException('Failed to create ticket: ' + error.message);
+        }
     }
-    findAll(query, req) {
-        return this.ticketsService.findAll(Object.assign(Object.assign({}, query), { organizationId: req.organization.id }));
+    findAll(query, req, user) {
+        var _a;
+        const organizationId = ((_a = req.organization) === null || _a === void 0 ? void 0 : _a.id) || user.organizationId;
+        return this.ticketsService.findAll(Object.assign(Object.assign({}, query), { organizationId }));
     }
-    getTicketMetrics(req) {
-        return this.ticketsService.getTicketMetrics(req.organization.id);
+    getTicketMetrics(req, user) {
+        var _a;
+        const organizationId = ((_a = req.organization) === null || _a === void 0 ? void 0 : _a.id) || user.organizationId;
+        return this.ticketsService.getTicketMetrics(organizationId);
     }
     getAssignedTickets(query, user, req) {
-        return this.ticketsService.getAssignedTickets(Object.assign(Object.assign({}, query), { organizationId: req.organization.id, userId: user.id }));
+        var _a;
+        const organizationId = ((_a = req.organization) === null || _a === void 0 ? void 0 : _a.id) || user.organizationId;
+        return this.ticketsService.getAssignedTickets(Object.assign(Object.assign({}, query), { organizationId, userId: user.id }));
     }
-    findOne(id, req) {
-        return this.ticketsService.findOne(id, req.organization.id);
+    findOne(id, req, user) {
+        var _a;
+        const organizationId = ((_a = req.organization) === null || _a === void 0 ? void 0 : _a.id) || user.organizationId;
+        return this.ticketsService.findOne(id, organizationId);
     }
     update(id, updateTicketDto, user, req) {
-        return this.ticketsService.update(id, Object.assign(Object.assign({}, updateTicketDto), { organizationId: req.organization.id, updatedBy: user.id }));
+        var _a;
+        const organizationId = ((_a = req.organization) === null || _a === void 0 ? void 0 : _a.id) || user.organizationId;
+        return this.ticketsService.update(id, Object.assign(Object.assign({}, updateTicketDto), { organizationId, updatedBy: user.id }));
     }
-    remove(id, req) {
-        return this.ticketsService.remove(id, req.organization.id);
+    remove(id, req, user) {
+        var _a;
+        const organizationId = ((_a = req.organization) === null || _a === void 0 ? void 0 : _a.id) || user.organizationId;
+        return this.ticketsService.remove(id, organizationId);
     }
     addComment(id, createCommentDto, user, req) {
-        return this.ticketsService.addComment(id, Object.assign(Object.assign({}, createCommentDto), { organizationId: req.organization.id, userId: user.id }));
+        var _a;
+        const organizationId = ((_a = req.organization) === null || _a === void 0 ? void 0 : _a.id) || user.organizationId;
+        return this.ticketsService.addComment(id, Object.assign(Object.assign({}, createCommentDto), { organizationId, userId: user.id }));
     }
     bulkAssignTickets(bulkAssignmentDto, user, req) {
-        return this.ticketsService.bulkAssignTickets(Object.assign(Object.assign({}, bulkAssignmentDto), { organizationId: req.organization.id, assignedBy: user.id }));
+        var _a;
+        const organizationId = ((_a = req.organization) === null || _a === void 0 ? void 0 : _a.id) || user.organizationId;
+        return this.ticketsService.bulkAssignTickets(Object.assign(Object.assign({}, bulkAssignmentDto), { organizationId, assignedBy: user.id }));
     }
     uploadAttachment(id, file, user, req) {
-        return this.ticketsService.uploadAttachment(id, file, req.organization.id, user.id);
+        var _a;
+        const organizationId = ((_a = req.organization) === null || _a === void 0 ? void 0 : _a.id) || user.organizationId;
+        return this.ticketsService.uploadAttachment(id, file, organizationId, user.id);
     }
-    getTicketActivities(id, req) {
-        return this.ticketsService.getTicketActivities(id, req.organization.id);
+    getTicketActivities(id, req, user) {
+        var _a;
+        const organizationId = ((_a = req.organization) === null || _a === void 0 ? void 0 : _a.id) || user.organizationId;
+        return this.ticketsService.getTicketActivities(id, organizationId);
     }
     reopenTicket(id, data, user, req) {
+        var _a;
+        const organizationId = ((_a = req.organization) === null || _a === void 0 ? void 0 : _a.id) || user.organizationId;
         return this.ticketsService.reopenTicket(id, {
             reason: data.reason,
-            organizationId: req.organization.id,
+            organizationId,
             reopenedBy: user.id,
         });
     }
     escalateTicket(id, data, user, req) {
+        var _a;
+        const organizationId = ((_a = req.organization) === null || _a === void 0 ? void 0 : _a.id) || user.organizationId;
         return this.ticketsService.escalateTicket(id, {
             reason: data.reason,
-            organizationId: req.organization.id,
+            organizationId,
             escalatedBy: user.id,
         });
     }
     resolveTicket(id, data, user, req) {
+        var _a;
+        const organizationId = ((_a = req.organization) === null || _a === void 0 ? void 0 : _a.id) || user.organizationId;
         return this.ticketsService.resolveTicket(id, {
             resolution: data.resolution,
-            organizationId: req.organization.id,
+            organizationId,
             resolvedBy: user.id,
         });
     }
@@ -107,14 +188,15 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_ticket_dto_1.CreateTicketDto,
         user_entity_1.User, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], TicketsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: 'Get all tickets with pagination and filtering' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Returns paginated tickets', type: (nestjs_typeorm_paginate_1.Pagination) }),
-    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
-    (0, swagger_1.ApiQuery)({ name: 'organizationId', required: true, type: String }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' })
+    // @ApiQuery({ name: 'organizationId', required: true, type: String })
+    ,
     (0, swagger_1.ApiQuery)({ name: 'status', required: false, isArray: true, enum: Object.values(ticket_enums_1.TicketStatus) }),
     (0, swagger_1.ApiQuery)({ name: 'type', required: false, enum: Object.values(ticket_enums_1.TicketType) }),
     (0, swagger_1.ApiQuery)({ name: 'assigneeId', required: false, type: String }),
@@ -127,8 +209,9 @@ __decorate([
     (0, swagger_1.ApiQuery)({ name: 'offset', required: false, type: Number }),
     __param(0, (0, common_1.Query)()),
     __param(1, (0, common_1.Request)()),
+    __param(2, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [ticket_query_dto_1.TicketQueryDto, Object]),
+    __metadata("design:paramtypes", [ticket_query_dto_1.TicketQueryDto, Object, user_entity_1.User]),
     __metadata("design:returntype", void 0)
 ], TicketsController.prototype, "findAll", null);
 __decorate([
@@ -137,8 +220,9 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Returns ticket metrics' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     __param(0, (0, common_1.Request)()),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, user_entity_1.User]),
     __metadata("design:returntype", void 0)
 ], TicketsController.prototype, "getTicketMetrics", null);
 __decorate([
@@ -172,8 +256,9 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Request)()),
+    __param(2, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Object, user_entity_1.User]),
     __metadata("design:returntype", void 0)
 ], TicketsController.prototype, "findOne", null);
 __decorate([
@@ -200,8 +285,9 @@ __decorate([
     (0, roles_decorator_1.Roles)(role_enum_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Request)()),
+    __param(2, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Object, user_entity_1.User]),
     __metadata("design:returntype", void 0)
 ], TicketsController.prototype, "remove", null);
 __decorate([
@@ -252,7 +338,7 @@ __decorate([
             },
         },
     }),
-    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    (0, common_1.UseInterceptors)(platform_express_1.FileInterceptor),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.UploadedFile)(new common_1.ParseFilePipe({
         validators: [
@@ -263,7 +349,7 @@ __decorate([
     __param(2, (0, current_user_decorator_1.CurrentUser)()),
     __param(3, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_a = typeof multer_1.Multer !== "undefined" && multer_1.Multer.File) === "function" ? _a : Object, user_entity_1.User, Object]),
+    __metadata("design:paramtypes", [String, Object, user_entity_1.User, Object]),
     __metadata("design:returntype", void 0)
 ], TicketsController.prototype, "uploadAttachment", null);
 __decorate([
@@ -274,8 +360,9 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Request)()),
+    __param(2, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Object, user_entity_1.User]),
     __metadata("design:returntype", void 0)
 ], TicketsController.prototype, "getTicketActivities", null);
 __decorate([
@@ -323,9 +410,10 @@ __decorate([
 TicketsController = __decorate([
     (0, swagger_1.ApiTags)('Tickets'),
     (0, swagger_1.ApiBearerAuth)(),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, organization_guard_1.OrganizationGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('tickets'),
-    __metadata("design:paramtypes", [tickets_service_1.TicketsService])
+    __metadata("design:paramtypes", [tickets_service_1.TicketsService,
+        typeorm_1.DataSource])
 ], TicketsController);
 exports.TicketsController = TicketsController;
 //# sourceMappingURL=tickets.controller.js.map

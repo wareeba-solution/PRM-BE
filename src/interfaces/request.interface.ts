@@ -1,23 +1,31 @@
 // src/interfaces/request.interface.ts
 
 import { Request } from '@nestjs/common';
-import { User } from '../modules/users/entities/user.entity';
-import { Organization } from '../modules/organizations/entities/organization.entity';
-import { Role } from '../modules/users/enums/role.enum';
+import { Role } from '@/modules/users/enums/role.enum';
 
-export interface RequestUser extends User {
-    permissions: string[];
+// Simplified user object for request context
+export interface RequestUser {
+    id: string;
+    email: string;
+    role: Role;
+    tenantId: string;
+    organizationId: string;
+    isActive?: boolean;
+    isEmailVerified?: boolean;
+    permissions?: string[];
     deviceId?: string;
-    sessionId: string;
+    sessionId?: string;
 }
 
-export interface RequestOrganization extends Organization {
-    subscription: {
-        plan: string;
-        status: string;
-        expiresAt: Date;
-    };
-    features: string[];
+// Simplified organization object for request context
+export interface RequestOrganization {
+    id: string;
+    name: string;
+    status: string;
+    tenantId: string;
+    subscriptionTier?: string;
+    isSubscriptionActive?: boolean;
+    features?: string[];
 }
 
 export interface CustomRequest extends Request {
@@ -27,6 +35,11 @@ export interface CustomRequest extends Request {
     sessionId?: string;
     correlationId?: string;
     startTime?: number;
+    tokenMetadata?: {
+        token: string;
+        iat: number;
+        exp: number;
+    };
 }
 
 // Additional request interfaces for specific features
@@ -85,11 +98,11 @@ export function authMiddleware(
             // Add user to request
             const token = extractTokenFromHeader(req);
             const decodedToken = verifyToken(token);
-            
+
             req.user = await getUserFromToken(decodedToken);
             req.deviceId = decodedToken.deviceId;
             req.sessionId = decodedToken.sessionId;
-            
+
             // Check roles if specified
             if (options.roles && !options.roles.includes(req.user.role)) {
                 throw new ForbiddenException('Insufficient role');

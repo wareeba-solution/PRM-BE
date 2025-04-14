@@ -20,22 +20,37 @@ class CreateTicketDto {
 }
 __decorate([
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)() // Make optional to support frontend flow
+    ,
     __metadata("design:type", String)
 ], CreateTicketDto.prototype, "organizationId", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)() // Make optional to support frontend flow
+    ,
     __metadata("design:type", String)
 ], CreateTicketDto.prototype, "createdBy", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)() // For backward compatibility
+    ,
     __metadata("design:type", String)
 ], CreateTicketDto.prototype, "title", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateTicketDto.prototype, "subject", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)() // Make optional
+    ,
     __metadata("design:type", String)
 ], CreateTicketDto.prototype, "description", void 0);
 __decorate([
     (0, class_validator_1.IsEnum)(ticket_enums_1.TicketType),
+    (0, class_validator_1.IsOptional)() // Make optional with default in controller
+    ,
     __metadata("design:type", String)
 ], CreateTicketDto.prototype, "type", void 0);
 __decorate([
@@ -59,10 +74,21 @@ __decorate([
     __metadata("design:type", String)
 ], CreateTicketDto.prototype, "assignedToId", void 0);
 __decorate([
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Array)
+], CreateTicketDto.prototype, "tagTeamMembers", void 0);
+__decorate([
     (0, class_validator_1.IsUUID)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreateTicketDto.prototype, "patientId", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateTicketDto.prototype, "patient", void 0);
 __decorate([
     (0, class_validator_1.IsUUID)(),
     (0, class_validator_1.IsOptional)(),

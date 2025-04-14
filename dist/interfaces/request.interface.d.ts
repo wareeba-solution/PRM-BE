@@ -1,18 +1,24 @@
-import { User } from '../modules/users/entities/user.entity';
-import { Organization } from '../modules/organizations/entities/organization.entity';
-import { Role } from '../modules/users/enums/role.enum';
-export interface RequestUser extends User {
-    permissions: string[];
+import { Role } from '@/modules/users/enums/role.enum';
+export interface RequestUser {
+    id: string;
+    email: string;
+    role: Role;
+    tenantId: string;
+    organizationId: string;
+    isActive?: boolean;
+    isEmailVerified?: boolean;
+    permissions?: string[];
     deviceId?: string;
-    sessionId: string;
+    sessionId?: string;
 }
-export interface RequestOrganization extends Organization {
-    subscription: {
-        plan: string;
-        status: string;
-        expiresAt: Date;
-    };
-    features: string[];
+export interface RequestOrganization {
+    id: string;
+    name: string;
+    status: string;
+    tenantId: string;
+    subscriptionTier?: string;
+    isSubscriptionActive?: boolean;
+    features?: string[];
 }
 export interface CustomRequest extends Request {
     user?: RequestUser;
@@ -21,6 +27,11 @@ export interface CustomRequest extends Request {
     sessionId?: string;
     correlationId?: string;
     startTime?: number;
+    tokenMetadata?: {
+        token: string;
+        iat: number;
+        exp: number;
+    };
 }
 export interface AuthenticatedRequest extends CustomRequest {
     user: RequestUser;
