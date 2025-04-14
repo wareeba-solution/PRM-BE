@@ -112,13 +112,13 @@ export class User {
     deletedAt?: Date;
 
     // Relations
-    @ManyToOne(() => Tenant, { lazy: true })
+    @ManyToOne(() => Tenant)
     @JoinColumn({ name: 'tenantId' })
-    tenant: Promise<Tenant>;
-    
-    @ManyToOne(() => Organization, { lazy: true })
+    tenant: Tenant;
+
+    @ManyToOne(() => Organization)
     @JoinColumn({ name: 'organizationId' })
-    organization: Promise<Organization>;
+    organization: Organization;
 
     @ManyToOne(() => User, user => user.createdTickets, { lazy: true })
     @JoinColumn({ name: 'createdById' })

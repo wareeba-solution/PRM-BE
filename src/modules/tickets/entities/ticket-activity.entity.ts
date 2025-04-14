@@ -27,7 +27,7 @@ export class TicketActivity {
         enum: TicketActivityType
     })
     @Index()
-    type: TicketActivityType;
+    type: string;
 
     @Column('jsonb')
     data: Record<string, any>;

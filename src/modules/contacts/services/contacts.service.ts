@@ -86,7 +86,7 @@ export class ContactsService {
         private readonly dataSource: DataSource,
     ) { }
 
-    async create(data: CreateContactDto & { organizationId: string; createdBy: string }): Promise<Contact> {
+    async create(data: CreateContactDto & { organizationId: string; tenantId: string; createdBy: string }): Promise<Contact> {
         const existingContact = await this.contactRepository.findOne({
             where: [
                 { email: data.email, organizationId: data.organizationId },
@@ -107,6 +107,9 @@ export class ContactsService {
 
         // Set createdBy properly - use the string ID directly instead of object
         contact.createdById = data.createdBy;
+
+        // Ensure tenantId is set
+        contact.tenantId = data.tenantId;
 
         // Handle documents properly if present
         if (documentIds && Array.isArray(documentIds)) {

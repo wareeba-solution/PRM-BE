@@ -142,14 +142,14 @@ __decorate([
     __metadata("design:type", Date)
 ], User.prototype, "deletedAt", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => tenant_entity_1.Tenant, { lazy: true }),
+    (0, typeorm_1.ManyToOne)(() => tenant_entity_1.Tenant),
     (0, typeorm_1.JoinColumn)({ name: 'tenantId' }),
-    __metadata("design:type", Promise)
+    __metadata("design:type", tenant_entity_1.Tenant)
 ], User.prototype, "tenant", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => organization_entity_1.Organization, { lazy: true }),
+    (0, typeorm_1.ManyToOne)(() => organization_entity_1.Organization),
     (0, typeorm_1.JoinColumn)({ name: 'organizationId' }),
-    __metadata("design:type", Promise)
+    __metadata("design:type", organization_entity_1.Organization)
 ], User.prototype, "organization", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => User_1, user => user.createdTickets, { lazy: true }),

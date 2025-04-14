@@ -525,7 +525,8 @@ let TicketsService = class TicketsService {
             await queryRunner.release();
         }
     }
-    async uploadAttachment(ticketId, file, organizationId, uploadedById) {
+    async uploadAttachment(ticketId, file, // Use inline interface instead of Express.Multer.File
+    organizationId, uploadedById) {
         const ticket = await this.findOne(ticketId, organizationId);
         const attachment = new ticket_attachment_entity_1.TicketAttachment();
         attachment.ticketId = ticketId;

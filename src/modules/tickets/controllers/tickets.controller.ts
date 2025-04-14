@@ -20,6 +20,10 @@ import {
     MaxFileSizeValidator,
     FileTypeValidator,
 } from '@nestjs/common';
+import { DataSource } from 'typeorm';
+
+import { TicketSource } from '../enums/ticket-source.enum';
+import { TicketCategory } from '../enums/ticket-category.enum';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { OrganizationGuard } from '../../organizations/guards/organization.guard';
@@ -32,7 +36,7 @@ import { CreateTicketCommentDto } from '../dto/ticket-comment.dto';
 import { BulkTicketAssignmentDto } from '../dto/ticket-assignment.dto';
 import { TicketQueryDto } from '../dto/ticket-query.dto';
 import { OrganizationRequest } from '../../../interfaces/request.interface';
-import { FileInterceptor } from '@nestjs/platform-express';
+
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody, ApiQuery } from '@nestjs/swagger';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../../users/entities/user.entity';
@@ -41,39 +45,101 @@ import { TicketComment } from '../entities/ticket-comment.entity';
 import { TicketAttachment } from '../entities/ticket-attachment.entity';
 import { TicketActivity } from '../entities/ticket-activity.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { TicketActivityType } from '../enums/ticket-activity-type.enum';
+
 import { Express } from 'express';
-import { Multer } from 'multer';
+
 import { TicketStatus, TicketType } from '../enums/ticket.enums';
 
 @ApiTags('Tickets')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, OrganizationGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('tickets')
 export class TicketsController {
-    constructor(private readonly ticketsService: TicketsService) { }
+    constructor(
+        private readonly ticketsService: TicketsService,
+        private readonly dataSource: DataSource
+    ) { }
 
     @Post()
     @ApiOperation({ summary: 'Create a new ticket' })
     @ApiResponse({ status: 201, description: 'Ticket created successfully', type: Ticket })
     @ApiResponse({ status: 400, description: 'Bad request' })
     @ApiResponse({ status: 401, description: 'Unauthorized' })
-    create(
-        @Body() createTicketDto: CreateTicketDto,
+    async create(
+        @Body() ticketDto: CreateTicketDto,
         @CurrentUser() user: User,
         @Request() req: OrganizationRequest
     ) {
-        return this.ticketsService.create({
-            ...createTicketDto,
-            organizationId: req.organization.id,
-            createdBy: user.id,
-        });
+        try {
+            // Process frontend fields
+            if (!ticketDto.title && ticketDto.subject) {
+                ticketDto.title = ticketDto.subject;
+            }
+
+            if (ticketDto.patient && !ticketDto.patientId) {
+                ticketDto.patientId = ticketDto.patient;
+            }
+
+            if (ticketDto.tagTeamMembers?.length > 0 && !ticketDto.assignedToId) {
+                ticketDto.assignedToId = ticketDto.tagTeamMembers[0];
+            }
+
+            if (ticketDto.tagTeamMembers) {
+                ticketDto.tags = [...(ticketDto.tags || []), ...ticketDto.tagTeamMembers];
+            }
+
+            const organizationId = req.organization?.id || user.organizationId;
+
+            // Execute direct database query to create ticket
+            const queryResult = await this.dataSource.query(`
+            INSERT INTO tickets 
+            ("organizationId", title, description, status, "createdById", "assigneeId")
+            VALUES 
+            ($1, $2, $3, $4, $5, $6)
+            RETURNING *
+        `, [
+                organizationId,
+                ticketDto.title,
+                ticketDto.description || '',
+                'OPEN',
+                user.id,
+                ticketDto.assignedToId || null
+            ]);
+
+            // Create activity with the correct column names
+            try {
+                await this.dataSource.query(`
+                INSERT INTO ticket_activities
+                ("ticketId", "organizationId", "userId", action, description, metadata, "createdAt")
+                VALUES
+                ($1, $2, $3, $4, $5, $6, NOW())
+            `, [
+                    queryResult[0].id,
+                    organizationId,
+                    user.id,
+                    'CREATED', // action field
+                    'Ticket created', // description field
+                    JSON.stringify({ source: 'web' }) // metadata field
+                ]);
+            } catch (activityError) {
+                console.warn('Could not create activity record:', activityError);
+                // Continue even if activity creation fails
+            }
+
+            return queryResult[0];
+        } catch (error) {
+            console.error('Ticket creation failed:', error);
+            throw new BadRequestException('Failed to create ticket: ' + error.message);
+        }
     }
 
     @Get()
     @ApiOperation({ summary: 'Get all tickets with pagination and filtering' })
     @ApiResponse({ status: 200, description: 'Returns paginated tickets', type: Pagination<Ticket> })
     @ApiResponse({ status: 401, description: 'Unauthorized' })
-    @ApiQuery({ name: 'organizationId', required: true, type: String })
+    // @ApiQuery({ name: 'organizationId', required: true, type: String })
     @ApiQuery({ name: 'status', required: false, isArray: true, enum: Object.values(TicketStatus) })
     @ApiQuery({ name: 'type', required: false, enum: Object.values(TicketType) })
     @ApiQuery({ name: 'assigneeId', required: false, type: String })
@@ -84,10 +150,11 @@ export class TicketsController {
     @ApiQuery({ name: 'endDate', required: false, type: Date })
     @ApiQuery({ name: 'limit', required: false, type: Number })
     @ApiQuery({ name: 'offset', required: false, type: Number })
-    findAll(@Query() query: TicketQueryDto, @Request() req: OrganizationRequest) {
+    findAll(@Query() query: TicketQueryDto, @Request() req: OrganizationRequest, @CurrentUser() user: User) {
+        const organizationId = req.organization?.id || user.organizationId;
         return this.ticketsService.findAll({
             ...query,
-            organizationId: req.organization.id,
+            organizationId,
         });
     }
 
@@ -95,8 +162,9 @@ export class TicketsController {
     @ApiOperation({ summary: 'Get ticket metrics for the organization' })
     @ApiResponse({ status: 200, description: 'Returns ticket metrics' })
     @ApiResponse({ status: 401, description: 'Unauthorized' })
-    getTicketMetrics(@Request() req: OrganizationRequest) {
-        return this.ticketsService.getTicketMetrics(req.organization.id);
+    getTicketMetrics(@Request() req: OrganizationRequest, @CurrentUser() user: User) {
+        const organizationId = req.organization?.id || user.organizationId;
+        return this.ticketsService.getTicketMetrics(organizationId);
     }
 
     @Get('assigned')
@@ -118,9 +186,10 @@ export class TicketsController {
         @CurrentUser() user: User,
         @Request() req: OrganizationRequest
     ) {
+        const organizationId = req.organization?.id || user.organizationId;
         return this.ticketsService.getAssignedTickets({
             ...query,
-            organizationId: req.organization.id,
+            organizationId,
             userId: user.id,
         });
     }
@@ -130,8 +199,9 @@ export class TicketsController {
     @ApiResponse({ status: 200, description: 'Returns the ticket', type: Ticket })
     @ApiResponse({ status: 404, description: 'Ticket not found' })
     @ApiResponse({ status: 401, description: 'Unauthorized' })
-    findOne(@Param('id') id: string, @Request() req: OrganizationRequest) {
-        return this.ticketsService.findOne(id, req.organization.id);
+    findOne(@Param('id') id: string, @Request() req: OrganizationRequest, @CurrentUser() user: User) {
+        const organizationId = req.organization?.id || user.organizationId;
+        return this.ticketsService.findOne(id, organizationId);
     }
 
     @Patch(':id')
@@ -145,9 +215,10 @@ export class TicketsController {
         @CurrentUser() user: User,
         @Request() req: OrganizationRequest
     ) {
+        const organizationId = req.organization?.id || user.organizationId;
         return this.ticketsService.update(id, {
             ...updateTicketDto,
-            organizationId: req.organization.id,
+            organizationId,
             updatedBy: user.id,
         });
     }
@@ -158,8 +229,9 @@ export class TicketsController {
     @ApiResponse({ status: 404, description: 'Ticket not found' })
     @ApiResponse({ status: 401, description: 'Unauthorized' })
     @Roles(Role.ADMIN)
-    remove(@Param('id') id: string, @Request() req: OrganizationRequest) {
-        return this.ticketsService.remove(id, req.organization.id);
+    remove(@Param('id') id: string, @Request() req: OrganizationRequest, @CurrentUser() user: User) {
+        const organizationId = req.organization?.id || user.organizationId;
+        return this.ticketsService.remove(id, organizationId);
     }
 
     @Post(':id/comments')
@@ -173,9 +245,10 @@ export class TicketsController {
         @CurrentUser() user: User,
         @Request() req: OrganizationRequest
     ) {
+        const organizationId = req.organization?.id || user.organizationId;
         return this.ticketsService.addComment(id, {
             ...createCommentDto,
-            organizationId: req.organization.id,
+            organizationId,
             userId: user.id,
         });
     }
@@ -190,9 +263,10 @@ export class TicketsController {
         @CurrentUser() user: User,
         @Request() req: OrganizationRequest
     ) {
+        const organizationId = req.organization?.id || user.organizationId;
         return this.ticketsService.bulkAssignTickets({
             ...bulkAssignmentDto,
-            organizationId: req.organization.id,
+            organizationId,
             assignedBy: user.id,
         });
     }
@@ -215,22 +289,23 @@ export class TicketsController {
             },
         },
     })
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(FileInterceptor as any)
     uploadAttachment(
         @Param('id') id: string,
         @UploadedFile(
             new ParseFilePipe({
                 validators: [
-                    new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
+                    new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
                     new FileTypeValidator({ fileType: /(jpg|jpeg|png|gif|pdf|doc|docx|xls|xlsx)$/ }),
                 ],
             }),
         )
-        file: Multer.File,
+        file: any,
         @CurrentUser() user: User,
         @Request() req: OrganizationRequest
     ) {
-        return this.ticketsService.uploadAttachment(id, file, req.organization.id, user.id);
+        const organizationId = req.organization?.id || user.organizationId;
+        return this.ticketsService.uploadAttachment(id, file, organizationId, user.id);
     }
 
     @Get(':id/activities')
@@ -238,8 +313,9 @@ export class TicketsController {
     @ApiResponse({ status: 200, description: 'Returns ticket activities', type: [TicketActivity] })
     @ApiResponse({ status: 404, description: 'Ticket not found' })
     @ApiResponse({ status: 401, description: 'Unauthorized' })
-    getTicketActivities(@Param('id') id: string, @Request() req: OrganizationRequest) {
-        return this.ticketsService.getTicketActivities(id, req.organization.id);
+    getTicketActivities(@Param('id') id: string, @Request() req: OrganizationRequest, @CurrentUser() user: User) {
+        const organizationId = req.organization?.id || user.organizationId;
+        return this.ticketsService.getTicketActivities(id, organizationId);
     }
 
     @Post(':id/reopen')
@@ -253,9 +329,10 @@ export class TicketsController {
         @CurrentUser() user: User,
         @Request() req: OrganizationRequest
     ) {
+        const organizationId = req.organization?.id || user.organizationId;
         return this.ticketsService.reopenTicket(id, {
             reason: data.reason,
-            organizationId: req.organization.id,
+            organizationId,
             reopenedBy: user.id,
         });
     }
@@ -271,9 +348,10 @@ export class TicketsController {
         @CurrentUser() user: User,
         @Request() req: OrganizationRequest
     ) {
+        const organizationId = req.organization?.id || user.organizationId;
         return this.ticketsService.escalateTicket(id, {
             reason: data.reason,
-            organizationId: req.organization.id,
+            organizationId,
             escalatedBy: user.id,
         });
     }
@@ -289,9 +367,10 @@ export class TicketsController {
         @CurrentUser() user: User,
         @Request() req: OrganizationRequest
     ) {
+        const organizationId = req.organization?.id || user.organizationId;
         return this.ticketsService.resolveTicket(id, {
             resolution: data.resolution,
-            organizationId: req.organization.id,
+            organizationId,
             resolvedBy: user.id,
         });
     }

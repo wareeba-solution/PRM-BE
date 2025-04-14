@@ -1,0 +1,83 @@
+- API Documentation: http://[::1]:3002/docs
+[Nest] 13253  - 14/04/2025, 09:00:50   DEBUG [OrganizationMiddleware] OrganizationMiddleware running for: POST /api/tickets
+[Nest] 13253  - 14/04/2025, 09:00:50   DEBUG [OrganizationMiddleware] User in request: No
+[Nest] 13253  - 14/04/2025, 09:00:50    WARN [OrganizationMiddleware] Auth header present but no user. Middleware might be running before JWT auth.
+[Nest] 13253  - 14/04/2025, 09:00:50   DEBUG [JwtAuthGuard] JWT Auth Guard - Incoming request to: POST /api/tickets
+[Nest] 13253  - 14/04/2025, 09:00:50   DEBUG [JwtAuthGuard] Has Authorization Header: true
+[Nest] 13253  - 14/04/2025, 09:00:50   DEBUG [JwtStrategy] JWT payload: {"sub":"ed50700e-aab6-42b7-84d7-9b342eed708c","email":"admin@ango.com","role":"ADMIN","organizationId":"b490915d-8668-45d6-be78-b36ec4842f91","tenantId":"77c65a8a-e8b7-4c39-817f-2ecaf3a81495","iat":1744615197,"exp":1744618797}
+[Nest] 13253  - 14/04/2025, 09:00:50   DEBUG [JwtStrategy] User authenticated: ed50700e-aab6-42b7-84d7-9b342eed708c, Organization: b490915d-8668-45d6-be78-b36ec4842f91
+[Nest] 13253  - 14/04/2025, 09:00:50   DEBUG [JwtAuthGuard] Token present: true
+[Nest] 13253  - 14/04/2025, 09:00:50   DEBUG [JwtAuthGuard] JWT Strategy error: No error
+[Nest] 13253  - 14/04/2025, 09:00:50   DEBUG [JwtAuthGuard] User from JWT Strategy: {"id":"ed50700e-aab6-42b7-84d7-9b342eed708c","email":"admin@ango.com","role":"ADMIN","tenantId":"77c65a8a-e8b7-4c39-817f-2ecaf3a81495","organizationId":"b490915d-8668-45d6-be78-b36ec4842f91","isActive":true}
+[Nest] 13253  - 14/04/2025, 09:00:50   DEBUG [JwtAuthGuard] Info from JWT Strategy: No info
+[Nest] 13253  - 14/04/2025, 09:00:50   DEBUG [JwtAuthGuard] User ed50700e-aab6-42b7-84d7-9b342eed708c successfully authenticated
+query failed: INSERT INTO "public"."tickets"("id", "organizationId", "title", "description", "type", "status", "source", "contactId", "departmentId", "createdById", "assigneeId", "category", "subCategory", "tags", "referenceNumber", "relatedTicketId", "metadata", "isPrivate", "internalNotes", "resolution", "resolvedAt", "resolvedById", "closedAt", "closedById", "escalatedAt", "escalatedById", "escalationReason", "reopenedAt", "reopenedById", "reopenReason", "firstResponseAt", "lastActivityAt", "updatedById", "priorityId", "createdAt", "updatedAt", "deletedAt", "escalationLevel") VALUES (DEFAULT, $1, $2, $3, $4, $5, DEFAULT, DEFAULT, DEFAULT, $6, $7, DEFAULT, DEFAULT, $8, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, $9, $10, DEFAULT, DEFAULT) RETURNING "id", "type", "status", "source", "tags", "isPrivate", "createdAt", "updatedAt", "deletedAt", "escalationLevel" -- PARAMETERS: ["b490915d-8668-45d6-be78-b36ec4842f91","Patient Scheduling Issue","Patient is having trouble scheduling an appointment","GENERAL","OPEN","ed50700e-aab6-42b7-84d7-9b342eed708c","ed50700e-aab6-42b7-84d7-9b342eed708c",["ed50700e-aab6-42b7-84d7-9b342eed708c"],"2025-04-14T08:00:50.183Z","2025-04-14T08:00:50.183Z"]
+error: error: column "type" of relation "tickets" does not exist
+Direct ticket creation failed: QueryFailedError: column "type" of relation "tickets" does not exist
+    at PostgresQueryRunner.query (/home/joshnick/Desktop/work/PRM-BE/node_modules/typeorm/driver/src/driver/postgres/PostgresQueryRunner.ts:331:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async InsertQueryBuilder.execute (/home/joshnick/Desktop/work/PRM-BE/node_modules/typeorm/query-builder/src/query-builder/InsertQueryBuilder.ts:163:33)
+    at async SubjectExecutor.executeInsertOperations (/home/joshnick/Desktop/work/PRM-BE/node_modules/typeorm/persistence/src/persistence/SubjectExecutor.ts:435:42)
+    at async SubjectExecutor.execute (/home/joshnick/Desktop/work/PRM-BE/node_modules/typeorm/persistence/src/persistence/SubjectExecutor.ts:137:9)
+    at async EntityPersistExecutor.execute (/home/joshnick/Desktop/work/PRM-BE/node_modules/typeorm/persistence/src/persistence/EntityPersistExecutor.ts:182:21)
+    at async TicketsController.create (/home/joshnick/Desktop/work/PRM-BE/src/modules/tickets/controllers/tickets.controller.ts:119:37) {
+  query: 'INSERT INTO "public"."tickets"("id", "organizationId", "title", "description", "type", "status", "source", "contactId", "departmentId", "createdById", "assigneeId", "category", "subCategory", "tags", "referenceNumber", "relatedTicketId", "metadata", "isPrivate", "internalNotes", "resolution", "resolvedAt", "resolvedById", "closedAt", "closedById", "escalatedAt", "escalatedById", "escalationReason", "reopenedAt", "reopenedById", "reopenReason", "firstResponseAt", "lastActivityAt", "updatedById", "priorityId", "createdAt", "updatedAt", "deletedAt", "escalationLevel") VALUES (DEFAULT, $1, $2, $3, $4, $5, DEFAULT, DEFAULT, DEFAULT, $6, $7, DEFAULT, DEFAULT, $8, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, $9, $10, DEFAULT, DEFAULT) RETURNING "id", "type", "status", "source", "tags", "isPrivate", "createdAt", "updatedAt", "deletedAt", "escalationLevel"',
+  parameters: [
+    'b490915d-8668-45d6-be78-b36ec4842f91',
+    'Patient Scheduling Issue',
+    'Patient is having trouble scheduling an appointment',
+    'GENERAL',
+    'OPEN',
+    'ed50700e-aab6-42b7-84d7-9b342eed708c',
+    'ed50700e-aab6-42b7-84d7-9b342eed708c',
+    [ 'ed50700e-aab6-42b7-84d7-9b342eed708c' ],
+    2025-04-14T08:00:50.183Z,
+    2025-04-14T08:00:50.183Z
+  ],
+  driverError: error: column "type" of relation "tickets" does not exist
+      at /home/joshnick/Desktop/work/PRM-BE/node_modules/pg/lib/client.js:545:17
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async PostgresQueryRunner.query (/home/joshnick/Desktop/work/PRM-BE/node_modules/typeorm/driver/src/driver/postgres/PostgresQueryRunner.ts:260:25)
+      at async InsertQueryBuilder.execute (/home/joshnick/Desktop/work/PRM-BE/node_modules/typeorm/query-builder/src/query-builder/InsertQueryBuilder.ts:163:33)
+      at async SubjectExecutor.executeInsertOperations (/home/joshnick/Desktop/work/PRM-BE/node_modules/typeorm/persistence/src/persistence/SubjectExecutor.ts:435:42)
+      at async SubjectExecutor.execute (/home/joshnick/Desktop/work/PRM-BE/node_modules/typeorm/persistence/src/persistence/SubjectExecutor.ts:137:9)
+      at async EntityPersistExecutor.execute (/home/joshnick/Desktop/work/PRM-BE/node_modules/typeorm/persistence/src/persistence/EntityPersistExecutor.ts:182:21)
+      at async TicketsController.create (/home/joshnick/Desktop/work/PRM-BE/src/modules/tickets/controllers/tickets.controller.ts:119:37) {
+    length: 124,
+    severity: 'ERROR',
+    code: '42703',
+    detail: undefined,
+    hint: undefined,
+    position: '80',
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'parse_target.c',
+    line: '1065',
+    routine: 'checkInsertTargets'
+  },
+  length: 124,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '80',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_target.c',
+  line: '1065',
+  routine: 'checkInsertTargets'
+}
+[Nest] 13253  - 14/04/2025, 09:00:50    WARN [HttpExceptionFilter] Client error for POST /api/tickets
+[Nest] 13253  - 14/04/2025, 09:00:50    WARN [HttpExceptionFilter] {"statusCode":400,"message":"Failed to create ticket: column \"type\" of relation \"tickets\" does not exist","error":"Bad Request","path":"/api/tickets","timestamp":"2025-04-14T08:00:50.283Z","method":"POST","stack":"BadRequestException: Failed to create ticket: column \"type\" of relation \"tickets\" does not exist\n    at TicketsController.create (/home/joshnick/Desktop/work/PRM-BE/src/modules/tickets/controllers/tickets.controller.ts:143:19)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","context":"no tenant, user: ed50700e-aab6-42b7-84d7-9b342eed708c","headers":{"host":"localhost:3002","user-agent":"curl/8.5.0","accept":"*/*","content-type":"application/json","x-tenant-id":"77c65a8a-e8b7-4c39-817f-2ecaf3a81495","x-organization-id":"b490915d-8668-45d6-be78-b36ec4842f91","authorization":"REDACTED","content-length":"295"}}

@@ -26,7 +26,6 @@ import { MessageTemplateService } from '../../messages/services/message-template
 import { TemplateType } from '../../messages/entities/message-template.entity';
 import { TicketStatus, TicketType } from '../enums/ticket.enums';
 import { Express } from 'express';
-import * as multer from 'multer';
 
 
 // Define a simplified assignment DTO for single assignment operations
@@ -680,7 +679,12 @@ export class TicketsService {
 
     async uploadAttachment(
         ticketId: string,
-        file: multer.File,
+        file: {
+            originalname: string;
+            size: number;
+            mimetype: string;
+            path: string;
+        }, // Use inline interface instead of Express.Multer.File
         organizationId: string,
         uploadedById: string,
     ): Promise<TicketAttachment> {

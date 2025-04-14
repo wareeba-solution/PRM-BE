@@ -14,7 +14,6 @@ import { User } from '../../users/entities/user.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { TicketPriorityService } from './ticket-priority.service';
 import { MessageTemplateService } from '../../messages/services/message-template.service';
-import * as multer from 'multer';
 export declare class TicketsService {
     private readonly ticketRepository;
     private readonly commentRepository;
@@ -80,6 +79,12 @@ export declare class TicketsService {
         organizationId: string;
         assignedBy: string;
     }): Promise<void>;
-    uploadAttachment(ticketId: string, file: multer.File, organizationId: string, uploadedById: string): Promise<TicketAttachment>;
+    uploadAttachment(ticketId: string, file: {
+        originalname: string;
+        size: number;
+        mimetype: string;
+        path: string;
+    }, // Use inline interface instead of Express.Multer.File
+    organizationId: string, uploadedById: string): Promise<TicketAttachment>;
     getTicketActivities(ticketId: string, organizationId: string): Promise<TicketActivity[]>;
 }
