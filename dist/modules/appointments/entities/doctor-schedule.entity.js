@@ -64,7 +64,7 @@ __decorate([
 ], DoctorSchedule.prototype, "doctorId", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { lazy: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'doctor_id' }),
+    (0, typeorm_1.JoinColumn)({ name: 'doctorId' }),
     __metadata("design:type", Promise)
 ], DoctorSchedule.prototype, "doctor", void 0);
 __decorate([
@@ -74,7 +74,7 @@ __decorate([
 ], DoctorSchedule.prototype, "organizationId", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => organization_entity_1.Organization, { lazy: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'organization_id' }),
+    (0, typeorm_1.JoinColumn)({ name: 'organizationId' }),
     __metadata("design:type", Promise)
 ], DoctorSchedule.prototype, "organization", void 0);
 __decorate([
@@ -143,7 +143,7 @@ __decorate([
 ], DoctorSchedule.prototype, "createdById", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { lazy: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'created_by_id' }),
+    (0, typeorm_1.JoinColumn)({ name: 'createdById' }),
     __metadata("design:type", Promise)
 ], DoctorSchedule.prototype, "createdBy", void 0);
 __decorate([
@@ -152,7 +152,7 @@ __decorate([
 ], DoctorSchedule.prototype, "updatedById", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { lazy: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'updated_by_id' }),
+    (0, typeorm_1.JoinColumn)({ name: 'updatedById' }),
     __metadata("design:type", Promise)
 ], DoctorSchedule.prototype, "updatedBy", void 0);
 __decorate([

@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
 import { AppointmentsController } from './controllers/appointments.controller';
+import { DoctorScheduleController } from './controllers/doctor-schedule.controller';
 import { AppointmentsService } from './services/appointments.service';
 import { DoctorScheduleService } from './services/doctor-schedule.service';
 import { Appointment } from './entities/appointment.entity';
@@ -49,7 +50,7 @@ export enum AppointmentEventTypes {
     forwardRef(() => EmailModule),
     forwardRef(() => AuthModule)
   ],
-  controllers: [AppointmentsController],
+  controllers: [AppointmentsController, DoctorScheduleController], // Added DoctorScheduleController here
   providers: [AppointmentsService, DoctorScheduleService],
   exports: [AppointmentsService, DoctorScheduleService]
 })

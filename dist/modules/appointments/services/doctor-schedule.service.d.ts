@@ -1,11 +1,14 @@
-import { Repository, FindOperator } from 'typeorm';
+import { Repository, FindOperator, DataSource } from 'typeorm';
 import { DoctorSchedule } from '../entities/doctor-schedule.entity';
 import { ScheduleException } from '../entities/schedule-exception.entity';
 declare function MoreThanOrEqual(date: Date): FindOperator<Date>;
 export declare class DoctorScheduleService {
     private doctorScheduleRepository;
     private scheduleExceptionRepository;
-    constructor(doctorScheduleRepository: Repository<DoctorSchedule>, scheduleExceptionRepository: Repository<ScheduleException>);
+    private dataSource;
+    private readonly logger;
+    constructor(doctorScheduleRepository: Repository<DoctorSchedule>, scheduleExceptionRepository: Repository<ScheduleException>, dataSource: DataSource);
+    createScheduleDirectly(data: any): Promise<DoctorSchedule>;
     /**
      * Check if a doctor is available for a specific time slot
      */
@@ -29,7 +32,7 @@ export declare class DoctorScheduleService {
     /**
      * Create a schedule exception (vacation, time off, etc.)
      */
-    createException(exceptionData: Partial<ScheduleException>): Promise<ScheduleException>;
+    createException(exceptionData: any): Promise<ScheduleException>;
     /**
      * Delete a schedule exception
      */

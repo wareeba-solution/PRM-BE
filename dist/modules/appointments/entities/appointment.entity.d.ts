@@ -67,7 +67,7 @@ export declare class Appointment {
     rescheduledBy?: Promise<User>;
     completedBy?: Promise<User>;
     noShowBy?: Promise<User>;
-    createdBy: Promise<User>;
+    creator: Promise<User>;
     updatedBy?: Promise<User>;
     childAppointments: Promise<Appointment[]>;
     get isCancelled(): boolean;

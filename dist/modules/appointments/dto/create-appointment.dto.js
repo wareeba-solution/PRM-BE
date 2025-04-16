@@ -12,9 +12,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateAppointmentDto = void 0;
 const class_validator_1 = require("class-validator");
-const class_transformer_1 = require("class-transformer");
 const appointment_type_enum_1 = require("../enums/appointment-type.enum");
-const appointment_priority_enum_1 = require("../enums/appointment-priority.enum");
+const appointment_status_enum_1 = require("../enums/appointment-status.enum");
 class ReminderPreferencesDto {
 }
 __decorate([
@@ -90,15 +89,15 @@ __decorate([
     __metadata("design:type", String)
 ], CreateAppointmentDto.prototype, "endTime", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsEnum)(appointment_type_enum_1.AppointmentType),
     __metadata("design:type", String)
 ], CreateAppointmentDto.prototype, "type", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsEnum)(appointment_priority_enum_1.AppointmentPriority),
+    (0, class_validator_1.IsEnum)(appointment_status_enum_1.AppointmentStatus),
     __metadata("design:type", String)
-], CreateAppointmentDto.prototype, "priority", void 0);
+], CreateAppointmentDto.prototype, "status", void 0);
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
@@ -109,40 +108,26 @@ __decorate([
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MaxLength)(1000),
     __metadata("design:type", String)
 ], CreateAppointmentDto.prototype, "description", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MaxLength)(200),
     __metadata("design:type", String)
 ], CreateAppointmentDto.prototype, "location", void 0);
 __decorate([
-    (0, class_validator_1.ValidateIf)(o => o.type === appointment_type_enum_1.AppointmentType.VIRTUAL),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MaxLength)(500),
     __metadata("design:type", String)
-], CreateAppointmentDto.prototype, "meetingLink", void 0);
+], CreateAppointmentDto.prototype, "notes", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
-], CreateAppointmentDto.prototype, "sendReminders", void 0);
+], CreateAppointmentDto.prototype, "isRecurring", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Type)(() => ReminderPreferencesDto),
-    __metadata("design:type", ReminderPreferencesDto)
-], CreateAppointmentDto.prototype, "reminderPreferences", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Type)(() => AppointmentFormDataDto),
-    __metadata("design:type", AppointmentFormDataDto)
-], CreateAppointmentDto.prototype, "formData", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Type)(() => AppointmentMetadataDto),
-    __metadata("design:type", AppointmentMetadataDto)
-], CreateAppointmentDto.prototype, "metadata", void 0);
+    __metadata("design:type", Object)
+], CreateAppointmentDto.prototype, "recurrenceRule", void 0);
 exports.CreateAppointmentDto = CreateAppointmentDto;
 //# sourceMappingURL=create-appointment.dto.js.map

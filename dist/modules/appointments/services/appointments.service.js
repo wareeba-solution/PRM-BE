@@ -12,11 +12,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var AppointmentsService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppointmentsService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
+const common_2 = require("@nestjs/common");
 const typeorm_2 = require("typeorm");
+const typeorm_3 = require("typeorm");
 const config_1 = require("@nestjs/config");
 const event_emitter_1 = require("@nestjs/event-emitter");
 const appointment_entity_1 = require("../entities/appointment.entity");
@@ -26,8 +29,8 @@ const appointment_status_enum_1 = require("../enums/appointment-status.enum");
 const notifications_service_1 = require("../../notifications/services/notifications.service");
 const email_service_1 = require("../../email/services/email.service");
 const doctor_schedule_service_1 = require("./doctor-schedule.service");
-let AppointmentsService = class AppointmentsService {
-    constructor(appointmentRepository, userRepository, contactRepository, configService, notificationsService, emailService, doctorScheduleService, eventEmitter) {
+let AppointmentsService = AppointmentsService_1 = class AppointmentsService {
+    constructor(appointmentRepository, userRepository, contactRepository, configService, notificationsService, emailService, doctorScheduleService, eventEmitter, dataSource) {
         this.appointmentRepository = appointmentRepository;
         this.userRepository = userRepository;
         this.contactRepository = contactRepository;
@@ -36,37 +39,144 @@ let AppointmentsService = class AppointmentsService {
         this.emailService = emailService;
         this.doctorScheduleService = doctorScheduleService;
         this.eventEmitter = eventEmitter;
+        this.dataSource = dataSource;
+        this.logger = new common_2.Logger(AppointmentsService_1.name);
+    }
+    async ensureDoctorSchedule(doctorId, organizationId) {
+        try {
+            // First check if the doctor_schedules table exists
+            const tableExists = await this.dataSource.query(`
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_schema = 'public' 
+                    AND table_name = 'doctor_schedules'
+                );
+            `);
+            if (!tableExists[0].exists) {
+                await this.createDoctorSchedulesTable();
+            }
+            // Check if doctor has any schedules
+            const schedules = await this.dataSource.query(`
+                SELECT * FROM doctor_schedules 
+                WHERE "doctorId" = $1 AND "organizationId" = $2
+            `, [doctorId, organizationId]);
+            if (schedules.length === 0) {
+                // Create default schedules for weekdays (Monday-Friday)
+                const defaultSchedules = [];
+                for (let day = 1; day <= 5; day++) { // 1-5 = Monday-Friday
+                    defaultSchedules.push({
+                        organizationId,
+                        doctorId,
+                        dayOfWeek: day,
+                        workStart: '09:00:00',
+                        workEnd: '17:00:00',
+                        slotDuration: 30,
+                        breakBetweenSlots: 0,
+                        isActive: true,
+                        createdById: 'system'
+                    });
+                }
+                // Insert the schedules
+                for (const schedule of defaultSchedules) {
+                    await this.dataSource.query(`
+                        INSERT INTO doctor_schedules (
+                            "organizationId", "doctorId", "dayOfWeek", "workStart", "workEnd", 
+                            "slotDuration", "breakBetweenSlots", "isActive", "createdById", "createdAt", "updatedAt"
+                        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+                    `, [
+                        schedule.organizationId,
+                        schedule.doctorId,
+                        schedule.dayOfWeek,
+                        schedule.workStart,
+                        schedule.workEnd,
+                        schedule.slotDuration,
+                        schedule.breakBetweenSlots,
+                        schedule.isActive,
+                        schedule.createdById
+                    ]);
+                }
+            }
+        }
+        catch (error) {
+            this.logger.error(`Failed to ensure doctor schedule: ${error.message}`, error.stack);
+            // Don't throw, let the caller handle it
+        }
+    }
+    async createDoctorSchedulesTable() {
+        await this.dataSource.query(`
+            CREATE TABLE IF NOT EXISTS public.doctor_schedules (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                "organizationId" UUID NOT NULL,
+                "doctorId" UUID NOT NULL,
+                "dayOfWeek" INTEGER NOT NULL, 
+                "workStart" TIME NOT NULL,
+                "workEnd" TIME NOT NULL,
+                "breakStart" TIME,
+                "breakEnd" TIME,
+                "slotDuration" INTEGER NOT NULL DEFAULT 30,
+                "breakBetweenSlots" INTEGER DEFAULT 0,
+                "isActive" BOOLEAN DEFAULT true,
+                "settings" JSONB,
+                "createdById" UUID NOT NULL,
+                "updatedById" UUID,
+                "createdAt" TIMESTAMP DEFAULT NOW(),
+                "updatedAt" TIMESTAMP DEFAULT NOW(),
+                "deletedAt" TIMESTAMP
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_doctor_schedules_doctor ON public.doctor_schedules("doctorId");
+            CREATE INDEX IF NOT EXISTS idx_doctor_schedules_organization ON public.doctor_schedules("organizationId");
+        `);
     }
     async create(createAppointmentDto) {
-        const doctor = await this.userRepository.findOne({ where: { id: createAppointmentDto.doctorId } });
-        if (!doctor) {
-            throw new common_1.NotFoundException('Doctor not found');
+        try {
+            const doctor = await this.userRepository.findOne({ where: { id: createAppointmentDto.doctorId } });
+            if (!doctor) {
+                throw new common_1.NotFoundException('Doctor not found');
+            }
+            const creator = await this.userRepository.findOne({ where: { id: createAppointmentDto.createdBy } });
+            if (!creator) {
+                throw new common_1.NotFoundException('Creator not found');
+            }
+            // Ensure doctor schedule exists
+            await this.ensureDoctorSchedule(createAppointmentDto.doctorId, createAppointmentDto.organizationId);
+            // Check for conflicting appointments
+            await this.checkConflicts({
+                doctorId: doctor.id,
+                startTime: new Date(createAppointmentDto.startTime),
+                endTime: new Date(createAppointmentDto.endTime),
+            });
+            // Create appointment with proper field names and data types
+            const appointmentData = Object.assign(Object.assign({}, createAppointmentDto), { startTime: new Date(createAppointmentDto.startTime), endTime: new Date(createAppointmentDto.endTime), doctorId: doctor.id, createdById: creator.id });
+            // Create and save the entity
+            const appointment = this.appointmentRepository.create(appointmentData);
+            const savedAppointment = await this.appointmentRepository.save(appointment);
+            // Try to handle recurring appointments if specified
+            try {
+                if ('isRecurring' in createAppointmentDto &&
+                    createAppointmentDto.isRecurring &&
+                    'recurrencePattern' in createAppointmentDto &&
+                    createAppointmentDto.recurrencePattern) {
+                    await this.createRecurringAppointments(savedAppointment, createAppointmentDto.recurrencePattern);
+                }
+            }
+            catch (error) {
+                this.logger.warn(`Failed to create recurring appointments: ${error.message}`);
+            }
+            // Try to send notifications
+            try {
+                await this.sendAppointmentNotifications(savedAppointment, 'created');
+                this.eventEmitter.emit('appointment.created', savedAppointment);
+            }
+            catch (error) {
+                this.logger.warn(`Failed to send appointment notifications: ${error.message}`);
+            }
+            return savedAppointment;
         }
-        const creator = await this.userRepository.findOne({ where: { id: createAppointmentDto.createdBy } });
-        if (!creator) {
-            throw new common_1.NotFoundException('Creator not found');
+        catch (error) {
+            this.logger.error(`Failed to create appointment: ${error.message}`, error.stack);
+            throw error;
         }
-        // Check for conflicting appointments
-        await this.checkConflicts({
-            doctorId: doctor.id,
-            startTime: new Date(createAppointmentDto.startTime),
-            endTime: new Date(createAppointmentDto.endTime),
-        });
-        // Create appointment
-        const appointment = this.appointmentRepository.create(Object.assign(Object.assign({}, createAppointmentDto), { startTime: new Date(createAppointmentDto.startTime), endTime: new Date(createAppointmentDto.endTime), doctor: Promise.resolve(doctor), createdBy: Promise.resolve(creator) }));
-        const savedAppointment = await this.appointmentRepository.save(appointment);
-        // Handle recurring appointments if specified
-        if ('isRecurring' in createAppointmentDto &&
-            createAppointmentDto.isRecurring &&
-            'recurrencePattern' in createAppointmentDto &&
-            createAppointmentDto.recurrencePattern) {
-            await this.createRecurringAppointments(savedAppointment, createAppointmentDto.recurrencePattern);
-        }
-        // Send notifications
-        await this.sendAppointmentNotifications(savedAppointment, 'created');
-        // Emit event
-        this.eventEmitter.emit('appointment.created', savedAppointment);
-        return savedAppointment;
     }
     async findAll(query) {
         const { organizationId, startDate, endDate, doctorId, patientId, status, page = 1, limit = 10, } = query;
@@ -113,7 +223,7 @@ let AppointmentsService = class AppointmentsService {
     async findOne(id, organizationId) {
         const appointment = await this.appointmentRepository.findOne({
             where: { id, organizationId },
-            relations: ['doctor', 'patient', 'creator', 'updater'],
+            relations: ['doctor', 'patient', 'creator'], // Removed 'updater' as it doesn't exist
         });
         if (!appointment) {
             throw new common_1.NotFoundException('Appointment not found');
@@ -246,7 +356,7 @@ let AppointmentsService = class AppointmentsService {
         const appointments = await this.appointmentRepository.find({
             where: {
                 organizationId,
-                startTime: (0, typeorm_2.Between)(startDate, endDate),
+                startTime: (0, typeorm_3.Between)(startDate, endDate),
             },
             relations: ['doctor', 'patient'],
         });
@@ -282,8 +392,8 @@ let AppointmentsService = class AppointmentsService {
             where: {
                 doctorId: query.doctorId,
                 organizationId: query.organizationId,
-                startTime: (0, typeorm_2.Between)(new Date(query.date.setHours(0, 0, 0, 0)), new Date(query.date.setHours(23, 59, 59, 999))),
-                status: (0, typeorm_2.In)([
+                startTime: (0, typeorm_3.Between)(new Date(query.date.setHours(0, 0, 0, 0)), new Date(query.date.setHours(23, 59, 59, 999))),
+                status: (0, typeorm_3.In)([
                     appointment_status_enum_1.AppointmentStatus.SCHEDULED,
                     appointment_status_enum_1.AppointmentStatus.CONFIRMED,
                 ]),
@@ -393,9 +503,9 @@ let AppointmentsService = class AppointmentsService {
             where: {
                 doctorId,
                 organizationId,
-                startTime: (0, typeorm_2.LessThanOrEqual)(endDate),
-                endTime: (0, typeorm_2.MoreThanOrEqual)(startDate),
-                status: (0, typeorm_2.Not)((0, typeorm_2.In)([appointment_status_enum_1.AppointmentStatus.CANCELLED, appointment_status_enum_1.AppointmentStatus.COMPLETED])),
+                startTime: (0, typeorm_3.LessThanOrEqual)(endDate),
+                endTime: (0, typeorm_3.MoreThanOrEqual)(startDate),
+                status: (0, typeorm_3.Not)((0, typeorm_3.In)([appointment_status_enum_1.AppointmentStatus.CANCELLED, appointment_status_enum_1.AppointmentStatus.COMPLETED])),
             },
         });
         return conflictingAppointments.length === 0;
@@ -437,19 +547,20 @@ let AppointmentsService = class AppointmentsService {
         return availableSlots;
     }
 };
-AppointmentsService = __decorate([
+AppointmentsService = AppointmentsService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(appointment_entity_1.Appointment)),
     __param(1, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __param(2, (0, typeorm_1.InjectRepository)(contact_entity_1.Contact)),
-    __metadata("design:paramtypes", [typeorm_2.Repository,
-        typeorm_2.Repository,
-        typeorm_2.Repository,
+    __metadata("design:paramtypes", [typeorm_3.Repository,
+        typeorm_3.Repository,
+        typeorm_3.Repository,
         config_1.ConfigService,
         notifications_service_1.NotificationsService,
         email_service_1.EmailService,
         doctor_schedule_service_1.DoctorScheduleService,
-        event_emitter_1.EventEmitter2])
+        event_emitter_1.EventEmitter2,
+        typeorm_2.DataSource])
 ], AppointmentsService);
 exports.AppointmentsService = AppointmentsService;
 //# sourceMappingURL=appointments.service.js.map

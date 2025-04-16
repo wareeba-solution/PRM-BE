@@ -12,6 +12,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const event_emitter_1 = require("@nestjs/event-emitter");
 const appointments_controller_1 = require("./controllers/appointments.controller");
+const doctor_schedule_controller_1 = require("./controllers/doctor-schedule.controller");
 const appointments_service_1 = require("./services/appointments.service");
 const doctor_schedule_service_1 = require("./services/doctor-schedule.service");
 const appointment_entity_1 = require("./entities/appointment.entity");
@@ -57,7 +58,7 @@ AppointmentsModule = __decorate([
             (0, common_1.forwardRef)(() => email_module_1.EmailModule),
             (0, common_1.forwardRef)(() => auth_module_1.AuthModule)
         ],
-        controllers: [appointments_controller_1.AppointmentsController],
+        controllers: [appointments_controller_1.AppointmentsController, doctor_schedule_controller_1.DoctorScheduleController],
         providers: [appointments_service_1.AppointmentsService, doctor_schedule_service_1.DoctorScheduleService],
         exports: [appointments_service_1.AppointmentsService, doctor_schedule_service_1.DoctorScheduleService]
     })

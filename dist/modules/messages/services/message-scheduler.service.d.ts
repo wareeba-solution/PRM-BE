@@ -1,13 +1,14 @@
 import { OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Message } from '../entities/message.entity';
 export declare class MessageSchedulerService implements OnModuleInit, OnModuleDestroy {
     private readonly messageRepository;
     private readonly eventEmitter;
+    private readonly dataSource;
     private readonly logger;
     private schedulerInterval;
-    constructor(messageRepository: Repository<Message>, eventEmitter: EventEmitter2);
+    constructor(messageRepository: Repository<Message>, eventEmitter: EventEmitter2, dataSource: DataSource);
     /**
      * Initialize the scheduler when the module starts
      */
@@ -30,15 +31,14 @@ export declare class MessageSchedulerService implements OnModuleInit, OnModuleDe
     rescheduleMessage(messageId: string, newScheduledFor: Date): Promise<Message>;
     /**
      * Run every minute to check for messages that need to be sent
-     * Uses NestJS built-in scheduler (requires @nestjs/schedule package)
      */
     processScheduledMessages(): Promise<void>;
     /**
      * Get all scheduled messages
      */
-    getAllScheduledMessages(): Promise<Message[]>;
+    getAllScheduledMessages(): Promise<any[]>;
     /**
      * Get scheduled messages for a specific time period
      */
-    getScheduledMessagesForPeriod(startDate: Date, endDate: Date): Promise<Message[]>;
+    getScheduledMessagesForPeriod(startDate: Date, endDate: Date): Promise<any[]>;
 }

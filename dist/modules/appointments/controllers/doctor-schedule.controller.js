@@ -11,10 +11,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var DoctorScheduleController_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DoctorScheduleController = void 0;
 const common_1 = require("@nestjs/common");
-const passport_1 = require("@nestjs/passport");
+const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../../auth/guards/roles.guard");
 const roles_decorator_1 = require("../../auth/decorators/roles.decorator");
 const role_enum_1 = require("../../users/enums/role.enum");
@@ -22,15 +23,38 @@ const doctor_schedule_service_1 = require("../services/doctor-schedule.service")
 const create_schedule_dto_1 = require("../dto/create-schedule.dto");
 const update_schedule_dto_1 = require("../dto/update-schedule.dto");
 const create_exception_dto_1 = require("../dto/create-exception.dto");
-let DoctorScheduleController = class DoctorScheduleController {
+let DoctorScheduleController = DoctorScheduleController_1 = class DoctorScheduleController {
     constructor(doctorScheduleService) {
         this.doctorScheduleService = doctorScheduleService;
+        this.logger = new common_1.Logger(DoctorScheduleController_1.name);
     }
     async create(createScheduleDto, req) {
+        var _a;
+        this.logger.debug(`Request received with body: ${JSON.stringify(createScheduleDto)}`);
         if (!req.user || !req.organization) {
+            this.logger.error('Authentication data missing from request');
             throw new common_1.BadRequestException('Authentication data missing');
         }
-        return this.doctorScheduleService.createOrUpdateSchedule(Object.assign(Object.assign({}, createScheduleDto), { organizationId: req.organization.id, createdById: req.user.id, workStart: new Date(createScheduleDto.workStart), workEnd: new Date(createScheduleDto.workEnd) }));
+        try {
+            // Use direct database insertion to bypass TypeORM's entity mapper
+            return await this.doctorScheduleService.createScheduleDirectly({
+                doctorId: createScheduleDto.doctorId,
+                organizationId: req.organization.id,
+                dayOfWeek: createScheduleDto.dayOfWeek,
+                workStart: createScheduleDto.workStart,
+                workEnd: createScheduleDto.workEnd,
+                breakStart: createScheduleDto.breakStart,
+                breakEnd: createScheduleDto.breakEnd,
+                slotDuration: createScheduleDto.defaultAppointmentDuration,
+                isActive: (_a = createScheduleDto.isActive) !== null && _a !== void 0 ? _a : true,
+                createdById: req.user.id,
+                metadata: createScheduleDto.settings
+            });
+        }
+        catch (error) {
+            this.logger.error(`Failed to create schedule: ${error.message}`);
+            throw new common_1.BadRequestException(`Failed to create schedule: ${error.message}`);
+        }
     }
     async getDoctorSchedules(doctorId, req) {
         if (!req.organization) {
@@ -56,30 +80,51 @@ let DoctorScheduleController = class DoctorScheduleController {
         if (!req.user || !req.organization) {
             throw new common_1.BadRequestException('Authentication data missing');
         }
-        // First check if the schedule exists
+        // Get existing schedule
         const schedule = await this.getScheduleById(id, req.organization.id);
-        return this.doctorScheduleService.createOrUpdateSchedule(Object.assign(Object.assign(Object.assign({}, schedule), updateScheduleDto), { workStart: updateScheduleDto.workStart ? new Date(updateScheduleDto.workStart) : undefined, workEnd: updateScheduleDto.workEnd ? new Date(updateScheduleDto.workEnd) : undefined, 
-            // Removed breakStart and breakEnd properties
-            updatedById: req.user ? req.user.id : undefined }));
+        // Prepare update data
+        const updateData = {
+            updatedById: req.user.id
+        };
+        // Add fields that are present in the DTO
+        if (updateScheduleDto.dayOfWeek !== undefined) {
+            updateData.dayOfWeek = updateScheduleDto.dayOfWeek;
+        }
+        if (updateScheduleDto.workStart) {
+            updateData.workStart = updateScheduleDto.workStart; // Pass time as string
+        }
+        if (updateScheduleDto.workEnd) {
+            updateData.workEnd = updateScheduleDto.workEnd; // Pass time as string
+        }
+        if (updateScheduleDto.breakStart) {
+            updateData.breakStart = updateScheduleDto.breakStart; // Pass time as string
+        }
+        if (updateScheduleDto.breakEnd) {
+            updateData.breakEnd = updateScheduleDto.breakEnd; // Pass time as string
+        }
+        if (updateScheduleDto.defaultAppointmentDuration) {
+            updateData.slotDuration = updateScheduleDto.defaultAppointmentDuration;
+        }
+        if (updateScheduleDto.isActive !== undefined) {
+            updateData.isActive = updateScheduleDto.isActive;
+        }
+        if (updateScheduleDto.settings) {
+            updateData.metadata = Object.assign({}, updateScheduleDto.settings);
+        }
+        // Merge existing schedule with updates
+        return this.doctorScheduleService.createOrUpdateSchedule(Object.assign(Object.assign({}, schedule), updateData));
     }
     async remove(id, req) {
         if (!req.organization) {
             throw new common_1.BadRequestException('Organization information missing');
         }
-        // First check if the schedule exists
         const schedule = await this.getScheduleById(id, req.organization.id);
-        // Instead of deleting, we'll mark it as inactive
-        await this.doctorScheduleService.createOrUpdateSchedule(Object.assign(Object.assign({}, schedule), { isActive: false, updatedById: req.user ? req.user.id : undefined }));
+        await this.doctorScheduleService.createOrUpdateSchedule(Object.assign(Object.assign({}, schedule), { isActive: false, updatedById: req.user.id }));
     }
     // Helper method to get a schedule by ID
     async getScheduleById(id, organizationId) {
         try {
-            // This method is not in our service, but you could add it
-            // For now, we'll need to fetch schedules and find the one with the matching ID
-            const doctorSchedules = await this.doctorScheduleService.getDoctorSchedules(
-            // We don't know the doctorId, so this is a workaround
-            // In a real implementation, you'd want to add a findById method to the service
-            'any', // This won't work without modifying the service
+            const doctorSchedules = await this.doctorScheduleService.getDoctorSchedules('any', // This is a workaround until a findById method is implemented
             organizationId);
             const schedule = doctorSchedules.find((s) => s.id === id);
             if (!schedule) {
@@ -94,23 +139,29 @@ let DoctorScheduleController = class DoctorScheduleController {
             throw new common_1.BadRequestException('Failed to get schedule');
         }
     }
-    // Exception-related endpoints
     async createException(createExceptionDto, req) {
         if (!req.user || !req.organization) {
             throw new common_1.BadRequestException('Authentication data missing');
         }
-        return this.doctorScheduleService.createException({
+        // Create an explicitly typed object
+        const exceptionData = {
             doctorId: createExceptionDto.doctorId,
             organizationId: req.organization.id,
             createdBy: req.user.id,
             startDate: new Date(createExceptionDto.startDate),
             endDate: new Date(createExceptionDto.endDate),
-            startTime: createExceptionDto.startTime ? new Date(createExceptionDto.startTime) : undefined,
-            endTime: createExceptionDto.endTime ? new Date(createExceptionDto.endTime) : undefined,
             isFullDay: createExceptionDto.isFullDay,
             type: createExceptionDto.type,
             reason: createExceptionDto.reason
-        });
+        };
+        // Add optional time fields if they exist
+        if (createExceptionDto.startTime) {
+            exceptionData.startTime = createExceptionDto.startTime;
+        }
+        if (createExceptionDto.endTime) {
+            exceptionData.endTime = createExceptionDto.endTime;
+        }
+        return this.doctorScheduleService.createException(exceptionData);
     }
     async getDoctorExceptions(doctorId, req) {
         if (!req.organization) {
@@ -222,9 +273,9 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String, Object]),
     __metadata("design:returntype", Promise)
 ], DoctorScheduleController.prototype, "checkAvailability", null);
-DoctorScheduleController = __decorate([
-    (0, common_1.Controller)('doctor-schedules'),
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+DoctorScheduleController = DoctorScheduleController_1 = __decorate([
+    (0, common_1.Controller)('doctors/schedules'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [doctor_schedule_service_1.DoctorScheduleService])
 ], DoctorScheduleController);
 exports.DoctorScheduleController = DoctorScheduleController;

@@ -1,3 +1,4 @@
+import { DataSource } from 'typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -20,7 +21,11 @@ export declare class AppointmentsService {
     private emailService;
     private doctorScheduleService;
     private eventEmitter;
-    constructor(appointmentRepository: Repository<Appointment>, userRepository: Repository<User>, contactRepository: Repository<Contact>, configService: ConfigService, notificationsService: NotificationsService, emailService: EmailService, doctorScheduleService: DoctorScheduleService, eventEmitter: EventEmitter2);
+    private dataSource;
+    private readonly logger;
+    constructor(appointmentRepository: Repository<Appointment>, userRepository: Repository<User>, contactRepository: Repository<Contact>, configService: ConfigService, notificationsService: NotificationsService, emailService: EmailService, doctorScheduleService: DoctorScheduleService, eventEmitter: EventEmitter2, dataSource: DataSource);
+    ensureDoctorSchedule(doctorId: string, organizationId: string): Promise<void>;
+    private createDoctorSchedulesTable;
     create(createAppointmentDto: CreateAppointmentDto & {
         organizationId: string;
         createdBy: string;

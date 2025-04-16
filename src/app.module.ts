@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve(process.cwd(), envFile) });
 
 import { Module, forwardRef, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule, TypeOrmModuleAsyncOptions, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -45,11 +45,11 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { ThrottlerConfigService } from './config/throttler.config';
-import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
-import { EmailVerifiedGuard } from './modules/auth/guards/email-verified.guard';
+
+// Middleware
+import { JwtAuthMiddleware } from './common/middleware/jwt-auth.middleware';
 import { OrganizationMiddleware } from './common/middleware/organization.middleware';
 import { Organization } from './modules/organizations/entities/organization.entity';
-
 
 @Module({
   imports: [
@@ -98,7 +98,6 @@ import { Organization } from './modules/organizations/entities/organization.enti
       database: process.env.DB_NAME,
       schema: process.env.DB_SCHEMA || 'public',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      // Disable synchronize since we're handling schema creation manually
       synchronize: false,
       logging: ['error'],
       ssl: process.env.DB_SSL === 'true' ? {
@@ -130,14 +129,14 @@ import { Organization } from './modules/organizations/entities/organization.enti
     // Task Scheduling
     ScheduleModule.forRoot(),
 
-    // Feature Modules
+    // Feature Modules - Order matters for dependency resolution
     SharedModule,
+    AuthModule,
+    UsersModule,
+    TenantsModule,
+    OrganizationsModule,
     forwardRef(() => DomainModule),
     forwardRef(() => NotificationsModule),
-    TenantsModule, // Import TenantsModule early as it provides middleware for other modules
-    UsersModule,
-    AuthModule,
-    OrganizationsModule,
     ContactsModule,
     AppointmentsModule,
     TicketsModule,
@@ -158,22 +157,19 @@ import { Organization } from './modules/organizations/entities/organization.enti
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
-    // Remove global guards temporarily for debugging
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: JwtAuthGuard,
-    // },
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: EmailVerifiedGuard,
-    // },
     ThrottlerConfigService,
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    // Apply JWT auth middleware first
+    consumer
+        .apply(JwtAuthMiddleware)
+        .forRoutes('*');
+
+    // Then apply organization middleware after auth is done
     consumer
         .apply(OrganizationMiddleware)
-        .forRoutes('*'); // Apply to all routes
+        .forRoutes('*');
   }
 }

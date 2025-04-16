@@ -7,6 +7,7 @@ import { DoctorSchedule } from '../entities/doctor-schedule.entity';
 import { ScheduleException } from '../entities/schedule-exception.entity';
 export declare class DoctorScheduleController {
     private readonly doctorScheduleService;
+    private readonly logger;
     constructor(doctorScheduleService: DoctorScheduleService);
     create(createScheduleDto: CreateScheduleDto, req: CustomRequest): Promise<DoctorSchedule>;
     getDoctorSchedules(doctorId: string, req: CustomRequest): Promise<DoctorSchedule[]>;
