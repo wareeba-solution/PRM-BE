@@ -73,13 +73,20 @@ const http_exception_filter_1 = require("./common/filters/http-exception.filter"
 const transform_interceptor_1 = require("./common/interceptors/transform.interceptor");
 const throttler_2 = require("@nestjs/throttler");
 const throttler_config_1 = require("./config/throttler.config");
+// Middleware
+const jwt_auth_middleware_1 = require("./common/middleware/jwt-auth.middleware");
 const organization_middleware_1 = require("./common/middleware/organization.middleware");
 const organization_entity_1 = require("./modules/organizations/entities/organization.entity");
 let AppModule = class AppModule {
     configure(consumer) {
+        // Apply JWT auth middleware first
+        consumer
+            .apply(jwt_auth_middleware_1.JwtAuthMiddleware)
+            .forRoutes('*');
+        // Then apply organization middleware after auth is done
         consumer
             .apply(organization_middleware_1.OrganizationMiddleware)
-            .forRoutes('*'); // Apply to all routes
+            .forRoutes('*');
     }
 };
 AppModule = __decorate([
@@ -128,7 +135,6 @@ AppModule = __decorate([
                 database: process.env.DB_NAME,
                 schema: process.env.DB_SCHEMA || 'public',
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
-                // Disable synchronize since we're handling schema creation manually
                 synchronize: false,
                 logging: ['error'],
                 ssl: process.env.DB_SSL === 'true' ? {
@@ -155,14 +161,14 @@ AppModule = __decorate([
             }),
             // Task Scheduling
             schedule_1.ScheduleModule.forRoot(),
-            // Feature Modules
+            // Feature Modules - Order matters for dependency resolution
             shared_module_1.SharedModule,
+            auth_module_1.AuthModule,
+            users_module_1.UsersModule,
+            tenants_module_1.TenantsModule,
+            organizations_module_1.OrganizationsModule,
             (0, common_1.forwardRef)(() => domain_module_1.DomainModule),
             (0, common_1.forwardRef)(() => notifications_module_1.NotificationsModule),
-            tenants_module_1.TenantsModule,
-            users_module_1.UsersModule,
-            auth_module_1.AuthModule,
-            organizations_module_1.OrganizationsModule,
             contacts_module_1.ContactsModule,
             appointments_module_1.AppointmentsModule,
             tickets_module_1.TicketsModule,
@@ -183,15 +189,6 @@ AppModule = __decorate([
                 provide: core_1.APP_GUARD,
                 useClass: throttler_2.ThrottlerGuard,
             },
-            // Remove global guards temporarily for debugging
-            // {
-            //   provide: APP_GUARD,
-            //   useClass: JwtAuthGuard,
-            // },
-            // {
-            //   provide: APP_GUARD,
-            //   useClass: EmailVerifiedGuard,
-            // },
             throttler_config_1.ThrottlerConfigService,
         ],
     })

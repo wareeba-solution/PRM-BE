@@ -27,7 +27,7 @@ export class DoctorSchedule {
   doctorId: string;
 
   @ManyToOne(() => User, { lazy: true })
-  @JoinColumn({ name: 'doctor_id' })
+  @JoinColumn({ name: 'doctorId' })
   doctor: Promise<User>;
 
   @Column()
@@ -35,7 +35,7 @@ export class DoctorSchedule {
   organizationId: string;
 
   @ManyToOne(() => Organization, { lazy: true })
-  @JoinColumn({ name: 'organization_id' })
+  @JoinColumn({ name: 'organizationId' })
   organization: Promise<Organization>;
 
   @Column({ type: 'int', enum: DayOfWeek })
@@ -91,14 +91,14 @@ export class DoctorSchedule {
   createdById?: string;
 
   @ManyToOne(() => User, { lazy: true })
-  @JoinColumn({ name: 'created_by_id' })
+  @JoinColumn({ name: 'createdById' })
   createdBy?: Promise<User>;
 
   @Column({ nullable: true })
   updatedById?: string;
 
   @ManyToOne(() => User, { lazy: true })
-  @JoinColumn({ name: 'updated_by_id' })
+  @JoinColumn({ name: 'updatedById' })
   updatedBy?: Promise<User>;
 
   @CreateDateColumn()
@@ -123,22 +123,22 @@ export class DoctorSchedule {
 
   isDateInValidRange(date: Date): boolean {
     if (!this.validFrom && !this.validTo) return true;
-    
+
     const currentDate = new Date(date);
     currentDate.setHours(0, 0, 0, 0);
-    
+
     if (this.validFrom) {
       const validFromDate = new Date(this.validFrom);
       validFromDate.setHours(0, 0, 0, 0);
       if (currentDate < validFromDate) return false;
     }
-    
+
     if (this.validTo) {
       const validToDate = new Date(this.validTo);
       validToDate.setHours(0, 0, 0, 0);
       if (currentDate > validToDate) return false;
     }
-    
+
     return true;
   }
 
@@ -148,10 +148,10 @@ export class DoctorSchedule {
 
   isBreakTime(time: Date): boolean {
     if (!this.breakTimes || !this.breakTimes.length) return false;
-    
+
     const timeStr = time.toTimeString().slice(0, 5);
     return this.breakTimes.some(
-      breakTime => timeStr >= breakTime.startTime && timeStr < breakTime.endTime
+        breakTime => timeStr >= breakTime.startTime && timeStr < breakTime.endTime
     );
   }
 }

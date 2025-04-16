@@ -256,7 +256,7 @@ __decorate([
     (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'createdById' }),
     __metadata("design:type", Promise)
-], Appointment.prototype, "createdBy", void 0);
+], Appointment.prototype, "creator", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { lazy: true }),
     (0, typeorm_1.JoinColumn)({ name: 'updatedById' }),

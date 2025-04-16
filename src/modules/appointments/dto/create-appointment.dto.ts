@@ -17,6 +17,8 @@ import {
 import { Type } from 'class-transformer';
 import { AppointmentType } from '../enums/appointment-type.enum';
 import { AppointmentPriority } from '../enums/appointment-priority.enum';
+import { AppointmentStatus } from '../enums/appointment-status.enum';
+
 
 class ReminderPreferencesDto {
     @IsOptional()
@@ -65,8 +67,6 @@ export class CreateAppointmentDto {
     @IsNotEmpty()
     @IsUUID()
     patientId: string;
-    isRecurring?: boolean;
-    recurrencePattern?: any; // Add the recurrencePattern property
 
     @IsNotEmpty()
     @IsUUID()
@@ -80,13 +80,13 @@ export class CreateAppointmentDto {
     @IsDateString()
     endTime: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsEnum(AppointmentType)
-    type: AppointmentType;
+    type?: AppointmentType;
 
     @IsOptional()
-    @IsEnum(AppointmentPriority)
-    priority?: AppointmentPriority;
+    @IsEnum(AppointmentStatus)
+    status?: AppointmentStatus;
 
     @IsNotEmpty()
     @IsString()
@@ -96,32 +96,20 @@ export class CreateAppointmentDto {
 
     @IsOptional()
     @IsString()
-    @MaxLength(1000)
     description?: string;
 
     @IsOptional()
     @IsString()
-    @MaxLength(200)
     location?: string;
 
-    @ValidateIf(o => o.type === AppointmentType.VIRTUAL)
+    @IsOptional()
     @IsString()
-    @MaxLength(500)
-    meetingLink?: string;
+    notes?: string;
 
     @IsOptional()
     @IsBoolean()
-    sendReminders?: boolean;
+    isRecurring?: boolean;
 
     @IsOptional()
-    @Type(() => ReminderPreferencesDto)
-    reminderPreferences?: ReminderPreferencesDto;
-
-    @IsOptional()
-    @Type(() => AppointmentFormDataDto)
-    formData?: AppointmentFormDataDto;
-
-    @IsOptional()
-    @Type(() => AppointmentMetadataDto)
-    metadata?: AppointmentMetadataDto;
+    recurrenceRule?: any;
 }

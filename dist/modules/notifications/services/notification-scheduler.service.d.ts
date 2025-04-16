@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Notification } from '../entities/notification.entity';
 import { EmailService } from '../../../shared/services/email.service';
@@ -14,13 +14,14 @@ export declare class NotificationSchedulerService {
     private readonly whatsappService;
     private readonly slackService;
     private readonly eventEmitter;
+    private readonly dataSource;
     private readonly logger;
     private readonly MAX_RETRY_ATTEMPTS;
     private readonly BATCH_SIZE;
-    constructor(notificationRepository: Repository<Notification>, emailService: EmailService, smsService: SmsService, pushNotificationService: PushNotificationService, whatsappService: WhatsappService, slackService: SlackService, eventEmitter: EventEmitter2);
-    rescheduleNotification(notificationId: string, newScheduledFor: Date): Promise<Notification>;
-    scheduleNotification(notificationData: Notification, scheduledFor: Date): Promise<Notification>;
-    cancelScheduledNotification(notificationId: string): Promise<Notification>;
+    constructor(notificationRepository: Repository<Notification>, emailService: EmailService, smsService: SmsService, pushNotificationService: PushNotificationService, whatsappService: WhatsappService, slackService: SlackService, eventEmitter: EventEmitter2, dataSource: DataSource);
+    rescheduleNotification(notificationId: string, newScheduledFor: Date): Promise<any>;
+    scheduleNotification(notificationData: any, scheduledFor: Date): Promise<any>;
+    cancelScheduledNotification(notificationId: string): Promise<any>;
     processScheduledNotifications(): Promise<void>;
     retryFailedNotifications(): Promise<void>;
     cleanupExpiredNotifications(): Promise<void>;

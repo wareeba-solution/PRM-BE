@@ -8,6 +8,8 @@ import {
     ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Logger } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import { Repository, Between, LessThanOrEqual, MoreThanOrEqual, In, Not } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -24,6 +26,8 @@ import { CalendarEvent } from '../interfaces/calendar-event.interface';
 
 @Injectable()
 export class AppointmentsService {
+    private readonly logger = new Logger(AppointmentsService.name);
+
     constructor(
         @InjectRepository(Appointment)
         private appointmentRepository: Repository<Appointment>,
@@ -36,57 +40,165 @@ export class AppointmentsService {
         private emailService: EmailService,
         private doctorScheduleService: DoctorScheduleService,
         private eventEmitter: EventEmitter2,
+        private dataSource: DataSource,
     ) {}
-    
+
+    async ensureDoctorSchedule(doctorId: string, organizationId: string): Promise<void> {
+        try {
+            // First check if the doctor_schedules table exists
+            const tableExists = await this.dataSource.query(`
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_schema = 'public' 
+                    AND table_name = 'doctor_schedules'
+                );
+            `);
+
+            if (!tableExists[0].exists) {
+                await this.createDoctorSchedulesTable();
+            }
+
+            // Check if doctor has any schedules
+            const schedules = await this.dataSource.query(`
+                SELECT * FROM doctor_schedules 
+                WHERE "doctorId" = $1 AND "organizationId" = $2
+            `, [doctorId, organizationId]);
+
+            if (schedules.length === 0) {
+                // Create default schedules for weekdays (Monday-Friday)
+                const defaultSchedules = [];
+                for (let day = 1; day <= 5; day++) { // 1-5 = Monday-Friday
+                    defaultSchedules.push({
+                        organizationId,
+                        doctorId,
+                        dayOfWeek: day,
+                        workStart: '09:00:00',
+                        workEnd: '17:00:00',
+                        slotDuration: 30,
+                        breakBetweenSlots: 0,
+                        isActive: true,
+                        createdById: 'system'
+                    });
+                }
+
+                // Insert the schedules
+                for (const schedule of defaultSchedules) {
+                    await this.dataSource.query(`
+                        INSERT INTO doctor_schedules (
+                            "organizationId", "doctorId", "dayOfWeek", "workStart", "workEnd", 
+                            "slotDuration", "breakBetweenSlots", "isActive", "createdById", "createdAt", "updatedAt"
+                        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+                    `, [
+                        schedule.organizationId,
+                        schedule.doctorId,
+                        schedule.dayOfWeek,
+                        schedule.workStart,
+                        schedule.workEnd,
+                        schedule.slotDuration,
+                        schedule.breakBetweenSlots,
+                        schedule.isActive,
+                        schedule.createdById
+                    ]);
+                }
+            }
+        } catch (error) {
+            this.logger.error(`Failed to ensure doctor schedule: ${error.message}`, error.stack);
+            // Don't throw, let the caller handle it
+        }
+    }
+
+    private async createDoctorSchedulesTable(): Promise<void> {
+        await this.dataSource.query(`
+            CREATE TABLE IF NOT EXISTS public.doctor_schedules (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                "organizationId" UUID NOT NULL,
+                "doctorId" UUID NOT NULL,
+                "dayOfWeek" INTEGER NOT NULL, 
+                "workStart" TIME NOT NULL,
+                "workEnd" TIME NOT NULL,
+                "breakStart" TIME,
+                "breakEnd" TIME,
+                "slotDuration" INTEGER NOT NULL DEFAULT 30,
+                "breakBetweenSlots" INTEGER DEFAULT 0,
+                "isActive" BOOLEAN DEFAULT true,
+                "settings" JSONB,
+                "createdById" UUID NOT NULL,
+                "updatedById" UUID,
+                "createdAt" TIMESTAMP DEFAULT NOW(),
+                "updatedAt" TIMESTAMP DEFAULT NOW(),
+                "deletedAt" TIMESTAMP
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_doctor_schedules_doctor ON public.doctor_schedules("doctorId");
+            CREATE INDEX IF NOT EXISTS idx_doctor_schedules_organization ON public.doctor_schedules("organizationId");
+        `);
+    }
 
     async create(createAppointmentDto: CreateAppointmentDto & { organizationId: string; createdBy: string }): Promise<Appointment> {
-        const doctor = await this.userRepository.findOne({ where: { id: createAppointmentDto.doctorId } });
-        if (!doctor) {
-            throw new NotFoundException('Doctor not found');
+        try {
+            const doctor = await this.userRepository.findOne({ where: { id: createAppointmentDto.doctorId } });
+            if (!doctor) {
+                throw new NotFoundException('Doctor not found');
+            }
+
+            const creator = await this.userRepository.findOne({ where: { id: createAppointmentDto.createdBy } });
+            if (!creator) {
+                throw new NotFoundException('Creator not found');
+            }
+
+            // Ensure doctor schedule exists
+            await this.ensureDoctorSchedule(createAppointmentDto.doctorId, createAppointmentDto.organizationId);
+
+            // Check for conflicting appointments
+            await this.checkConflicts({
+                doctorId: doctor.id,
+                startTime: new Date(createAppointmentDto.startTime),
+                endTime: new Date(createAppointmentDto.endTime),
+            });
+
+            // Create appointment with proper field names and data types
+            const appointmentData = {
+                ...createAppointmentDto,
+                startTime: new Date(createAppointmentDto.startTime),
+                endTime: new Date(createAppointmentDto.endTime),
+                doctorId: doctor.id,
+                createdById: creator.id,
+            };
+
+            // Create and save the entity
+            const appointment = this.appointmentRepository.create(appointmentData);
+            const savedAppointment = await this.appointmentRepository.save(appointment);
+
+            // Try to handle recurring appointments if specified
+            try {
+                if ('isRecurring' in createAppointmentDto &&
+                    createAppointmentDto.isRecurring &&
+                    'recurrencePattern' in createAppointmentDto &&
+                    createAppointmentDto.recurrencePattern) {
+                    await this.createRecurringAppointments(
+                        savedAppointment,
+                        (createAppointmentDto as any).recurrencePattern
+                    );
+                }
+            } catch (error) {
+                this.logger.warn(`Failed to create recurring appointments: ${error.message}`);
+            }
+
+            // Try to send notifications
+            try {
+                await this.sendAppointmentNotifications(savedAppointment, 'created');
+                this.eventEmitter.emit('appointment.created', savedAppointment);
+            } catch (error) {
+                this.logger.warn(`Failed to send appointment notifications: ${error.message}`);
+            }
+
+            return savedAppointment;
+        } catch (error) {
+            this.logger.error(`Failed to create appointment: ${error.message}`, error.stack);
+            throw error;
         }
-
-        const creator = await this.userRepository.findOne({ where: { id: createAppointmentDto.createdBy } });
-        if (!creator) {
-            throw new NotFoundException('Creator not found');
-        }
-
-        // Check for conflicting appointments
-        await this.checkConflicts({
-            doctorId: doctor.id,
-            startTime: new Date(createAppointmentDto.startTime),
-            endTime: new Date(createAppointmentDto.endTime),
-        });
-
-        // Create appointment
-        const appointment = this.appointmentRepository.create({
-            ...createAppointmentDto,
-            startTime: new Date(createAppointmentDto.startTime),
-            endTime: new Date(createAppointmentDto.endTime),
-            doctor: Promise.resolve(doctor),
-            createdBy: Promise.resolve(creator),
-        });
-
-        const savedAppointment = await this.appointmentRepository.save(appointment);
-
-        // Handle recurring appointments if specified
-        if ('isRecurring' in createAppointmentDto && 
-            createAppointmentDto.isRecurring && 
-            'recurrencePattern' in createAppointmentDto && 
-            createAppointmentDto.recurrencePattern) {
-            await this.createRecurringAppointments(
-                savedAppointment, 
-                (createAppointmentDto as any).recurrencePattern
-            );
-        }
-
-        // Send notifications
-        await this.sendAppointmentNotifications(savedAppointment, 'created');
-
-        // Emit event
-        this.eventEmitter.emit('appointment.created', savedAppointment);
-
-        return savedAppointment;
     }
+
 
     async findAll(query: {
         organizationId: string;
@@ -162,7 +274,7 @@ export class AppointmentsService {
     async findOne(id: string, organizationId: string): Promise<Appointment> {
         const appointment = await this.appointmentRepository.findOne({
             where: { id, organizationId },
-            relations: ['doctor', 'patient', 'creator', 'updater'],
+            relations: ['doctor', 'patient', 'creator'], // Removed 'updater' as it doesn't exist
         });
 
         if (!appointment) {

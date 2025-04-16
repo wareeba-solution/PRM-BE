@@ -208,7 +208,7 @@ export class Appointment {
 
     @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'createdById' })
-    createdBy: Promise<User>;
+    creator: Promise<User>;
 
     @ManyToOne(() => User, { lazy: true })
     @JoinColumn({ name: 'updatedById' })

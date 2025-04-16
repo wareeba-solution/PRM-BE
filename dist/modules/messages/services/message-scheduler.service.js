@@ -23,9 +23,10 @@ const schedule_1 = require("@nestjs/schedule");
 const message_entity_1 = require("../entities/message.entity");
 const create_message_dto_1 = require("../dto/create-message.dto");
 let MessageSchedulerService = MessageSchedulerService_1 = class MessageSchedulerService {
-    constructor(messageRepository, eventEmitter) {
+    constructor(messageRepository, eventEmitter, dataSource) {
         this.messageRepository = messageRepository;
         this.eventEmitter = eventEmitter;
+        this.dataSource = dataSource;
         this.logger = new common_1.Logger(MessageSchedulerService_1.name);
     }
     /**
@@ -34,8 +35,6 @@ let MessageSchedulerService = MessageSchedulerService_1 = class MessageScheduler
     async onModuleInit() {
         this.logger.log('Message scheduler service initialized');
         try {
-            // Process any messages that might have been scheduled
-            // but not processed due to server restart
             await this.processScheduledMessages();
         }
         catch (error) {
@@ -54,67 +53,77 @@ let MessageSchedulerService = MessageSchedulerService_1 = class MessageScheduler
      * Schedule a new message for future delivery
      */
     async scheduleMessage(message, scheduledFor) {
-        message.scheduledFor = scheduledFor;
-        message.status = create_message_dto_1.MessageStatus.SCHEDULED;
-        return this.messageRepository.save(message);
+        try {
+            // Use direct query to set the scheduled time and status
+            await this.dataSource.query(`UPDATE public.messages
+         SET "scheduledFor" = $1, status = $2, "updatedAt" = NOW()
+         WHERE id = $3`, [scheduledFor, create_message_dto_1.MessageStatus.SCHEDULED, message.id]);
+            // Return the message with updated properties
+            return Object.assign(Object.assign({}, message), { scheduledFor, status: create_message_dto_1.MessageStatus.SCHEDULED });
+        }
+        catch (error) {
+            this.logger.error(`Error scheduling message:`, error);
+            throw error;
+        }
     }
     /**
      * Cancel a scheduled message
      */
     async cancelScheduledMessage(messageId) {
-        const message = await this.messageRepository.findOne({ where: { id: messageId } });
-        if (!message) {
-            throw new Error(`Message with ID ${messageId} not found`);
+        try {
+            await this.dataSource.query(`UPDATE public.messages 
+         SET status = $1, "scheduledFor" = NULL, "updatedAt" = NOW() 
+         WHERE id = $2 AND status = $3`, [create_message_dto_1.MessageStatus.SENDING, messageId, create_message_dto_1.MessageStatus.SCHEDULED]);
+            this.logger.log(`Scheduled message ${messageId} has been canceled`);
         }
-        if (message.status !== create_message_dto_1.MessageStatus.SCHEDULED) {
-            throw new Error(`Message is not scheduled: ${messageId}`);
+        catch (error) {
+            this.logger.error(`Error canceling message ${messageId}:`, error);
+            throw new Error(`Failed to cancel message: ${error.message}`);
         }
-        message.status = create_message_dto_1.MessageStatus.SENDING;
-        message.scheduledFor = undefined;
-        await this.messageRepository.save(message);
-        this.logger.log(`Scheduled message ${messageId} has been canceled`);
     }
     /**
      * Reschedule a message for a different time
      */
     async rescheduleMessage(messageId, newScheduledFor) {
-        const message = await this.messageRepository.findOne({ where: { id: messageId } });
-        if (!message) {
-            throw new Error(`Message with ID ${messageId} not found`);
+        try {
+            // First check if the message exists
+            const result = await this.dataSource.query(`SELECT * FROM public.messages WHERE id = $1`, [messageId]);
+            if (!result || result.length === 0) {
+                throw new Error(`Message with ID ${messageId} not found`);
+            }
+            // Update the message schedule time
+            await this.dataSource.query(`UPDATE public.messages 
+         SET "scheduledFor" = $1, status = $2, "updatedAt" = NOW() 
+         WHERE id = $3`, [newScheduledFor, create_message_dto_1.MessageStatus.SCHEDULED, messageId]);
+            this.logger.log(`Message ${messageId} rescheduled for ${newScheduledFor}`);
+            // Return the updated message data
+            return Object.assign(Object.assign({}, result[0]), { scheduledFor: newScheduledFor, status: create_message_dto_1.MessageStatus.SCHEDULED });
         }
-        message.scheduledFor = newScheduledFor;
-        message.status = create_message_dto_1.MessageStatus.SCHEDULED;
-        const updatedMessage = await this.messageRepository.save(message);
-        this.logger.log(`Message ${messageId} rescheduled for ${newScheduledFor}`);
-        return updatedMessage;
+        catch (error) {
+            this.logger.error(`Error rescheduling message ${messageId}:`, error);
+            throw error;
+        }
     }
     /**
      * Run every minute to check for messages that need to be sent
-     * Uses NestJS built-in scheduler (requires @nestjs/schedule package)
      */
     async processScheduledMessages() {
         try {
             this.logger.debug('Checking for scheduled messages...');
-            // Find all scheduled messages that are due
             const now = new Date();
-            const dueSendMessages = await this.messageRepository.find({
-                where: {
-                    status: create_message_dto_1.MessageStatus.SCHEDULED,
-                    scheduledFor: (0, typeorm_2.LessThanOrEqual)(now),
-                },
-            });
-            // If no messages are due, return early
-            if (dueSendMessages.length === 0) {
+            const dueMessages = await this.dataSource.query(`SELECT * FROM public.messages 
+         WHERE status = $1 AND "scheduledFor" <= $2 AND "deletedAt" IS NULL`, [create_message_dto_1.MessageStatus.SCHEDULED, now]);
+            if (!dueMessages || dueMessages.length === 0) {
                 return;
             }
-            this.logger.log(`Found ${dueSendMessages.length} scheduled messages to process`);
-            // Update status to pending for all due messages
-            await Promise.all(dueSendMessages.map(async (message) => {
-                message.status = create_message_dto_1.MessageStatus.SENDING;
-                await this.messageRepository.save(message);
-                // Emit event to trigger message processing
+            this.logger.log(`Found ${dueMessages.length} scheduled messages to process`);
+            for (const message of dueMessages) {
+                await this.dataSource.query(`UPDATE public.messages 
+           SET status = $1, "updatedAt" = NOW() 
+           WHERE id = $2`, [create_message_dto_1.MessageStatus.SENDING, message.id]);
+                // Emit event with the message data
                 this.eventEmitter.emit('message.created', message);
-            }));
+            }
         }
         catch (error) {
             this.logger.error('Error processing scheduled messages:', error);
@@ -124,22 +133,31 @@ let MessageSchedulerService = MessageSchedulerService_1 = class MessageScheduler
      * Get all scheduled messages
      */
     async getAllScheduledMessages() {
-        return this.messageRepository.find({
-            where: { status: create_message_dto_1.MessageStatus.SCHEDULED },
-            order: { scheduledFor: 'ASC' },
-        });
+        try {
+            return await this.dataSource.query(`SELECT * FROM public.messages 
+         WHERE status = $1 AND "deletedAt" IS NULL 
+         ORDER BY "scheduledFor" ASC`, [create_message_dto_1.MessageStatus.SCHEDULED]);
+        }
+        catch (error) {
+            this.logger.error('Error getting scheduled messages:', error);
+            return [];
+        }
     }
     /**
      * Get scheduled messages for a specific time period
      */
     async getScheduledMessagesForPeriod(startDate, endDate) {
-        return this.messageRepository.find({
-            where: {
-                status: create_message_dto_1.MessageStatus.SCHEDULED,
-                scheduledFor: (0, typeorm_2.Between)(startDate, endDate),
-            },
-            order: { scheduledFor: 'ASC' },
-        });
+        try {
+            return await this.dataSource.query(`SELECT * FROM public.messages 
+         WHERE status = $1 
+         AND "scheduledFor" BETWEEN $2 AND $3 
+         AND "deletedAt" IS NULL 
+         ORDER BY "scheduledFor" ASC`, [create_message_dto_1.MessageStatus.SCHEDULED, startDate, endDate]);
+        }
+        catch (error) {
+            this.logger.error('Error getting scheduled messages for period:', error);
+            return [];
+        }
     }
 };
 __decorate([
@@ -152,7 +170,8 @@ MessageSchedulerService = MessageSchedulerService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(message_entity_1.Message)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        event_emitter_1.EventEmitter2])
+        event_emitter_1.EventEmitter2,
+        typeorm_2.DataSource])
 ], MessageSchedulerService);
 exports.MessageSchedulerService = MessageSchedulerService;
 //# sourceMappingURL=message-scheduler.service.js.map

@@ -1,18 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThanOrEqual, Not, In } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Notification } from '../entities/notification.entity';
 import { NotificationStatus } from '../dto/update-notification.dto';
-import { NotificationChannel, NotificationPriority, NotificationType } from '../dto/create-notification.dto';
+import { NotificationChannel } from '../dto/create-notification.dto';
 import { EmailService } from '../../../shared/services/email.service';
 import { SmsService } from '../../../shared/services/sms.service';
 import { PushNotificationService } from '../../../shared/services/push-notification.service';
 import { WhatsappService } from '../../whatsapp/services/whatsapp.services';
 import { SlackService } from '../../integrations/slack/services/slack.service';
-import { Organization } from '@/modules/organizations/entities/organization.entity';
-import { User } from '@/modules/users/entities/user.entity';
 
 @Injectable()
 export class NotificationSchedulerService {
@@ -29,60 +27,87 @@ export class NotificationSchedulerService {
         private readonly whatsappService: WhatsappService,
         private readonly slackService: SlackService,
         private readonly eventEmitter: EventEmitter2,
+        private readonly dataSource: DataSource,
     ) {}
 
-    async rescheduleNotification(notificationId: string, newScheduledFor: Date): Promise<Notification> {
+    async rescheduleNotification(notificationId: string, newScheduledFor: Date): Promise<any> {
         this.logger.debug(`Rescheduling notification ${notificationId} to ${newScheduledFor}`);
 
         try {
-            const notificationObj = await this.notificationRepository.findOne({ where: { id: notificationId } });
+            const notifications = await this.dataSource.query(
+                `SELECT * FROM public.notifications WHERE id = $1 AND "deletedAt" IS NULL`,
+                [notificationId]
+            );
 
-            if (!notificationObj) {
+            if (!notifications || notifications.length === 0) {
                 throw new Error(`Notification with ID ${notificationId} not found`);
             }
 
-            // Check if notification is in a state that allows rescheduling
+            const notificationObj = notifications[0];
+
             if (notificationObj.status === NotificationStatus.DELIVERED ||
                 notificationObj.status === NotificationStatus.FAILED) {
                 throw new Error(`Cannot reschedule notification with status ${notificationObj.status}`);
             }
 
-            // Update the notification
-            notificationObj.scheduledFor = newScheduledFor;
-            notificationObj.status = NotificationStatus.SCHEDULED;
-            notificationObj.updatedAt = new Date();
+            await this.dataSource.query(
+                `UPDATE public.notifications
+                 SET "scheduledFor" = $1, status = $2, "updatedAt" = NOW()
+                 WHERE id = $3`,
+                [newScheduledFor, NotificationStatus.SCHEDULED, notificationId]
+            );
 
-            await this.notificationRepository.save(notificationObj);
+            const updatedNotification = {
+                ...notificationObj,
+                scheduledFor: newScheduledFor,
+                status: NotificationStatus.SCHEDULED,
+                updatedAt: new Date()
+            };
 
-            // Emit event
-            this.eventEmitter.emit('notification.rescheduled', notificationObj);
+            this.eventEmitter.emit('notification.rescheduled', updatedNotification);
 
-            return notificationObj;
+            return updatedNotification;
         } catch (error) {
             this.logger.error(`Error rescheduling notification ${notificationId}`, error);
             throw error;
         }
     }
 
-    async scheduleNotification(notificationData: Notification, scheduledFor: Date): Promise<Notification> {
+    async scheduleNotification(notificationData: any, scheduledFor: Date): Promise<any> {
         this.logger.debug('Scheduling new notification');
 
         try {
-            // Set scheduling details
-            notificationData.scheduledFor = scheduledFor;
-            notificationData.status = NotificationStatus.SCHEDULED;
+            // Handle existing notification update
+            if (notificationData.id) {
+                await this.dataSource.query(
+                    `UPDATE public.notifications
+                     SET "scheduledFor" = $1, status = $2, "updatedAt" = NOW()
+                     WHERE id = $3`,
+                    [scheduledFor, NotificationStatus.SCHEDULED, notificationData.id]
+                );
 
-            // Initialize retry count if not set
-            if (notificationData.retryCount === undefined) {
-                notificationData.retryCount = 0;
+                const result = await this.dataSource.query(
+                    `SELECT * FROM public.notifications WHERE id = $1`,
+                    [notificationData.id]
+                );
+
+                if (result && result.length > 0) {
+                    const updatedNotification = result[0];
+                    this.eventEmitter.emit('notification.scheduled', updatedNotification);
+                    return updatedNotification;
+                }
             }
 
-            // Save the notification
-            const savedNotification = await this.notificationRepository.save(notificationData);
+            // For new notifications or as fallback, use the repository
+            // with a properly typed notification object
+            const notification = this.notificationRepository.create({
+                ...notificationData,
+                scheduledFor,
+                status: NotificationStatus.SCHEDULED
+            });
 
-            // Emit event
+            const savedNotification = await this.notificationRepository.save(notification);
             this.eventEmitter.emit('notification.scheduled', savedNotification);
-
             return savedNotification;
         } catch (error) {
             this.logger.error('Error scheduling notification', error);
@@ -90,32 +115,42 @@ export class NotificationSchedulerService {
         }
     }
 
-    async cancelScheduledNotification(notificationId: string): Promise<Notification> {
+    async cancelScheduledNotification(notificationId: string): Promise<any> {
         this.logger.debug(`Cancelling notification ${notificationId}`);
 
         try {
-            const notificationObj = await this.notificationRepository.findOne({ where: { id: notificationId } });
+            const notifications = await this.dataSource.query(
+                `SELECT * FROM public.notifications WHERE id = $1 AND "deletedAt" IS NULL`,
+                [notificationId]
+            );
 
-            if (!notificationObj) {
+            if (!notifications || notifications.length === 0) {
                 throw new Error(`Notification with ID ${notificationId} not found`);
             }
 
-            // Check if notification can be cancelled
+            const notificationObj = notifications[0];
+
             if (notificationObj.status === NotificationStatus.DELIVERED ||
                 notificationObj.status === NotificationStatus.FAILED) {
                 throw new Error(`Cannot cancel notification with status ${notificationObj.status}`);
             }
 
-            // Update the notification status
-            notificationObj.status = NotificationStatus.CANCELLED;
-            notificationObj.updatedAt = new Date();
+            await this.dataSource.query(
+                `UPDATE public.notifications
+                 SET status = $1, "updatedAt" = NOW()
+                 WHERE id = $2`,
+                [NotificationStatus.CANCELLED, notificationId]
+            );
 
-            await this.notificationRepository.save(notificationObj);
+            const updatedNotification = {
+                ...notificationObj,
+                status: NotificationStatus.CANCELLED,
+                updatedAt: new Date()
+            };
 
-            // Emit event
-            this.eventEmitter.emit('notification.cancelled', notificationObj);
+            this.eventEmitter.emit('notification.cancelled', updatedNotification);
 
-            return notificationObj;
+            return updatedNotification;
         } catch (error) {
             this.logger.error(`Error cancelling notification ${notificationId}`, error);
             throw error;
@@ -127,13 +162,20 @@ export class NotificationSchedulerService {
         this.logger.debug('Processing scheduled notifications');
 
         try {
-            const notifications = await this.notificationRepository.find({
-                where: {
-                    status: NotificationStatus.SCHEDULED,
-                    scheduledFor: LessThanOrEqual(new Date()),
-                },
-                take: this.BATCH_SIZE,
-            });
+            const notifications = await this.dataSource.query(
+                `SELECT * FROM public.notifications
+                 WHERE status = $1
+                 AND "scheduledFor" <= NOW()
+                 AND "deletedAt" IS NULL
+                 LIMIT $2`,
+                [NotificationStatus.SCHEDULED, this.BATCH_SIZE]
+            );
+
+            if (!notifications || notifications.length === 0) {
+                return;
+            }
+
+            this.logger.log(`Processing ${notifications.length} scheduled notifications`);
 
             for (const notification of notifications) {
                 await this.processNotification(notification);
@@ -148,13 +190,17 @@ export class NotificationSchedulerService {
         this.logger.debug('Retrying failed notifications');
 
         try {
-            const notifications = await this.notificationRepository.find({
-                where: {
-                    status: NotificationStatus.FAILED,
-                    retryCount: LessThanOrEqual(this.MAX_RETRY_ATTEMPTS),
-                },
-                take: this.BATCH_SIZE,
-            });
+            const notifications = await this.dataSource.query(
+                `SELECT * FROM public.notifications
+                 WHERE status = $1
+                 AND "deletedAt" IS NULL
+                 LIMIT $2`,
+                [NotificationStatus.FAILED, this.BATCH_SIZE]
+            );
+
+            if (!notifications || notifications.length === 0) {
+                return;
+            }
 
             for (const notification of notifications) {
                 await this.processNotification(notification, true);
@@ -172,63 +218,69 @@ export class NotificationSchedulerService {
             const expiryDate = new Date();
             expiryDate.setDate(expiryDate.getDate() - 30); // 30 days retention
 
-            await this.notificationRepository.update(
-                {
-                    status: Not(In([NotificationStatus.DELIVERED, NotificationStatus.FAILED])),
-                    createdAt: LessThanOrEqual(expiryDate),
-                },
-                {
-                    status: NotificationStatus.EXPIRED as any,
-                }
+            await this.dataSource.query(
+                `UPDATE public.notifications
+                 SET status = $1, "updatedAt" = NOW()
+                 WHERE status NOT IN ($2, $3)
+                 AND "createdAt" <= $4`,
+                [
+                    NotificationStatus.EXPIRED,
+                    NotificationStatus.DELIVERED,
+                    NotificationStatus.FAILED,
+                    expiryDate
+                ]
             );
         } catch (error) {
             this.logger.error('Error cleaning up expired notifications', error);
         }
     }
 
-    private async processNotification(notification: Notification, isRetry: boolean = false) {
+    private async processNotification(notification: any, isRetry: boolean = false) {
         this.logger.debug(`Processing notification ${notification.id}`);
 
         try {
-            // Update status to processing
-            notification.status = NotificationStatus.PROCESSING;
-            await this.notificationRepository.save(notification);
+            await this.dataSource.query(
+                `UPDATE public.notifications
+                 SET status = $1, "updatedAt" = NOW()
+                 WHERE id = $2`,
+                [NotificationStatus.PROCESSING, notification.id]
+            );
 
-            // Process each channel
-            for (const channel of notification.channels) {
+            const channels = typeof notification.channels === 'string'
+                ? JSON.parse(notification.channels)
+                : (notification.channels || []);
+
+            for (const channel of channels) {
                 await this.sendNotificationByChannel(notification, channel);
             }
 
-            // Update notification status
-            notification.status = NotificationStatus.DELIVERED;
-            notification.deliveredAt = new Date();
-            await this.notificationRepository.save(notification);
+            await this.dataSource.query(
+                `UPDATE public.notifications
+                 SET status = $1, "deliveredAt" = NOW(), "updatedAt" = NOW()
+                 WHERE id = $2`,
+                [NotificationStatus.DELIVERED, notification.id]
+            );
 
-            // Emit event for successful delivery
             this.eventEmitter.emit('notification.delivered', notification);
-
         } catch (error) {
             this.logger.error(`Error processing notification ${notification.id}`, error);
 
-            // Handle retry logic
-            if (isRetry) {
-                notification.retryCount = (notification.retryCount || 0) + 1;
-            }
+            const status = isRetry ? NotificationStatus.FAILED : NotificationStatus.PENDING;
 
-            // Update status based on retry attempts
-            if (notification.retryCount >= this.MAX_RETRY_ATTEMPTS) {
-                notification.status = NotificationStatus.FAILED;
-                notification.error = error.message;
+            await this.dataSource.query(
+                `UPDATE public.notifications
+                 SET status = $1, error = $2, "updatedAt" = NOW()
+                 WHERE id = $3`,
+                [status, error.message, notification.id]
+            );
+
+            if (status === NotificationStatus.FAILED) {
                 this.eventEmitter.emit('notification.failed', notification);
-            } else {
-                notification.status = NotificationStatus.PENDING;
             }
-
-            await this.notificationRepository.save(notification);
         }
     }
 
-    private async sendNotificationByChannel(notification: Notification, channel: NotificationChannel) {
+    private async sendNotificationByChannel(notification: any, channel: NotificationChannel) {
         switch (channel) {
             case NotificationChannel.EMAIL:
                 await this.sendEmailNotification(notification);
@@ -253,42 +305,54 @@ export class NotificationSchedulerService {
         }
     }
 
-    private async sendEmailNotification(notification: Notification) {
-        if (!notification.recipientDetails?.email) {
+    private async sendEmailNotification(notification: any) {
+        const recipientDetails = typeof notification.recipientDetails === 'string'
+            ? JSON.parse(notification.recipientDetails)
+            : notification.recipientDetails;
+
+        if (!recipientDetails?.email) {
             throw new Error('Email address not provided');
         }
 
-        // The simplest approach: just pass the notification as-is
         await this.emailService.send(notification);
     }
 
-    private async sendSmsNotification(notification: Notification) {
-        if (!notification.recipientDetails?.phone) {
+    private async sendSmsNotification(notification: any) {
+        const recipientDetails = typeof notification.recipientDetails === 'string'
+            ? JSON.parse(notification.recipientDetails)
+            : notification.recipientDetails;
+
+        if (!recipientDetails?.phone) {
             throw new Error('Phone number not provided');
         }
 
-        // The simplest approach: just pass the notification as-is
         await this.smsService.send(notification);
     }
 
-    private async sendPushNotification(notification: Notification) {
-        if (!notification.recipientDetails?.deviceTokens?.length) {
+    private async sendPushNotification(notification: any) {
+        const recipientDetails = typeof notification.recipientDetails === 'string'
+            ? JSON.parse(notification.recipientDetails)
+            : notification.recipientDetails;
+
+        if (!recipientDetails?.deviceTokens?.length) {
             throw new Error('No device tokens available');
         }
 
-        // The simplest approach: just pass the notification as-is
         await this.pushNotificationService.send(notification);
     }
 
-    private async sendWhatsappNotification(notification: any, user: any): Promise<boolean> {
+    private async sendWhatsappNotification(notification: any, recipientDetails: any): Promise<boolean> {
         try {
-            if (!user || !user.phoneNumber) {
+            const recipient = typeof recipientDetails === 'string'
+                ? JSON.parse(recipientDetails)
+                : recipientDetails;
+
+            if (!recipient || !recipient.phoneNumber) {
                 throw new Error('Phone number not provided for WhatsApp notification');
             }
 
-            // Use the sendMessage method with only required parameters
             await this.whatsappService.sendMessage({
-                to: user.phoneNumber,
+                to: recipient.phoneNumber,
                 text: notification.content
             });
 
@@ -299,14 +363,17 @@ export class NotificationSchedulerService {
         }
     }
 
-    private async sendSlackNotification(notification: Notification) {
-        if (!notification.recipientDetails?.slackUserId) {
+    private async sendSlackNotification(notification: any) {
+        const recipientDetails = typeof notification.recipientDetails === 'string'
+            ? JSON.parse(notification.recipientDetails)
+            : notification.recipientDetails;
+
+        if (!recipientDetails?.slackUserId) {
             throw new Error('Slack user ID not provided');
         }
 
-        // Use only the required parameters for Slack
         await this.slackService.sendDirectMessage({
-            userId: notification.recipientDetails.slackUserId,
+            userId: recipientDetails.slackUserId,
             message: {
                 text: notification.title,
                 blocks: [
