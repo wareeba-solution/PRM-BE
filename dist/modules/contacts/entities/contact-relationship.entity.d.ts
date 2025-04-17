@@ -27,6 +27,7 @@ export declare enum RelationshipStatus {
 export declare class ContactRelationship {
     id: string;
     organizationId: string;
+    tenantId: string;
     contactId: string;
     contact: Contact;
     relatedContactId: string;

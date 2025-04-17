@@ -108,7 +108,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], FamilyController.prototype, "removeFamilyMember", null);
 FamilyController = __decorate([
-    (0, common_1.Controller)('families'),
+    (0, common_1.Controller)('/families'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [family_service_1.FamilyService])
 ], FamilyController);

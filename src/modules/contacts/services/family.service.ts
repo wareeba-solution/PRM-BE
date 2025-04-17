@@ -80,6 +80,7 @@ export class FamilyService {
                 // Create relationship between patient and family member
                 await this.createRelationship({
                     organizationId,
+                    tenantId, // Add this line
                     contactId: patient.id,
                     relatedContactId: contact.id,
                     familyId,
@@ -89,6 +90,8 @@ export class FamilyService {
                     permissions: member.permissions,
                     createdById,
                 });
+
+
 
                 return contact;
             }),
@@ -139,6 +142,7 @@ export class FamilyService {
         const primaryPatient = await this.getPrimaryPatient(familyId, organizationId);
         await this.createRelationship({
             organizationId,
+            tenantId, // Add this line
             contactId: primaryPatient.id,
             relatedContactId: contact.id,
             familyId,
@@ -293,4 +297,4 @@ export class FamilyService {
             );
         }
     }
-} 
+}

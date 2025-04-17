@@ -75,6 +75,11 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'uuid' }),
     (0, typeorm_1.Index)(),
     __metadata("design:type", String)
+], ContactRelationship.prototype, "tenantId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'uuid' }),
+    (0, typeorm_1.Index)(),
+    __metadata("design:type", String)
 ], ContactRelationship.prototype, "contactId", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)('Contact', {
