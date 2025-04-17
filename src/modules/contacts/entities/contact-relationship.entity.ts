@@ -55,6 +55,11 @@ export class ContactRelationship {
 
     @Column({ type: 'uuid' })
     @Index()
+    tenantId: string;
+
+
+    @Column({ type: 'uuid' })
+    @Index()
     contactId: string;
 
     @ManyToOne('Contact', {
@@ -127,6 +132,7 @@ export class ContactRelationship {
 
     @Column({ type: 'date', nullable: true })
     startDate: Date;
+
 
     @Column({ type: 'date', nullable: true })
     endDate: Date;

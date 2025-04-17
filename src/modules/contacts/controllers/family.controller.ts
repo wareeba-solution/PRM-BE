@@ -65,7 +65,7 @@ interface UpdateRelationshipDTO {
     status?: RelationshipStatus;
 }
 
-@Controller('families')
+@Controller('/families')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class FamilyController {
     constructor(private readonly familyService: FamilyService) {}

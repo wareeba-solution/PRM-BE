@@ -44,6 +44,7 @@ let FamilyService = class FamilyService {
             // Create relationship between patient and family member
             await this.createRelationship({
                 organizationId,
+                tenantId,
                 contactId: patient.id,
                 relatedContactId: contact.id,
                 familyId,
@@ -82,6 +83,7 @@ let FamilyService = class FamilyService {
         const primaryPatient = await this.getPrimaryPatient(familyId, organizationId);
         await this.createRelationship({
             organizationId,
+            tenantId,
             contactId: primaryPatient.id,
             relatedContactId: contact.id,
             familyId,
