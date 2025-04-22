@@ -9,6 +9,7 @@ import { UserVerification } from '../../users/entities/user-verification.entity'
 import { OrganizationsService } from '../../organizations/services/organizations.service';
 import { EmailService } from '../../../shared/services/email.service';
 import { AuthService } from './auth.service';
+import { EmailVerificationService } from '../../email/services/email-verification.service';
 export interface TokenPair {
     accessToken: string;
     refreshToken: string;
@@ -24,13 +25,17 @@ export declare class UserAccountService {
     private readonly configService;
     private readonly organizationsService;
     private readonly emailService;
-    constructor(userRepository: Repository<User>, organizationRepository: Repository<Organization>, userVerificationRepository: Repository<UserVerification>, userSettingsRepository: Repository<UserSettings>, authService: AuthService, usersService: UsersService, configService: ConfigService, organizationsService: OrganizationsService, emailService: EmailService);
+    private readonly emailVerificationService;
+    private readonly logger;
+    private readonly SYSTEM_UUID;
+    constructor(userRepository: Repository<User>, organizationRepository: Repository<Organization>, userVerificationRepository: Repository<UserVerification>, userSettingsRepository: Repository<UserSettings>, authService: AuthService, usersService: UsersService, configService: ConfigService, organizationsService: OrganizationsService, emailService: EmailService, emailVerificationService: EmailVerificationService);
     /**
      * Creates a new branch organization within an existing tenant
      * @param createBranchDto Branch creation data
+     * @param userId Optional UUID of the user creating the branch
      * @returns Created user and verification token for testing
      */
-    createBranch(createBranchDto: CreateBranchDto): Promise<{
+    createBranch(createBranchDto: CreateBranchDto, userId?: string): Promise<{
         user: User;
         verificationToken?: string;
     }>;

@@ -23,6 +23,7 @@ var __rest = (this && this.__rest) || function (s, e) {
         }
     return t;
 };
+var UsersService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersService = void 0;
 const common_1 = require("@nestjs/common");
@@ -36,15 +37,20 @@ const role_enum_1 = require("../enums/role.enum");
 const notifications_service_1 = require("../../notifications/services/notifications.service");
 const nestjs_typeorm_paginate_1 = require("nestjs-typeorm-paginate");
 const user_settings_entity_1 = require("../entities/user-settings.entity");
+const user_verification_entity_1 = require("../entities/user-verification.entity");
 const uuid_1 = require("uuid");
-let UsersService = class UsersService {
-    constructor(userRepository, activityRepository, userSettingsRepository, dataSource, eventEmitter, notificationsService) {
+const config_1 = require("@nestjs/config");
+let UsersService = UsersService_1 = class UsersService {
+    constructor(userRepository, activityRepository, userSettingsRepository, userVerificationRepository, dataSource, eventEmitter, notificationsService, configService) {
         this.userRepository = userRepository;
         this.activityRepository = activityRepository;
         this.userSettingsRepository = userSettingsRepository;
+        this.userVerificationRepository = userVerificationRepository;
         this.dataSource = dataSource;
         this.eventEmitter = eventEmitter;
         this.notificationsService = notificationsService;
+        this.configService = configService;
+        this.logger = new common_1.Logger(UsersService_1.name);
         // Define permissions map as a class property with all possible roles
         this.permissionsByRole = {
             [role_enum_1.Role.SUPER_ADMIN]: [
@@ -110,8 +116,9 @@ let UsersService = class UsersService {
                 }
             }
             const hashedPassword = await (0, bcrypt_1.hash)(data.password, 12);
-            const { createdBy, phoneNumber } = data, userData = __rest(data, ["createdBy", "phoneNumber"]);
-            const user = this.userRepository.create(Object.assign(Object.assign({}, userData), { password: hashedPassword }));
+            const { createdBy, phoneNumber, requireEmailVerification = true } = data, userData = __rest(data, ["createdBy", "phoneNumber", "requireEmailVerification"]);
+            // Set isEmailVerified to false when verification is required
+            const user = this.userRepository.create(Object.assign(Object.assign({}, userData), { password: hashedPassword, isEmailVerified: !requireEmailVerification, createdById: createdBy }));
             await queryRunner.manager.save(user);
             // Create user settings with phone number
             if (phoneNumber) {
@@ -125,6 +132,22 @@ let UsersService = class UsersService {
                     push: false
                 };
                 await queryRunner.manager.save(settings);
+            }
+            // Create verification record if verification is required
+            if (requireEmailVerification) {
+                const token = (0, uuid_1.v4)();
+                const expiresAt = new Date();
+                expiresAt.setHours(expiresAt.getHours() + 24); // 24-hour expiry
+                const verification = this.userVerificationRepository.create({
+                    userId: user.id,
+                    isEmailVerified: false,
+                    emailVerificationToken: token,
+                    emailVerificationExpires: expiresAt,
+                    lastEmailVerificationSent: new Date(),
+                });
+                await queryRunner.manager.save(verification);
+                // Store token temporarily for email sending after commit
+                user['verificationToken'] = token;
             }
             // Record activity
             const activity = this.activityRepository.create({
@@ -145,6 +168,10 @@ let UsersService = class UsersService {
                 senderId: data.createdBy,
             });
             this.eventEmitter.emit('user.created', user);
+            // Log verification token in development environment
+            if (requireEmailVerification && user['verificationToken'] && process.env.NODE_ENV !== 'production') {
+                this.logger.debug(`Verification token for ${user.email}: ${user['verificationToken']}`);
+            }
             const { password } = user, result = __rest(user, ["password"]);
             return result;
         }
@@ -285,7 +312,16 @@ let UsersService = class UsersService {
         user.passwordResetExpiresAt = expiresAt;
         await this.userRepository.save(user);
         // TODO: Implement email sending logic
-        console.log(`Password reset link for ${user.email}: https://your-app.com/reset-password?token=${token}`);
+        this.logger.debug(`Password reset link for ${user.email}: ${this.configService.get('APP_URL')}/reset-password?token=${token}`);
+        // In a real implementation, you would send an email with the reset link
+        // Example:
+        /*
+        await this.emailService.sendMail(
+            user.email,
+            'Reset Your Password',
+            `<p>Click here to reset your password: ${this.configService.get('APP_URL')}/reset-password?token=${token}</p>`
+        );
+        */
     }
     async resetPassword(token, newPassword) {
         const user = await this.userRepository.findOne({
@@ -311,18 +347,151 @@ let UsersService = class UsersService {
             }
         });
     }
+    /**
+     * Generate a verification token for a user
+     */
+    async generateEmailVerificationToken(userId) {
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        // Check if user already has a verification record
+        let verification = await this.userVerificationRepository.findOne({
+            where: { userId }
+        });
+        // Generate a random token
+        const token = (0, uuid_1.v4)();
+        // Set expiration (24 hours from now)
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24);
+        if (!verification) {
+            // Create a new verification entry
+            verification = this.userVerificationRepository.create({
+                userId,
+                isEmailVerified: false,
+                emailVerificationToken: token,
+                emailVerificationExpires: expiresAt,
+                lastEmailVerificationSent: new Date()
+            });
+        }
+        else {
+            // Update existing verification entry
+            verification.emailVerificationToken = token;
+            verification.emailVerificationExpires = expiresAt;
+            verification.lastEmailVerificationSent = new Date();
+        }
+        await this.userVerificationRepository.save(verification);
+        return token;
+    }
+    /**
+     * Send a verification email to a user
+     */
+    async sendVerificationEmail(userId) {
+        const user = await this.userRepository.findOne({
+            where: { id: userId },
+            relations: ['organization']
+        });
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        // Generate a token
+        const token = await this.generateEmailVerificationToken(userId);
+        const verificationUrl = `${this.configService.get('APP_URL')}/verify-email?token=${token}`;
+        // TODO: Implement email sending logic
+        this.logger.debug(`Verification link for ${user.email}: ${verificationUrl}`);
+        // In a real implementation, you would send an email with the verification link
+        // Example:
+        /*
+        await this.emailService.sendMail(
+            user.email,
+            'Verify Your Email Address',
+            `<p>Click here to verify your email address: ${verificationUrl}</p>`
+        );
+        */
+    }
+    /**
+     * Verify a user's email with a token
+     */
+    async verifyEmail(token) {
+        // Find the verification record
+        const verification = await this.userVerificationRepository.findOne({
+            where: { emailVerificationToken: token },
+            relations: ['user']
+        });
+        if (!verification) {
+            throw new common_1.NotFoundException('Verification token not found');
+        }
+        // Check if expired
+        if (verification.emailVerificationExpires && verification.emailVerificationExpires < new Date()) {
+            throw new common_1.BadRequestException('Verification token has expired');
+        }
+        // Mark verification record as verified
+        verification.isEmailVerified = true;
+        verification.emailVerifiedAt = new Date();
+        verification.emailVerificationToken = null;
+        verification.emailVerificationExpires = null;
+        await this.userVerificationRepository.save(verification);
+        // Update user record
+        const user = await this.userRepository.findOne({
+            where: { id: verification.userId }
+        });
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        user.isEmailVerified = true;
+        await this.userRepository.save(user);
+        return {
+            userId: user.id,
+            email: user.email,
+        };
+    }
+    /**
+     * Check if a user's email is verified
+     */
+    async isEmailVerified(userId) {
+        const user = await this.userRepository.findOne({
+            where: { id: userId }
+        });
+        return (user === null || user === void 0 ? void 0 : user.isEmailVerified) || false;
+    }
+    /**
+     * Send a welcome email after email verification
+     */
+    async sendWelcomeEmail(userId) {
+        const user = await this.userRepository.findOne({
+            where: { id: userId },
+            relations: ['organization']
+        });
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        // TODO: Implement email sending logic
+        this.logger.debug(`Welcome email sent to ${user.email}`);
+        // In a real implementation, you would send a welcome email
+        // Example:
+        /*
+        await this.emailService.sendMail(
+            user.email,
+            `Welcome to ${user.organization?.name || 'Our Platform'}`,
+            `<p>Hello ${user.firstName},</p><p>Your account has been fully verified. You can now access all features of our platform.</p>`
+        );
+        */
+    }
 };
-UsersService = __decorate([
+UsersService = UsersService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __param(1, (0, typeorm_1.InjectRepository)(user_activity_entity_1.UserActivity)),
     __param(2, (0, typeorm_1.InjectRepository)(user_settings_entity_1.UserSettings)),
+    __param(3, (0, typeorm_1.InjectRepository)(user_verification_entity_1.UserVerification)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.DataSource,
         event_emitter_1.EventEmitter2,
-        notifications_service_1.NotificationsService])
+        notifications_service_1.NotificationsService,
+        config_1.ConfigService])
 ], UsersService);
 exports.UsersService = UsersService;
 //# sourceMappingURL=users.service.js.map

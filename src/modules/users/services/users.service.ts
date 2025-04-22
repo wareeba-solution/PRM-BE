@@ -5,6 +5,7 @@ import {
     NotFoundException,
     BadRequestException,
     ConflictException,
+    Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -21,10 +22,14 @@ import { Role } from '../enums/role.enum';
 import { NotificationsService } from '../../notifications/services/notifications.service';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { UserSettings } from '../entities/user-settings.entity';
+import { UserVerification } from '../entities/user-verification.entity';
 import { v4 as uuidv4 } from 'uuid';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
+    private readonly logger = new Logger(UsersService.name);
+
     // Define permissions map as a class property with all possible roles
     private readonly permissionsByRole: Record<string, string[]> = {
         [Role.SUPER_ADMIN]: [
@@ -66,21 +71,24 @@ export class UsersService {
         private readonly activityRepository: Repository<UserActivity>,
         @InjectRepository(UserSettings)
         private readonly userSettingsRepository: Repository<UserSettings>,
+        @InjectRepository(UserVerification)
+        private readonly userVerificationRepository: Repository<UserVerification>,
         private readonly dataSource: DataSource,
         private readonly eventEmitter: EventEmitter2,
         private readonly notificationsService: NotificationsService,
+        private readonly configService: ConfigService,
     ) { }
 
     async findByRole(role: string, organizationId: string): Promise<User[]> {
         return this.userRepository.find({
-          where: {
-            role: role as Role,
-            organizationId,
-          },
+            where: {
+                role: role as Role,
+                organizationId,
+            },
         });
-      }
+    }
 
-    async create(data: CreateUserDto & { organizationId: string; createdBy: string }): Promise<User> {
+    async create(data: CreateUserDto & { organizationId: string; createdBy: string; requireEmailVerification?: boolean }): Promise<User> {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
@@ -108,10 +116,14 @@ export class UsersService {
             }
 
             const hashedPassword = await hash(data.password, 12);
-            const { createdBy, phoneNumber, ...userData } = data;
+            const { createdBy, phoneNumber, requireEmailVerification = true, ...userData } = data;
+
+            // Set isEmailVerified to false when verification is required
             const user = this.userRepository.create({
                 ...userData,
                 password: hashedPassword,
+                isEmailVerified: !requireEmailVerification, // Only set to true if verification not required
+                createdById: createdBy,
             });
 
             await queryRunner.manager.save(user);
@@ -130,6 +142,26 @@ export class UsersService {
                 await queryRunner.manager.save(settings);
             }
 
+            // Create verification record if verification is required
+            if (requireEmailVerification) {
+                const token = uuidv4();
+                const expiresAt = new Date();
+                expiresAt.setHours(expiresAt.getHours() + 24); // 24-hour expiry
+
+                const verification = this.userVerificationRepository.create({
+                    userId: user.id,
+                    isEmailVerified: false,
+                    emailVerificationToken: token,
+                    emailVerificationExpires: expiresAt,
+                    lastEmailVerificationSent: new Date(),
+                });
+
+                await queryRunner.manager.save(verification);
+
+                // Store token temporarily for email sending after commit
+                user['verificationToken'] = token;
+            }
+
             // Record activity
             const activity = this.activityRepository.create({
                 userId: user.id,
@@ -139,7 +171,6 @@ export class UsersService {
             });
 
             await queryRunner.manager.save(activity);
-
             await queryRunner.commitTransaction();
 
             // Send welcome notification
@@ -153,6 +184,11 @@ export class UsersService {
             });
 
             this.eventEmitter.emit('user.created', user);
+
+            // Log verification token in development environment
+            if (requireEmailVerification && user['verificationToken'] && process.env.NODE_ENV !== 'production') {
+                this.logger.debug(`Verification token for ${user.email}: ${user['verificationToken']}`);
+            }
 
             const { password, ...result } = user;
             return result as User;
@@ -317,7 +353,7 @@ export class UsersService {
         if (!user) {
             throw new NotFoundException('User not found');
         }
-        
+
         // Return the permissions for the user's role or an empty array if the role isn't defined
         return this.permissionsByRole[user.role] || [];
     }
@@ -345,7 +381,17 @@ export class UsersService {
         await this.userRepository.save(user);
 
         // TODO: Implement email sending logic
-        console.log(`Password reset link for ${user.email}: https://your-app.com/reset-password?token=${token}`);
+        this.logger.debug(`Password reset link for ${user.email}: ${this.configService.get('APP_URL')}/reset-password?token=${token}`);
+
+        // In a real implementation, you would send an email with the reset link
+        // Example:
+        /*
+        await this.emailService.sendMail(
+            user.email,
+            'Reset Your Password',
+            `<p>Click here to reset your password: ${this.configService.get('APP_URL')}/reset-password?token=${token}</p>`
+        );
+        */
     }
 
     async resetPassword(token: string, newPassword: string): Promise<void> {
@@ -375,5 +421,160 @@ export class UsersService {
                 isActive: true
             }
         });
+    }
+
+    /**
+     * Generate a verification token for a user
+     */
+    async generateEmailVerificationToken(userId: string): Promise<string> {
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        // Check if user already has a verification record
+        let verification = await this.userVerificationRepository.findOne({
+            where: { userId }
+        });
+
+        // Generate a random token
+        const token = uuidv4();
+
+        // Set expiration (24 hours from now)
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24);
+
+        if (!verification) {
+            // Create a new verification entry
+            verification = this.userVerificationRepository.create({
+                userId,
+                isEmailVerified: false,
+                emailVerificationToken: token,
+                emailVerificationExpires: expiresAt,
+                lastEmailVerificationSent: new Date()
+            });
+        } else {
+            // Update existing verification entry
+            verification.emailVerificationToken = token;
+            verification.emailVerificationExpires = expiresAt;
+            verification.lastEmailVerificationSent = new Date();
+        }
+
+        await this.userVerificationRepository.save(verification);
+        return token;
+    }
+
+    /**
+     * Send a verification email to a user
+     */
+    async sendVerificationEmail(userId: string): Promise<void> {
+        const user = await this.userRepository.findOne({
+            where: { id: userId },
+            relations: ['organization']
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        // Generate a token
+        const token = await this.generateEmailVerificationToken(userId);
+        const verificationUrl = `${this.configService.get('APP_URL')}/verify-email?token=${token}`;
+
+        // TODO: Implement email sending logic
+        this.logger.debug(`Verification link for ${user.email}: ${verificationUrl}`);
+
+        // In a real implementation, you would send an email with the verification link
+        // Example:
+        /*
+        await this.emailService.sendMail(
+            user.email,
+            'Verify Your Email Address',
+            `<p>Click here to verify your email address: ${verificationUrl}</p>`
+        );
+        */
+    }
+
+    /**
+     * Verify a user's email with a token
+     */
+    async verifyEmail(token: string): Promise<{ userId: string; email: string }> {
+        // Find the verification record
+        const verification = await this.userVerificationRepository.findOne({
+            where: { emailVerificationToken: token },
+            relations: ['user']
+        });
+
+        if (!verification) {
+            throw new NotFoundException('Verification token not found');
+        }
+
+        // Check if expired
+        if (verification.emailVerificationExpires && verification.emailVerificationExpires < new Date()) {
+            throw new BadRequestException('Verification token has expired');
+        }
+
+        // Mark verification record as verified
+        verification.isEmailVerified = true;
+        verification.emailVerifiedAt = new Date();
+        verification.emailVerificationToken = null;
+        verification.emailVerificationExpires = null;
+        await this.userVerificationRepository.save(verification);
+
+        // Update user record
+        const user = await this.userRepository.findOne({
+            where: { id: verification.userId }
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        user.isEmailVerified = true;
+        await this.userRepository.save(user);
+
+        return {
+            userId: user.id,
+            email: user.email,
+        };
+    }
+
+    /**
+     * Check if a user's email is verified
+     */
+    async isEmailVerified(userId: string): Promise<boolean> {
+        const user = await this.userRepository.findOne({
+            where: { id: userId }
+        });
+
+        return user?.isEmailVerified || false;
+    }
+
+    /**
+     * Send a welcome email after email verification
+     */
+    async sendWelcomeEmail(userId: string): Promise<void> {
+        const user = await this.userRepository.findOne({
+            where: { id: userId },
+            relations: ['organization']
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        // TODO: Implement email sending logic
+        this.logger.debug(`Welcome email sent to ${user.email}`);
+
+        // In a real implementation, you would send a welcome email
+        // Example:
+        /*
+        await this.emailService.sendMail(
+            user.email,
+            `Welcome to ${user.organization?.name || 'Our Platform'}`,
+            `<p>Hello ${user.firstName},</p><p>Your account has been fully verified. You can now access all features of our platform.</p>`
+        );
+        */
     }
 }

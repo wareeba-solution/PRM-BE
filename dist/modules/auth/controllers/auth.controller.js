@@ -32,11 +32,15 @@ const public_decorator_1 = require("../decorators/public.decorator");
 const current_user_decorator_1 = require("../decorators/current-user.decorator");
 const rate_limit_guard_1 = require("../guards/rate-limit.guard");
 const skip_email_verification_decorator_1 = require("../decorators/skip-email-verification.decorator");
+const email_verification_service_1 = require("../../email/services/email-verification.service");
+const jwt_1 = require("@nestjs/jwt");
 let AuthController = AuthController_1 = class AuthController {
-    constructor(authService, userAccountService, moduleRef) {
+    constructor(authService, userAccountService, moduleRef, emailVerificationService, jwtService) {
         this.authService = authService;
         this.userAccountService = userAccountService;
         this.moduleRef = moduleRef;
+        this.emailVerificationService = emailVerificationService;
+        this.jwtService = jwtService;
         this.logger = new common_1.Logger(AuthController_1.name);
     }
     async login(loginDto, req, res, headerTenantId) {
@@ -96,14 +100,74 @@ let AuthController = AuthController_1 = class AuthController {
             throw error;
         }
     }
-    async createBranch(createBranchDto, req) {
+    async createBranch(createBranchDto, req, authHeader, headerTenantId) {
         // Get tenant from request (set by middleware)
-        const tenantId = req.tenantId;
-        const tenant = req.tenant;
+        let tenantId = req.tenantId;
+        let tenant = req.tenant;
+        // If not set by middleware, try direct approaches
+        if (!tenantId || !tenant) {
+            // Try from header first
+            if (headerTenantId) {
+                this.logger.log(`Trying to find tenant by X-Tenant-ID header: ${headerTenantId}`);
+                try {
+                    const tenantsService = this.moduleRef.get(tenants_service_1.TenantsService, { strict: false });
+                    tenant = await tenantsService.findOne(headerTenantId);
+                    if (tenant && tenant.isActive) {
+                        tenantId = tenant.id;
+                        req.tenantId = tenantId;
+                        req.tenant = tenant;
+                        this.logger.log(`Found tenant from header: ${tenantId}`);
+                    }
+                }
+                catch (error) {
+                    this.logger.warn(`Failed to find tenant by header ID: ${headerTenantId}`, error);
+                }
+            }
+            // If still no tenant, try from request body
+            if ((!tenantId || !tenant) && createBranchDto.tenantId) {
+                this.logger.log(`Trying to find tenant by body tenantId: ${createBranchDto.tenantId}`);
+                try {
+                    const tenantsService = this.moduleRef.get(tenants_service_1.TenantsService, { strict: false });
+                    tenant = await tenantsService.findOne(createBranchDto.tenantId);
+                    if (tenant && tenant.isActive) {
+                        tenantId = tenant.id;
+                        req.tenantId = tenantId;
+                        req.tenant = tenant;
+                        this.logger.log(`Found tenant from body: ${tenantId}`);
+                    }
+                }
+                catch (error) {
+                    this.logger.warn(`Failed to find tenant by body ID: ${createBranchDto.tenantId}`, error);
+                }
+            }
+            // If still no tenant, try from JWT
+            if ((!tenantId || !tenant) && authHeader && authHeader.startsWith('Bearer ')) {
+                try {
+                    const token = authHeader.substring(7);
+                    const payload = this.jwtService.verify(token);
+                    if (payload && payload.tenantId) {
+                        this.logger.log(`Using tenant from JWT: ${payload.tenantId}`);
+                        const tenantsService = this.moduleRef.get(tenants_service_1.TenantsService, { strict: false });
+                        tenant = await tenantsService.findOne(payload.tenantId);
+                        if (tenant && tenant.isActive) {
+                            tenantId = tenant.id;
+                            req.tenantId = tenantId;
+                            req.tenant = tenant;
+                            this.logger.log(`Found tenant from JWT: ${tenantId}`);
+                        }
+                    }
+                }
+                catch (error) {
+                    this.logger.error(`Failed to extract tenant from JWT: ${error.message}`);
+                }
+            }
+        }
         if (!tenantId || !tenant) {
             this.logger.warn('Branch creation attempt without tenant context');
             throw new common_1.BadRequestException('Tenant context is required for branch creation');
         }
+        // For now, use only createBranchDto as the auth service expects
+        // We'll need to modify the services instead to support passing the user ID
         return this.authService.createBranch(createBranchDto);
     }
     async refreshToken(refreshTokenDto) {
@@ -158,6 +222,10 @@ let AuthController = AuthController_1 = class AuthController {
         await this.userAccountService.sendVerificationEmail(user.id);
         return { message: 'Verification email sent' };
     }
+    async checkVerificationToken(token) {
+        const isValid = await this.emailVerificationService.isTokenValid(token);
+        return { isValid };
+    }
 };
 __decorate([
     (0, common_1.Post)('login'),
@@ -188,8 +256,10 @@ __decorate([
     (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.BAD_REQUEST, description: 'Invalid input data or missing tenant' }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
+    __param(2, (0, common_1.Headers)('authorization')),
+    __param(3, (0, common_1.Headers)('x-tenant-id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_branch_dto_1.CreateBranchDto, Object]),
+    __metadata("design:paramtypes", [create_branch_dto_1.CreateBranchDto, Object, String, String]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "createBranch", null);
 __decorate([
@@ -278,6 +348,8 @@ __decorate([
     (0, common_1.Post)('resend-verification'),
     (0, skip_email_verification_decorator_1.SkipEmailVerification)() // Add this to allow unverified users to request verification emails
     ,
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard) // This guard requires authentication
+    ,
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Resend verification email', description: 'Sends a new verification email to the authenticated user' }),
     (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Verification email sent successfully' }),
@@ -287,15 +359,28 @@ __decorate([
     __metadata("design:paramtypes", [user_entity_1.User]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "resendVerification", null);
+__decorate([
+    (0, common_1.Get)('verify-email-token'),
+    (0, public_decorator_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Check email verification token validity', description: 'Validates a token without consuming it' }),
+    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.OK, description: 'Token validity status' }),
+    __param(0, (0, common_1.Query)('token')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "checkVerificationToken", null);
 AuthController = AuthController_1 = __decorate([
     (0, swagger_1.ApiTags)('Authentication'),
     (0, common_1.Controller)('auth'),
     (0, common_1.UseGuards)(rate_limit_guard_1.RateLimitGuard)
     // @ApiHeader({ name: 'X-Tenant-ID', description: 'Tenant ID header (required for all authenticated operations)', required: true })
     ,
+    __param(4, (0, common_1.Inject)(jwt_1.JwtService)),
     __metadata("design:paramtypes", [auth_service_1.AuthService,
         user_account_service_1.UserAccountService,
-        core_1.ModuleRef])
+        core_1.ModuleRef,
+        email_verification_service_1.EmailVerificationService,
+        jwt_1.JwtService])
 ], AuthController);
 exports.AuthController = AuthController;
 //# sourceMappingURL=auth.controller.js.map

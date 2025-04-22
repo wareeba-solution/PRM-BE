@@ -360,6 +360,7 @@ export class TenantMiddleware implements NestMiddleware {
     const authEndpoints = [
       '/login',
       '/register',
+      '/create-branch',
       '/forgot-password',
       '/reset-password',
       '/verify-email',
