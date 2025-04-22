@@ -7,6 +7,11 @@ import { EmailTemplateService } from './services/email-template.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmailTemplate } from './entities/email-template.entity';
 import { EmailLog } from './entities/email-log.entity';
+import { EmailVerification } from './entities/email-verification.entity';
+import { EmailVerificationService } from './services/email-verification.service';
+import { UserVerification } from '../users/entities/user-verification.entity';
+import { User } from '../users/entities/user.entity';
+
 
 export interface EmailModuleOptions {
   provider: 'smtp' | 'sendgrid' | 'mailgun' | 'aws-ses';
@@ -38,16 +43,18 @@ export interface EmailModuleOptions {
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([EmailTemplate, EmailLog]),
+    TypeOrmModule.forFeature([EmailTemplate, EmailLog, UserVerification, User]),
     ConfigModule,
   ],
   providers: [
     EmailService,
     EmailTemplateService,
+    EmailVerificationService,
   ],
   exports: [
     EmailService,
     EmailTemplateService,
+    EmailVerificationService,
   ],
 })
 export class EmailModule {

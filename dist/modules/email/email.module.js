@@ -16,6 +16,9 @@ const email_template_service_1 = require("./services/email-template.service");
 const typeorm_1 = require("@nestjs/typeorm");
 const email_template_entity_1 = require("./entities/email-template.entity");
 const email_log_entity_1 = require("./entities/email-log.entity");
+const email_verification_service_1 = require("./services/email-verification.service");
+const user_verification_entity_1 = require("../users/entities/user-verification.entity");
+const user_entity_1 = require("../users/entities/user.entity");
 let EmailModule = EmailModule_1 = class EmailModule {
     static forRoot(options) {
         return {
@@ -56,16 +59,18 @@ let EmailModule = EmailModule_1 = class EmailModule {
 EmailModule = EmailModule_1 = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([email_template_entity_1.EmailTemplate, email_log_entity_1.EmailLog]),
+            typeorm_1.TypeOrmModule.forFeature([email_template_entity_1.EmailTemplate, email_log_entity_1.EmailLog, user_verification_entity_1.UserVerification, user_entity_1.User]),
             config_1.ConfigModule,
         ],
         providers: [
             email_service_1.EmailService,
             email_template_service_1.EmailTemplateService,
+            email_verification_service_1.EmailVerificationService,
         ],
         exports: [
             email_service_1.EmailService,
             email_template_service_1.EmailTemplateService,
+            email_verification_service_1.EmailVerificationService,
         ],
     })
 ], EmailModule);

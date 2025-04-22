@@ -341,6 +341,7 @@ let TenantMiddleware = TenantMiddleware_1 = class TenantMiddleware {
         const authEndpoints = [
             '/login',
             '/register',
+            '/create-branch',
             '/forgot-password',
             '/reset-password',
             '/verify-email',

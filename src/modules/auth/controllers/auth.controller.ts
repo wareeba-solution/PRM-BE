@@ -1,4 +1,3 @@
-
 // src/modules/auth/controllers/auth.controller.ts
 
 import {
@@ -15,6 +14,8 @@ import {
     Res,
     BadRequestException,
     Logger,
+    Query,
+    Inject,
 } from '@nestjs/common';
 
 import { ModuleRef } from '@nestjs/core';
@@ -23,7 +24,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody, ApiHeader }
 import { AuthService, TokenPair } from '../services/auth.service';
 import { UserAccountService } from '../services/user-account.service';
 import { LoginDto } from '../dto/login.dto';
-import {CreateBranchDto} from '../dto/create-branch.dto';
+import { CreateBranchDto } from '../dto/create-branch.dto';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
@@ -33,7 +34,9 @@ import { Public } from '../decorators/public.decorator';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { RateLimitGuard } from '../guards/rate-limit.guard';
 import { Request, Response } from 'express';
-import {SkipEmailVerification} from "@/modules/auth/decorators/skip-email-verification.decorator";
+import { SkipEmailVerification } from "../decorators/skip-email-verification.decorator";
+import { EmailVerificationService } from '../../email/services/email-verification.service';
+import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -45,7 +48,9 @@ export class AuthController {
     constructor(
         private readonly authService: AuthService,
         private readonly userAccountService: UserAccountService,
-        private readonly moduleRef: ModuleRef
+        private readonly moduleRef: ModuleRef,
+        private readonly emailVerificationService: EmailVerificationService,
+        @Inject(JwtService) private readonly jwtService: JwtService
     ) {}
 
     @Post('login')
@@ -126,16 +131,82 @@ export class AuthController {
     @ApiResponse({ status: HttpStatus.CREATED, description: 'Branch created successfully' })
     @ApiResponse({ status: HttpStatus.CONFLICT, description: 'Email already exists' })
     @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input data or missing tenant' })
-    async createBranch(@Body() createBranchDto: CreateBranchDto, @Req() req: Request) {
+    async createBranch(
+        @Body() createBranchDto: CreateBranchDto,
+        @Req() req: Request,
+        @Headers('authorization') authHeader: string,
+        @Headers('x-tenant-id') headerTenantId: string
+    ) {
         // Get tenant from request (set by middleware)
-        const tenantId = req.tenantId;
-        const tenant = req.tenant;
+        let tenantId = req.tenantId;
+        let tenant = req.tenant;
+
+        // If not set by middleware, try direct approaches
+        if (!tenantId || !tenant) {
+            // Try from header first
+            if (headerTenantId) {
+                this.logger.log(`Trying to find tenant by X-Tenant-ID header: ${headerTenantId}`);
+                try {
+                    const tenantsService = this.moduleRef.get(TenantsService, { strict: false });
+                    tenant = await tenantsService.findOne(headerTenantId);
+                    if (tenant && tenant.isActive) {
+                        tenantId = tenant.id;
+                        req.tenantId = tenantId;
+                        req.tenant = tenant;
+                        this.logger.log(`Found tenant from header: ${tenantId}`);
+                    }
+                } catch (error) {
+                    this.logger.warn(`Failed to find tenant by header ID: ${headerTenantId}`, error);
+                }
+            }
+
+            // If still no tenant, try from request body
+            if ((!tenantId || !tenant) && createBranchDto.tenantId) {
+                this.logger.log(`Trying to find tenant by body tenantId: ${createBranchDto.tenantId}`);
+                try {
+                    const tenantsService = this.moduleRef.get(TenantsService, { strict: false });
+                    tenant = await tenantsService.findOne(createBranchDto.tenantId);
+                    if (tenant && tenant.isActive) {
+                        tenantId = tenant.id;
+                        req.tenantId = tenantId;
+                        req.tenant = tenant;
+                        this.logger.log(`Found tenant from body: ${tenantId}`);
+                    }
+                } catch (error) {
+                    this.logger.warn(`Failed to find tenant by body ID: ${createBranchDto.tenantId}`, error);
+                }
+            }
+
+            // If still no tenant, try from JWT
+            if ((!tenantId || !tenant) && authHeader && authHeader.startsWith('Bearer ')) {
+                try {
+                    const token = authHeader.substring(7);
+                    const payload = this.jwtService.verify(token);
+
+                    if (payload && payload.tenantId) {
+                        this.logger.log(`Using tenant from JWT: ${payload.tenantId}`);
+                        const tenantsService = this.moduleRef.get(TenantsService, { strict: false });
+                        tenant = await tenantsService.findOne(payload.tenantId);
+                        if (tenant && tenant.isActive) {
+                            tenantId = tenant.id;
+                            req.tenantId = tenantId;
+                            req.tenant = tenant;
+                            this.logger.log(`Found tenant from JWT: ${tenantId}`);
+                        }
+                    }
+                } catch (error) {
+                    this.logger.error(`Failed to extract tenant from JWT: ${error.message}`);
+                }
+            }
+        }
 
         if (!tenantId || !tenant) {
             this.logger.warn('Branch creation attempt without tenant context');
             throw new BadRequestException('Tenant context is required for branch creation');
         }
 
+        // For now, use only createBranchDto as the auth service expects
+        // We'll need to modify the services instead to support passing the user ID
         return this.authService.createBranch(createBranchDto);
     }
 
@@ -210,8 +281,6 @@ export class AuthController {
     @ApiResponse({ status: HttpStatus.OK, description: 'User profile retrieved successfully' })
     @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized access' })
     async getCurrentUser(@CurrentUser() user: User, @Req() req: Request) {
-
-
         return { user };
     }
 
@@ -244,6 +313,7 @@ export class AuthController {
 
     @Post('resend-verification')
     @SkipEmailVerification() // Add this to allow unverified users to request verification emails
+    @UseGuards(JwtAuthGuard) // This guard requires authentication
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Resend verification email', description: 'Sends a new verification email to the authenticated user' })
     @ApiResponse({ status: HttpStatus.OK, description: 'Verification email sent successfully' })
@@ -251,5 +321,14 @@ export class AuthController {
     async resendVerification(@CurrentUser() user: User) {
         await this.userAccountService.sendVerificationEmail(user.id);
         return { message: 'Verification email sent' };
+    }
+
+    @Get('verify-email-token')
+    @Public()
+    @ApiOperation({ summary: 'Check email verification token validity', description: 'Validates a token without consuming it' })
+    @ApiResponse({ status: HttpStatus.OK, description: 'Token validity status' })
+    async checkVerificationToken(@Query('token') token: string) {
+        const isValid = await this.emailVerificationService.isTokenValid(token);
+        return { isValid };
     }
 }

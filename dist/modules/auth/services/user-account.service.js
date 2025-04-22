@@ -12,6 +12,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var UserAccountService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserAccountService = void 0;
 const common_1 = require("@nestjs/common");
@@ -32,8 +33,9 @@ const email_service_1 = require("../../../shared/services/email.service");
 const create_organization_dto_2 = require("../../organizations/dto/create-organization.dto");
 const subscription_plan_enum_1 = require("../../organizations/enums/subscription-plan.enum");
 const auth_service_1 = require("./auth.service");
-let UserAccountService = class UserAccountService {
-    constructor(userRepository, organizationRepository, userVerificationRepository, userSettingsRepository, authService, usersService, configService, organizationsService, emailService) {
+const email_verification_service_1 = require("../../email/services/email-verification.service");
+let UserAccountService = UserAccountService_1 = class UserAccountService {
+    constructor(userRepository, organizationRepository, userVerificationRepository, userSettingsRepository, authService, usersService, configService, organizationsService, emailService, emailVerificationService) {
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
         this.userVerificationRepository = userVerificationRepository;
@@ -43,6 +45,9 @@ let UserAccountService = class UserAccountService {
         this.configService = configService;
         this.organizationsService = organizationsService;
         this.emailService = emailService;
+        this.emailVerificationService = emailVerificationService;
+        this.logger = new common_1.Logger(UserAccountService_1.name);
+        this.SYSTEM_UUID = '00000000-0000-0000-0000-000000000000'; // Define a valid system UUID
     }
     // /**
     //  * Registers a new user and organization
@@ -50,98 +55,18 @@ let UserAccountService = class UserAccountService {
     //  * @returns Created user
     //  */
     // async register(registerDto: RegisterDto): Promise<{ user: User }> {
-    //   // Check if user with email already exists
-    //   const existingUser = await this.userRepository.findOne({
-    //     where: { email: registerDto.user.email }
-    //   });
-    //
-    //   if (existingUser) {
-    //     throw new ConflictException('User with this email already exists');
-    //   }
-    //
-    //   // Map subscription plan from RegisterDto to CreateOrganizationDto
-    //   let subscriptionPlan = CreateOrgSubscriptionPlan.FREE;
-    //   if (registerDto.organization.subscriptionPlan) {
-    //     switch (registerDto.organization.subscriptionPlan) {
-    //       case RegisterSubscriptionPlan.BASIC:
-    //         subscriptionPlan = CreateOrgSubscriptionPlan.STARTER;
-    //         break;
-    //       case RegisterSubscriptionPlan.STANDARD:
-    //         subscriptionPlan = CreateOrgSubscriptionPlan.PROFESSIONAL;
-    //         break;
-    //       case RegisterSubscriptionPlan.PREMIUM:
-    //       case RegisterSubscriptionPlan.ENTERPRISE:
-    //         subscriptionPlan = CreateOrgSubscriptionPlan.ENTERPRISE;
-    //         break;
-    //       case RegisterSubscriptionPlan.FREE:
-    //       default:
-    //         subscriptionPlan = CreateOrgSubscriptionPlan.FREE;
-    //     }
-    //   }
-    //
-    //   // Create organization first
-    //   const organization = await this.organizationsService.create({
-    //     name: registerDto.organization.name,
-    //     type: OrganizationType.OTHER,
-    //     email: registerDto.user.email,
-    //     phone: registerDto.organization.phone,
-    //     domain: registerDto.organization.website?.replace(/^https?:\/\//, ''),
-    //     address: registerDto.organization.address,
-    //     primaryContact: {
-    //       name: `${registerDto.user.firstName} ${registerDto.user.lastName}`,
-    //       position: 'Admin',
-    //       email: registerDto.user.email,
-    //       phone: registerDto.user.phone || registerDto.organization.phone
-    //     },
-    //     subscriptionPlan,
-    //     createdById: 'system'
-    //   });
-    //
-    //   // Create user with organization
-    //   const user = await this.usersService.create({
-    //     firstName: registerDto.user.firstName,
-    //     lastName: registerDto.user.lastName,
-    //     email: registerDto.user.email,
-    //     password: registerDto.user.password,
-    //     phoneNumber: registerDto.user.phone,
-    //     role: Role.ADMIN,
-    //     organizationId: organization.id,
-    //     createdBy: 'system'
-    //   });
-    //
-    //   // Create user verification record
-    //   const verificationToken = uuidv4();
-    //   const verificationExpiry = new Date();
-    //   verificationExpiry.setHours(verificationExpiry.getHours() + 24);
-    //
-    //   await this.userVerificationRepository.save({
-    //     userId: user.id,
-    //     isEmailVerified: false,
-    //     emailVerificationToken: verificationToken,
-    //     emailVerificationExpiry: verificationExpiry
-    //   });
-    //
-    //   // Send verification email
-    //   await this.emailService.sendEmail({
-    //     to: user.email,
-    //     subject: 'Verify your email',
-    //     template: 'email-verification',
-    //     context: {
-    //       name: user.firstName,
-    //       verificationLink: `${process.env.APP_URL}/verify-email?token=${verificationToken}`,
-    //       expiresIn: '24 hours'
-    //     }
-    //   });
-    //
-    //   return { user };
+    //   // [... existing code ...]
     // }
+    // src/modules/auth/services/user-account.service.ts
     /**
      * Creates a new branch organization within an existing tenant
      * @param createBranchDto Branch creation data
+     * @param userId Optional UUID of the user creating the branch
      * @returns Created user and verification token for testing
      */
-    async createBranch(createBranchDto) {
+    async createBranch(createBranchDto, userId) {
         var _a;
+        this.logger.log(`Creating branch with name: ${createBranchDto.organization.name}`);
         // Check if user with email already exists
         const existingUser = await this.userRepository.findOne({
             where: { email: createBranchDto.user.email }
@@ -168,63 +93,57 @@ let UserAccountService = class UserAccountService {
                     subscriptionPlan = create_organization_dto_1.SubscriptionPlan.FREE;
             }
         }
-        // Create organization first
-        const organization = await this.organizationsService.create({
-            name: createBranchDto.organization.name,
-            type: create_organization_dto_2.OrganizationType.BRANCH,
-            email: createBranchDto.user.email,
-            phone: createBranchDto.organization.phone,
-            domain: (_a = createBranchDto.organization.website) === null || _a === void 0 ? void 0 : _a.replace(/^https?:\/\//, ''),
-            address: createBranchDto.organization.address,
-            primaryContact: {
-                name: `${createBranchDto.user.firstName} ${createBranchDto.user.lastName}`,
-                position: 'Branch Admin',
+        // Use provided userId or null
+        // Don't use a fake UUID as it violates foreign key constraints
+        const creatorId = userId || null;
+        this.logger.debug(`Using creator ID: ${creatorId || 'null'} for branch creation`);
+        try {
+            // Create organization first
+            const organization = await this.organizationsService.create({
+                name: createBranchDto.organization.name,
+                type: create_organization_dto_2.OrganizationType.BRANCH,
                 email: createBranchDto.user.email,
-                phone: createBranchDto.user.phone || createBranchDto.organization.phone
-            },
-            subscriptionPlan,
-            createdById: 'system'
-        });
-        // Create user with organization
-        const user = await this.usersService.create({
-            firstName: createBranchDto.user.firstName,
-            lastName: createBranchDto.user.lastName,
-            email: createBranchDto.user.email,
-            password: createBranchDto.user.password,
-            phoneNumber: createBranchDto.user.phone,
-            role: role_enum_1.Role.ADMIN,
-            organizationId: organization.id,
-            createdBy: 'system'
-        });
-        // Create user verification record
-        const verificationToken = (0, uuid_1.v4)();
-        const verificationExpiry = new Date();
-        verificationExpiry.setHours(verificationExpiry.getHours() + 24);
-        await this.userVerificationRepository.save({
-            userId: user.id,
-            isEmailVerified: false,
-            emailVerificationToken: verificationToken,
-            emailVerificationExpiry: verificationExpiry
-        });
-        // Send verification email
-        await this.emailService.sendEmail({
-            to: user.email,
-            subject: 'Verify your email for your new branch',
-            template: 'email-verification',
-            context: {
-                name: user.firstName,
-                verificationLink: `${process.env.APP_URL}/verify-email?token=${verificationToken}`,
-                expiresIn: '24 hours'
+                phone: createBranchDto.organization.phone,
+                domain: (_a = createBranchDto.organization.website) === null || _a === void 0 ? void 0 : _a.replace(/^https?:\/\//, ''),
+                address: createBranchDto.organization.address,
+                primaryContact: {
+                    name: `${createBranchDto.user.firstName} ${createBranchDto.user.lastName}`,
+                    position: 'Branch Admin',
+                    email: createBranchDto.user.email,
+                    phone: createBranchDto.user.phone || createBranchDto.organization.phone
+                },
+                subscriptionPlan,
+                createdById: creatorId // Use the real user ID or null
+            });
+            this.logger.log(`Organization created with ID: ${organization.id}`);
+            // Create user with organization
+            const user = await this.usersService.create({
+                firstName: createBranchDto.user.firstName,
+                lastName: createBranchDto.user.lastName,
+                email: createBranchDto.user.email,
+                password: createBranchDto.user.password,
+                phoneNumber: createBranchDto.user.phone,
+                role: role_enum_1.Role.ADMIN,
+                organizationId: organization.id,
+                createdBy: creatorId // Use the real user ID or null
+            });
+            this.logger.log(`User created with ID: ${user.id}`);
+            // Use the email verification service to generate a token and send email
+            const token = await this.emailVerificationService.generateVerificationToken(user.id);
+            await this.emailVerificationService.sendVerificationEmail(user.id);
+            // Log verification token in development environment
+            if (process.env.NODE_ENV !== 'production') {
+                this.logger.debug(`VERIFICATION TOKEN for ${user.email}: ${token}`);
             }
-        });
-        // Log verification token in development environment
-        if (process.env.NODE_ENV !== 'production') {
-            console.log(`VERIFICATION TOKEN for ${user.email}: ${verificationToken}`);
+            return {
+                user,
+                verificationToken: process.env.NODE_ENV !== 'production' ? token : undefined
+            };
         }
-        return {
-            user,
-            verificationToken: process.env.NODE_ENV !== 'production' ? verificationToken : undefined
-        };
+        catch (error) {
+            this.logger.error(`Error creating branch: ${error.message}`, error.stack);
+            throw new common_1.BadRequestException(`Failed to create branch: ${error.message}`);
+        }
     }
     /**
      * Sends a password reset email to the user
@@ -251,7 +170,7 @@ let UserAccountService = class UserAccountService {
         const organizationName = organization ? organization.name : 'Our Platform';
         // Send reset email
         // This would typically use a mail service
-        console.log(`Password reset link for ${user.email}: https://${(organization === null || organization === void 0 ? void 0 : organization.domain) || 'your-app.com'}/reset-password?token=${token}`);
+        this.logger.debug(`Password reset link for ${user.email}: https://${(organization === null || organization === void 0 ? void 0 : organization.domain) || 'your-app.com'}/reset-password?token=${token}`);
         // In a real implementation, you would send an email with the reset link
         // Example:
         /*
@@ -294,105 +213,19 @@ let UserAccountService = class UserAccountService {
      * @param token The email verification token
      */
     async confirmEmail(token) {
-        // Find user verification record by token
-        const verification = await this.userVerificationRepository.findOne({
-            where: { emailVerificationToken: token },
-            relations: ['user'],
-        });
-        if (!verification) {
-            throw new common_1.UnauthorizedException('Invalid or expired verification token');
-        }
-        // Check if token is expired
-        if (verification.emailVerificationExpires && verification.emailVerificationExpires < new Date()) {
-            throw new common_1.UnauthorizedException('Verification token has expired');
-        }
-        // Update user's email verification status
-        const user = await this.userRepository.findOne({ where: { id: verification.userId } });
-        if (!user) {
-            throw new common_1.UnauthorizedException('User not found');
-        }
-        user.isEmailVerified = true;
-        await this.userRepository.save(user);
-        // Update verification record
-        verification.isEmailVerified = true;
-        verification.emailVerifiedAt = new Date();
-        verification.emailVerificationToken = null;
-        verification.emailVerificationExpires = null;
-        await this.userVerificationRepository.save(verification);
+        // Use the email verification service to verify the email
+        const result = await this.emailVerificationService.verifyEmail(token);
+        // Optionally send a welcome email after verification
+        await this.emailVerificationService.sendWelcomeEmail(result.userId);
+        this.logger.log(`Email verified successfully for user ${result.userId} (${result.email})`);
     }
     /**
      * Sends a verification email to the user
      * @param userId The ID of the user to send the verification email to
      */
     async sendVerificationEmail(userId) {
-        const user = await this.userRepository.findOne({
-            where: { id: userId },
-            relations: ['verification'],
-        });
-        if (!user) {
-            throw new common_1.UnauthorizedException('User not found');
-        }
-        // Check if user is already verified
-        if (user.isEmailVerified) {
-            return; // Already verified, no need to send email
-        }
-        // Generate a verification token
-        const token = (0, uuid_1.v4)();
-        const expiresAt = new Date();
-        expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
-        // Create or update verification record
-        let verification;
-        if (!user.verification) {
-            // Create new verification record
-            verification = new user_verification_entity_1.UserVerification();
-            verification.userId = user.id;
-            verification.isEmailVerified = false;
-            verification.isPhoneVerified = false;
-            verification.emailVerificationToken = token;
-            verification.emailVerificationExpires = expiresAt;
-            verification.createdAt = new Date();
-            verification.updatedAt = new Date();
-        }
-        else {
-            // Get existing verification record
-            verification = await this.userVerificationRepository.findOne({
-                where: { userId: user.id }
-            });
-            if (!verification) {
-                // Create new if somehow not found
-                verification = new user_verification_entity_1.UserVerification();
-                verification.userId = user.id;
-                verification.isEmailVerified = false;
-                verification.isPhoneVerified = false;
-            }
-            // Update verification record
-            verification.emailVerificationToken = token;
-            verification.emailVerificationExpires = expiresAt;
-            verification.updatedAt = new Date();
-        }
-        // Save verification record
-        await this.userVerificationRepository.save(verification);
-        // Get organization info for email template
-        const organization = await this.organizationRepository.findOne({ where: { id: user.organizationId } });
-        const organizationName = organization ? organization.name : 'Our Platform';
-        // Send verification email
-        // This would typically use a mail service
-        console.log(`Verification link for ${user.email}: https://your-app.com/verify-email?token=${token}`);
-        // In a real implementation, you would send an email with the verification link
-        // Example:
-        /*
-        await this.mailService.sendMail({
-          to: user.email,
-          subject: `Verify your email for ${organizationName}`,
-          template: 'email-verification',
-          context: {
-            name: user.firstName,
-            organizationName,
-            verificationLink: `https://${organization?.domain || 'your-app.com'}/verify-email?token=${token}`,
-            expiresIn: '24 hours',
-          },
-        });
-        */
+        // Use the email verification service to send the verification email
+        await this.emailVerificationService.sendVerificationEmail(userId);
     }
     /**
      * Checks if email verification is required for a specific action
@@ -405,7 +238,7 @@ let UserAccountService = class UserAccountService {
         return requireVerification;
     }
 };
-UserAccountService = __decorate([
+UserAccountService = UserAccountService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __param(1, (0, typeorm_1.InjectRepository)(organization_entity_1.Organization)),
@@ -420,7 +253,8 @@ UserAccountService = __decorate([
         users_service_1.UsersService,
         config_1.ConfigService,
         organizations_service_1.OrganizationsService,
-        email_service_1.EmailService])
+        email_service_1.EmailService,
+        email_verification_service_1.EmailVerificationService])
 ], UserAccountService);
 exports.UserAccountService = UserAccountService;
 //# sourceMappingURL=user-account.service.js.map

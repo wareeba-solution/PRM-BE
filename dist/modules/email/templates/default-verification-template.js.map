@@ -1,0 +1,1 @@
+{"version":3,"file":"default-verification-template.js","sourceRoot":"","sources":["../../../../src/modules/email/templates/default-verification-template.ts"],"names":[],"mappings":";AAAA,+DAA+D;;;AAElD,QAAA,6BAA6B,GAAG;IACzC,IAAI,EAAE,oBAAoB;IAC1B,OAAO,EAAE,2BAA2B;IACpC,OAAO,EAAE;;;;;;;;;;;;;;;;;;;GAmBV;IACC,IAAI,EAAE,eAAe;IACrB,MAAM,EAAE,QAAQ;IAChB,SAAS,EAAE,IAAI;CAClB,CAAC"}
